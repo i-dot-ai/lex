@@ -1,0 +1,47 @@
+import logging
+
+from bs4 import BeautifulSoup
+
+from lex.core.parser import LexParser
+from lex.legislation.models import Legislation, LegislationSection
+from lex.legislation.parser.xml_parser import LegislationParser as LegislationWithContentParser
+
+logger = logging.getLogger(__name__)
+
+
+class LegislationParser(LexParser):
+    def __init__(self):
+        self.parser = LegislationWithContentParser()
+
+    def parse_content(self, soup: BeautifulSoup) -> Legislation:
+        """Wrapper function to take the Lex Graph parser and return the Legislation object"""
+
+        legislation_with_content = self.parser.parse(soup)
+
+        logger.info(f"Parsed legislation: {legislation_with_content.id}")
+
+        legislation = Legislation(
+            **legislation_with_content.model_dump(exclude={"sections", "schedules", "commentaries"})
+        )
+
+        return legislation
+
+
+class LegislationSectionParser(LexParser):
+    def __init__(self):
+        self.parser = LegislationWithContentParser()
+
+    def parse_content(self, soup: BeautifulSoup) -> list[LegislationSection]:
+        legislation = self.parser.parse(soup)
+
+        logger.info(f"Parsed legislation: {legislation.id}")
+
+        all_provisions = []
+        all_provisions.extend(legislation.sections)
+        all_provisions.extend(legislation.schedules)
+
+        all_provisions = [
+            LegislationSection(**provision.model_dump()) for provision in all_provisions
+        ]
+
+        return all_provisions

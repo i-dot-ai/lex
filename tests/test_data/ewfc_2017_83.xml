@@ -1,0 +1,314 @@
+<akomaNtoso xmlns="http://docs.oasis-open.org/legaldocml/ns/akn/3.0" xmlns:html="http://www.w3.org/1999/xhtml" xmlns:uk="https://caselaw.nationalarchives.gov.uk/akn">
+  <judgment name="judgment">
+    <meta>
+      <identification source="#tna">
+	<FRBRWork>
+	  <FRBRthis value="https://caselaw.nationalarchives.gov.uk/id/ewfc/2017/83"/>
+	  <FRBRuri value="https://caselaw.nationalarchives.gov.uk/id/ewfc/2017/83"/>
+	  <FRBRdate date="2017-12-21" name="judgment"/>
+	  <FRBRauthor href="#ewhc-family"/>
+	  <FRBRcountry value="GB-UKM"/>
+	  <FRBRnumber value="83"/>
+	  <FRBRname value="Y v Z &amp; Ors"/>
+	</FRBRWork>
+	<FRBRExpression>
+	  <FRBRthis value="https://caselaw.nationalarchives.gov.uk/ewfc/2017/83"/>
+	  <FRBRuri value="https://caselaw.nationalarchives.gov.uk/ewfc/2017/83"/>
+	  <FRBRdate date="2017-12-21" name="judgment"/>
+	  <FRBRauthor href="#ewhc-family"/>
+	  <FRBRlanguage language="eng"/>
+	</FRBRExpression>
+	<FRBRManifestation>
+	  <FRBRthis value="https://caselaw.nationalarchives.gov.uk/ewfc/2017/83/data.xml"/>
+	  <FRBRuri value="https://caselaw.nationalarchives.gov.uk/ewfc/2017/83/data.xml"/>
+	  <FRBRdate date="2024-11-06T22:33:04" name="transform"/>
+	  <FRBRdate date="2024-11-22T18:08:59" name="tna-enriched"/>
+	  <FRBRauthor href="#tna"/>
+	  <FRBRformat value="application/xml"/>
+	</FRBRManifestation>
+      </identification>
+      <lifecycle source="#">
+	<eventRef date="2017-12-21" refersTo="#judgment" source="#"/>
+      </lifecycle>
+      <references source="#tna">
+	<TLCOrganization eId="ewhc-family" href="https://www.gov.uk/courts-tribunals/family-division-of-the-high-court" shortForm="The Family Division" showAs="The Family Division of the High Court"/>
+	<TLCOrganization eId="tna" href="https://www.nationalarchives.gov.uk/" showAs="The National Archives"/>
+	<TLCEvent eId="judgment" href="#" showAs="judgment"/>
+	<TLCPerson eId="y" href="" showAs="Y"/>
+	<TLCPerson eId="z" href="" showAs="Z"/>
+	<TLCPerson eId="w" href="" showAs="W"/>
+	<TLCPerson eId="x-a-minor-by-her-childrens-guardian-ms-jacqueline-roddy" href="" showAs="X (a minor by Her Children&#8217;s Guardian Ms Jacqueline Roddy)"/>
+	<TLCRole eId="applicant" href="" showAs="Applicant"/>
+	<TLCRole eId="respondent" href="" showAs="Respondent"/>
+	<TLCPerson eId="judge-mrs-justice-theis-dbe" href="/judge-mrs-justice-theis-dbe" showAs="MRS JUSTICE THEIS DBE"/>
+      </references>
+      <proprietary source="#">
+	<uk:court>EWHC-Family</uk:court>
+	<uk:year>2017</uk:year>
+	<uk:number>83</uk:number>
+	<uk:cite>[2017] EWFC 83</uk:cite>
+	<uk:parser>0.26.10</uk:parser>
+	<uk:hash>1be48b501ccf627ae3d11b06b3c4ea383adc3dfd6679c2f386e74bae20708fc5</uk:hash>
+	<uk:tna-enrichment-engine>6.0.2</uk:tna-enrichment-engine>
+      </proprietary>
+      <presentation source="#">
+	<html:style>
+#judgment { font-family: 'Times New Roman'; font-size: 12pt; }
+#judgment .Normal { font-size: 12pt; }
+#judgment .Heading1 { font-weight: bold; font-family: Arial; font-size: 16pt; }
+#judgment .Heading3 { font-weight: bold; font-family: Arial; font-size: 13pt; }
+#judgment .CoverDesc { text-align: center; font-weight: bold; font-size: 18pt; }
+#judgment .CoverMain { font-weight: bold; text-decoration-line: underline; text-decoration-style: solid; font-size: 12pt; }
+#judgment .CoverText { text-align: right; text-decoration-line: underline; text-decoration-style: solid; font-size: 12pt; }
+#judgment .ParaHeading { font-size: 12pt; }
+#judgment .ParaLevel1 { text-align: justify; margin-left: 0.5in; font-size: 12pt; }
+#judgment .ParaLevel2 { text-align: justify; margin-left: 0.98in; font-size: 12pt; }
+#judgment .ParaLevel3 { text-align: justify; margin-left: 1.48in; font-size: 12pt; }
+#judgment .ParaLevel4 { text-align: justify; margin-left: 1.97in; font-size: 12pt; }
+#judgment .ParaLevel5 { text-align: justify; margin-left: 2.46in; font-size: 12pt; }
+#judgment .ParaLevel6 { text-align: justify; margin-left: 2.95in; font-size: 12pt; }
+#judgment .ParaLevel7 { text-align: justify; margin-left: 3.45in; font-size: 12pt; }
+#judgment .ParaLevel8 { text-align: justify; margin-left: 3.94in; font-size: 12pt; }
+#judgment .ParaLevel9 { text-align: justify; margin-left: 4.43in; font-size: 12pt; }
+#judgment .ParaNoNumber { text-align: justify; font-size: 12pt; }
+#judgment .Quote { text-align: justify; margin-left: 1in; margin-right: 1in; font-size: 12pt; }
+#judgment .Header { font-family: Univers; font-size: 12pt; }
+#judgment .Footer { font-family: Univers; font-size: 12pt; }
+#judgment .Heading { font-size: 12pt; }
+#judgment .Title { text-align: center; font-weight: bold; font-size: 10pt; }
+#judgment .eMailBlock { text-align: center; font-weight: bold; font-size: 13pt; }
+#judgment .ListParagraph { margin-left: 0.5in; font-family: 'Calibri, sans-serif'; font-size: 11pt; }
+#judgment .BalloonText { font-family: Tahoma; font-size: 8pt; }
+#judgment .Heading1Char { font-weight: bold; font-size: 16pt; }
+#judgment .Heading3Char { font-weight: bold; font-size: 13pt; }
+#judgment .QuoteChar { font-style: italic; font-size: 12pt; color: #404040; }
+#judgment .HeaderChar { font-size: 12pt; }
+#judgment .FooterChar { font-size: 12pt; }
+#judgment .TitleChar { font-weight: bold; font-size: 16pt; }
+#judgment .Hyperlink { text-decoration-line: underline; text-decoration-style: solid; color: #0000FF; }
+#judgment .ListParagraphChar { font-family: 'Calibri, sans-serif'; font-size: 11pt; }
+#judgment .BalloonTextChar { font-family: 'Segoe UI'; font-size: 9pt; }
+</html:style>
+      </presentation>
+    </meta>
+    <header>
+      <p style="text-align:center">This judgment was delivered in private.   The judge has given leave for this version of the judgment to be published. The anonymity of the children and members of their family must be strictly preserved.  All persons, including representatives of the media, must ensure that this condition is strictly complied with.   Failure to do so will be a contempt of court.</p>
+      <p class="CoverText">Case No: <docketNumber>ZC15P00206</docketNumber></p>
+      <p class="CoverText" style="text-align:left">Neutral Citation Number: <neutralCitation>[2017] EWFC 83</neutralCitation></p>
+      <p class="CoverMain"><courtType refersTo="#ewfc">IN THE FAMILY COURT</courtType></p>
+      <p><span style="font-weight:bold;text-decoration-line:underline;text-decoration-style:solid">Sitting at the Royal Courts of Justice</span></p>
+      <p class="CoverText">Royal Courts of Justice</p>
+      <p class="CoverText">Strand, London, WC2A 2LL</p>
+      <p class="CoverText">Date: <docDate date="2017-12-21" refersTo="#judgment">21/12/2017</docDate></p>
+      <p style="text-align:center"><span style="font-weight:bold">Before</span>:</p>
+      <p class="CoverMain" style="text-align:center"><judge refersTo="#judge-mrs-justice-theis-dbe">MRS JUSTICE THEIS DBE</judge></p>
+      <p style="text-align:center">- - - - - - - - - - - - - - - - - - - - -</p>
+      <p style="text-align:center"><span style="font-weight:bold">Between:</span></p>
+      <table uk:widths="1.23in 3.87in 1.24in">
+	<tr>
+	  <td>
+	    <p/>
+	  </td>
+	  <td>
+	    <p style="text-align:center"><party as="#applicant" refersTo="#y" style="font-weight:bold">Y</party></p>
+	  </td>
+	  <td>
+	    <p class="CoverMain" style="text-align:right"><role refersTo="#applicant">1<span style="vertical-align:super;font-size:smaller">st</span> Applicant</role></p>
+	  </td>
+	</tr>
+	<tr>
+	  <td>
+	    <p/>
+	  </td>
+	  <td>
+	    <p style="text-align:center"><span style="font-weight:bold">- and -</span></p>
+	  </td>
+	  <td>
+	    <p class="CoverMain" style="text-align:right"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td>
+	    <p/>
+	  </td>
+	  <td>
+	    <p style="text-align:center"><party as="#applicant" refersTo="#z" style="font-weight:bold">Z</party></p>
+	  </td>
+	  <td>
+	    <p class="CoverMain" style="text-align:right"><role refersTo="#applicant">2<span style="vertical-align:super;font-size:smaller">nd</span> Applicant</role></p>
+	  </td>
+	</tr>
+	<tr>
+	  <td>
+	    <p/>
+	  </td>
+	  <td>
+	    <p style="text-align:center"><span style="font-weight:bold">- and - </span></p>
+	  </td>
+	  <td>
+	    <p class="CoverMain" style="text-align:right"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td>
+	    <p/>
+	  </td>
+	  <td>
+	    <p style="text-align:center"><party as="#respondent" refersTo="#w" style="font-weight:bold">W</party></p>
+	  </td>
+	  <td>
+	    <p class="CoverMain" style="text-align:right"><role refersTo="#respondent">1<span style="vertical-align:super;font-size:smaller">st</span> Respondent</role></p>
+	  </td>
+	</tr>
+	<tr>
+	  <td>
+	    <p/>
+	  </td>
+	  <td>
+	    <p style="text-align:center"><span style="font-weight:bold">- and - </span></p>
+	  </td>
+	  <td>
+	    <p class="CoverMain" style="text-align:right"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td>
+	    <p/>
+	  </td>
+	  <td>
+	    <p style="text-align:center"><party as="#respondent" refersTo="#x-a-minor-by-her-childrens-guardian-ms-jacqueline-roddy" style="font-weight:bold">X (a minor by Her Children&#8217;s Guardian Ms Jacqueline Roddy)</party></p>
+	  </td>
+	  <td>
+	    <p class="CoverMain" style="text-align:right"/>
+	    <p class="CoverMain" style="text-align:right"><role refersTo="#respondent">2<span style="vertical-align:super;font-size:smaller">nd</span> Respondent</role></p>
+	  </td>
+	</tr>
+      </table>
+      <p style="text-align:center">- - - - - - - - - - - - - - - - - - - - -</p>
+      <p style="text-align:center">- - - - - - - - - - - - - - - - - - - - -</p>
+      <p style="text-align:center"><span style="font-weight:bold;font-size:11pt">Ms Deirdre Fottrell Q.C &amp; Ms Eleri Jones </span><span style="font-size:11pt">(instructed by</span><span style="font-weight:bold;font-size:11pt"/><span style="font-size:11pt">Vaitilingam Kay Ltd) for the </span><span style="font-weight:bold;font-size:11pt">1</span><span style="font-weight:bold;vertical-align:super;font-size:11pt">st</span><span style="font-weight:bold;font-size:11pt"> Applicant</span></p>
+      <p style="text-align:center"><span style="font-weight:bold;font-size:11pt">Z 2</span><span style="font-weight:bold;vertical-align:super;font-size:11pt">nd</span><span style="font-weight:bold;font-size:11pt"> Applicant </span><span style="font-size:11pt">appeared in person</span></p>
+      <p style="text-align:center"><span style="font-weight:bold;font-size:11pt">The 1</span><span style="font-weight:bold;vertical-align:super;font-size:11pt">st</span><span style="font-weight:bold;font-size:11pt"> Respondent did not attend</span></p>
+      <p style="text-align:center"><span style="font-weight:bold;font-size:11pt">Ms Hannah Markham Q.C.</span><span style="font-size:11pt"> (instructed by </span><span style="font-weight:bold;font-size:11pt">Cafcass Legal</span><span style="font-size:11pt">) for the </span><span style="font-weight:bold;font-size:11pt">2</span><span style="font-weight:bold;vertical-align:super;font-size:11pt">nd</span><span style="font-weight:bold;font-size:11pt"> Respondent</span></p>
+      <p style="text-align:center">- - - - - - - - - - - - - - - - - - - - -</p>
+      <p class="CoverDesc">Judgment</p>
+      <p><span style="font-weight:bold">Mrs Justice Theis DBE:</span></p>
+      <p><marker name="tab"/><span style="font-weight:bold">Introduction</span></p>
+    </header>
+    <judgmentBody>
+      <decision>
+	<paragraph eId="para_1">
+	  <num style="margin-left:0.64in;text-indent:-0.25in">1.</num>
+	  <content>
+	    <p class="ListParagraph" style="text-align:justify;margin-left:0.64in"><span style="font-family:'Times New Roman';font-size:12pt">By the order dated 27 June 2017 I vacated a 2 day hearing that had been listed on 29 June to determine an application for a declaration of parental responsibility relating to a young child, X. In that order I reserved costs. Y now seeks an order that his costs relating to that application are paid by Z. Z resists that application. I have had the benefit of detailed written argument on costs by both parties and it is agreed I should determine the issue on consideration of the papers.</span></p>
+	  </content>
+	</paragraph>
+	<level eId="lvl_1">
+	  <content>
+	    <p style="text-align:justify;margin-left:0.25in"><span style="font-weight:bold">Background</span></p>
+	  </content>
+	</level>
+	<paragraph eId="para_2">
+	  <num style="margin-left:0.64in;text-indent:-0.25in">2.</num>
+	  <content>
+	    <p class="ListParagraph" style="text-align:justify;margin-left:0.64in"><span style="font-family:'Times New Roman';font-size:12pt">X was born following a surrogacy arrangement in the US between the applicants in these proceedings, Y and Z, and the surrogate mother, W. There have been proceedings concerning X in Florida, New York and in this jurisdiction. An application for a parental order in this jurisdiction was initially issued by the applicants jointly, although Y subsequently decided he did not want to pursue that application and sought leave to withdraw it. Z resisted that application, and sought to pursue the application for a parental order. In the event the court was not satisfied that one of the criteria under s54 was met, namely that one of the applicants was domiciled in this jurisdiction at the time the application was made and when the court is making the order. Having heard the evidence of both parties I concluded that criteria was not satisfied and, as a result, the application for a parental order could not proceed.</span></p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_3">
+	  <num style="margin-left:0.64in;text-indent:-0.25in">3.</num>
+	  <content>
+	    <p class="ListParagraph" style="text-align:justify;margin-left:0.64in"><span style="font-family:'Times New Roman';font-size:12pt">Z also sought a declaration that he had parental responsibility for X, through a step-parent responsibility agreement (&#8216;SPPRA&#8217;) which was registered here on 27 November 2015. Y did not accept this, his position was that he did not have parental responsibility for X under English law, which he would be required to have in order to convey parental responsibility to Z when the SPPRA was signed. Y further said that the execution of the document was defective. Y&#8217;s position was set out in a letter dated 10 June 2016. Z issued his application for a declaration for parental responsibility on 17 October 2016, and Y&#8217;s solicitors wrote again setting out his position on 23 December 2016 and invited Z to withdraw his application. Y filed position statements for the hearings on 20 February and 7 April 2017, again setting out his position opposing the declaration regarding parental responsibility. A two day hearing to consider the parental responsibility declaration was listed on 29 June. Z&#8217;s skeleton argument on this issue was due on 12 June and Y&#8217;s on 19 June.</span></p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_4">
+	  <num style="margin-left:0.64in;text-indent:-0.25in">4.</num>
+	  <content>
+	    <p class="ListParagraph" style="text-align:justify;margin-left:0.64in"><span style="font-family:'Times New Roman';font-size:12pt">On 9 June Z&#8217;s solicitor informed the parties that he did not wish to pursue his application for a declaration and proposed that the hearing on 29 June should be vacated. Y&#8217;s solicitors responded seeking clarification as to whether or not Z accepted he did not have parental responsibility for X, and he was requested to confirm his position by 16 June. There then followed correspondence between the parties&#8217; solicitors, and it was not until 21 June that Z agreed to a recital that he accepted he did not have parental responsibility. A consent order was submitted to the court on 27 June, which was approved and provided for the costs to be reserved.</span></p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_5">
+	  <num style="margin-left:0.64in;text-indent:-0.25in">5.</num>
+	  <intro>
+	    <p class="ListParagraph" style="text-align:justify;margin-left:0.64in"><span style="font-family:'Times New Roman';font-size:12pt">Y seeks payment of his costs in relation to the application by Z for a declaration. There is no issue between the parties as to the relevant legal principles set out in CPR 1998 Part 44. Whilst it is unusual to order costs in children cases, there is no presumption that there will be no order as to costs (</span><span style="font-style:italic;font-family:'Times New Roman';font-size:12pt">Gojkovic v Gojkovic <ref href="#" uk:canonical="[1992] Fam 40" uk:isNeutral="false" uk:origin="TNA" uk:type="case" uk:year="1992">[1992] Fam 40</ref>).</span><span style="font-family:'Times New Roman';font-size:12pt"> The court has a discretion, although, as set out in Part 44.2(5), it is the conduct of a party which is the main consideration as to whether or not a costs order should be made against that party; specifically whether there has been reprehensible behaviour or an unreasonable stance (see </span><span style="font-style:italic;font-family:'Times New Roman';font-size:12pt">in Re S (A Child) (Access to Justice Foundation intervening) <ref href="#" uk:canonical="[2015] 1 WLR 1631" uk:isNeutral="false" uk:origin="TNA" uk:type="case" uk:year="2015">[2015] 1 WLR 1631</ref> para 26).</span><span style="font-family:'Times New Roman';font-size:12pt"> Much turns on the circumstances of each case.</span></p>
+	  </intro>
+	  <subparagraph>
+	    <content>
+	      <p class="ListParagraph" style="text-align:justify;margin-left:0.5in"><span style="font-weight:bold;font-family:'Times New Roman';font-size:12pt">Submissions</span></p>
+	    </content>
+	  </subparagraph>
+	</paragraph>
+	<paragraph eId="para_6">
+	  <num style="margin-left:0.64in;text-indent:-0.25in">6.</num>
+	  <intro>
+	    <p class="ListParagraph" style="text-align:justify;margin-left:0.64in"><span style="font-family:'Times New Roman';font-size:12pt">Y submits the following are relevant considerations:</span></p>
+	  </intro>
+	  <subparagraph>
+	    <num style="margin-left:0.79in;text-indent:-0.25in">(1)</num>
+	    <content>
+	      <p class="ListParagraph" style="text-align:justify;margin-left:0.79in;text-indent:0.12in"><span style="font-family:'Times New Roman';font-size:12pt">It was unreasonable for Z to pursue his declaration, the matter was put in issue four months prior to his application in the exchange of correspondence between solicitors. Even after Z&#8217;s application for a declaration Y&#8217;s solicitor made the same points in their letter dated 23 December, and at the hearings in February and April. Despite those representations made on behalf of Y, Z continued with his application until the letter dated 9 June, and it was not until 21 June that he conceded he did not have parental responsibility for X.</span></p>
+	    </content>
+	  </subparagraph>
+	  <subparagraph>
+	    <num style="margin-left:0.79in;text-indent:-0.25in">(2)</num>
+	    <content>
+	      <p class="ListParagraph" style="text-align:justify;margin-left:0.79in;text-indent:0.12in"><span style="font-family:'Times New Roman';font-size:12pt">The issue of who had parental responsibility for X was important in the context of the wider proceedings concerning her and Z&#8217;s delay in conceding the issue until 21 June was unreasonable.</span></p>
+	    </content>
+	  </subparagraph>
+	</paragraph>
+	<paragraph eId="para_7">
+	  <num style="margin-left:0.64in;text-indent:-0.25in">7.</num>
+	  <intro>
+	    <p class="ListParagraph" style="text-align:justify;margin-left:0.64in"><span style="font-family:'Times New Roman';font-size:12pt">Z  resists the application for the following reasons:</span></p>
+	  </intro>
+	  <subparagraph>
+	    <num style="margin-left:0.75in;text-indent:-0.25in">(1)</num>
+	    <content>
+	      <p class="ListParagraph" style="text-align:justify;margin-left:0.75in;text-indent:0.12in"><span style="font-family:'Times New Roman';font-size:12pt">In the period of April &#8211; May 2015 Y entered into a parental responsibility agreement with the surrogate mother, and Z and the surrogate mother entered into a further SPPRA. These were done with the intention of conferring parental responsibility on Y and Z as a matter of English law.</span></p>
+	    </content>
+	  </subparagraph>
+	  <subparagraph>
+	    <num style="margin-left:0.75in;text-indent:-0.25in">(2)</num>
+	    <content>
+	      <p class="ListParagraph" style="text-align:justify;margin-left:0.75in;text-indent:0.12in"><span style="font-family:'Times New Roman';font-size:12pt">Before Y and Z separated Z sent the documents to the Central Family Court (&#8216;CFC&#8217;) for registration. Y&#8217;s position, as is recorded in the recital of the order dated 28 June 2017, is that this was done without his knowledge or consent. </span></p>
+	    </content>
+	  </subparagraph>
+	  <subparagraph>
+	    <num style="margin-left:0.75in;text-indent:-0.25in">(3)</num>
+	    <content>
+	      <p class="ListParagraph" style="text-align:justify;margin-left:0.75in;text-indent:0.12in"><span style="font-family:'Times New Roman';font-size:12pt">The CFC initially registered the SPPRA, but not Y&#8217;s parental responsibility agreement in October/November 2015. When made aware of the CFC&#8217;s failure to register Y&#8217;s parental responsibility agreement the CFC registered Y&#8217;s agreement with the same date of the registration of the SPPRA.</span></p>
+	    </content>
+	  </subparagraph>
+	  <subparagraph>
+	    <num style="margin-left:0.75in;text-indent:-0.25in">(4)</num>
+	    <content>
+	      <p class="ListParagraph" style="text-align:justify;margin-left:0.75in;text-indent:0.12in"><span style="font-family:'Times New Roman';font-size:12pt">The issue of parental responsibility for X only came to light in June 2016 after Y&#8217;s solicitors informed Z&#8217;s solicitors that X had, unbeknown to Z, been the subject of a second parent adoption in New York. Z reasonably believed he had parental responsibility as he had received notification from the CFC that his SPPRA had been registered.</span></p>
+	    </content>
+	  </subparagraph>
+	  <subparagraph>
+	    <num style="margin-left:0.75in;text-indent:-0.25in">(5)</num>
+	    <content>
+	      <p class="ListParagraph" style="text-align:justify;margin-left:0.75in;text-indent:0.12in"><span style="font-family:'Times New Roman';font-size:12pt">Z made it clear in his letter dated 9 June 2017 he was withdrawing his application making it clear that in doing so it was to save costs.</span></p>
+	    </content>
+	  </subparagraph>
+	  <subparagraph>
+	    <content>
+	      <p class="ListParagraph" style="text-align:justify;margin-left:0.5in"><span style="font-weight:bold;font-family:'Times New Roman';font-size:12pt">Discussion and Decision</span></p>
+	    </content>
+	  </subparagraph>
+	</paragraph>
+	<paragraph eId="para_8">
+	  <num style="margin-left:0.64in;text-indent:-0.25in">8.</num>
+	  <content>
+	    <p class="ListParagraph" style="text-align:justify;margin-left:0.64in"><span style="font-family:'Times New Roman';font-size:12pt">Whilst it is right that Y made his position clear at an early stage his position in relation to any assertion made by Z that he had parental responsibility for X, the factual and legal background to the registration of the parental responsibility agreements here was not straightforward. It is also a consideration that one of the main motivating factors behind Z making the application for a declaration was as a result of being informed that X had been the subject of an adoption order in New York. That information had not been volunteered by Y until June 2016. Limited, if any, further details were provided by Y and it took Z sometime to discover which New York court had actually made the order and the information that the court had in relation to Z. Z has successfully made an application to set aside the adoption order such order being vacated for Fraud on the Court. So, whilst there can be some criticism of the way Z deal with his application for a declaration bearing in mind the position articulated on behalf of Y and the relatively late decision by Z to withdraw his application, the wider context of why he made the application can&#8217;t be ignored. He made it clear on 9 June 2017 that  he was going to withdraw his application for a declaration, there followed correspondence regarding the terms of the order which did not negate his position regarding his application as set out on 9 June. It was not necessary for that application to be made for the purposes of the parental order application and probably would not have been made but for the position regarding the adoption order. In those circumstances, having regard to all the circumstances of the case, I do not consider that Z&#8217;s conduct is such that it was reprehensible or that, in the circumstance of this case, he took an unreasonable stance in order for him to be responsible for all the costs relating to his application</span></p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_9">
+	  <num style="margin-left:0.64in;text-indent:-0.25in">9.</num>
+	  <content>
+	    <p class="ListParagraph" style="text-align:justify;margin-left:0.64in"><span style="font-family:'Times New Roman';font-size:12pt">I therefore refuse the application for Z to pay all of the costs but consider that he should pay half of Y&#8217;s costs referable to the declaration application, to be agreed between the parties or subject to a detailed assessment. </span></p>
+	  </content>
+	</paragraph>
+      </decision>
+    </judgmentBody>
+  </judgment>
+</akomaNtoso>

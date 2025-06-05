@@ -1,0 +1,1447 @@
+<akomaNtoso xmlns="http://docs.oasis-open.org/legaldocml/ns/akn/3.0" xmlns:html="http://www.w3.org/1999/xhtml" xmlns:uk="https://caselaw.nationalarchives.gov.uk/akn">
+  <judgment name="judgment">
+    <meta>
+      <identification source="#tna">
+	<FRBRWork>
+	  <FRBRthis value="https://caselaw.nationalarchives.gov.uk/id/ewhc/admin/2017/3364"/>
+	  <FRBRuri value="https://caselaw.nationalarchives.gov.uk/id/ewhc/admin/2017/3364"/>
+	  <FRBRdate date="2017-12-20" name="judgment"/>
+	  <FRBRauthor href="#ewhc-qbd-admin"/>
+	  <FRBRcountry value="GB-UKM"/>
+	  <FRBRnumber value="3364"/>
+	  <FRBRname value="Corbiere Ltd &amp; Ors, R (On the Application Of) v Secretary Of State For Justice &amp; Ors"/>
+	</FRBRWork>
+	<FRBRExpression>
+	  <FRBRthis value="https://caselaw.nationalarchives.gov.uk/ewhc/admin/2017/3364"/>
+	  <FRBRuri value="https://caselaw.nationalarchives.gov.uk/ewhc/admin/2017/3364"/>
+	  <FRBRdate date="2017-12-20" name="judgment"/>
+	  <FRBRauthor href="#ewhc-qbd-admin"/>
+	  <FRBRlanguage language="eng"/>
+	</FRBRExpression>
+	<FRBRManifestation>
+	  <FRBRthis value="https://caselaw.nationalarchives.gov.uk/ewhc/admin/2017/3364/data.xml"/>
+	  <FRBRuri value="https://caselaw.nationalarchives.gov.uk/ewhc/admin/2017/3364/data.xml"/>
+	  <FRBRdate date="2024-11-03T21:00:42" name="transform"/>
+	  <FRBRdate date="2024-11-23T04:46:24" name="tna-enriched"/>
+	  <FRBRauthor href="#tna"/>
+	  <FRBRformat value="application/xml"/>
+	</FRBRManifestation>
+      </identification>
+      <lifecycle source="#">
+	<eventRef date="2017-12-20" refersTo="#judgment" source="#"/>
+      </lifecycle>
+      <references source="#tna">
+	<TLCOrganization eId="ewhc-qbd-admin" href="https://www.gov.uk/courts-tribunals/administrative-court" shortForm="The Administrative Court" showAs="The Administrative Court (Queen's Bench Division)"/>
+	<TLCOrganization eId="tna" href="https://www.nationalarchives.gov.uk/" showAs="The National Archives"/>
+	<TLCEvent eId="judgment" href="#" showAs="judgment"/>
+	<TLCPerson eId="the-queen" href="" showAs="THE QUEEN"/>
+	<TLCPerson eId="on-the-application-of" href="" showAs="on the application of"/>
+	<TLCPerson eId="corbiere-limited" href="" showAs="CORBIERE LIMITED"/>
+	<TLCPerson eId="trenchant-limited" href="" showAs="TRENCHANT LIMITED"/>
+	<TLCPerson eId="trenchant-employee-services-limited" href="" showAs="TRENCHANT EMPLOYEE SERVICES LIMITED"/>
+	<TLCPerson eId="secretary-of-state-for-justice" href="" showAs="SECRETARY OF STATE FOR JUSTICE"/>
+	<TLCPerson eId="secretary-of-state" href="" showAs="SECRETARY OF STATE"/>
+	<TLCPerson eId="for-the-home-department" href="" showAs="FOR THE HOME DEPARTMENT"/>
+	<TLCPerson eId="ke-xu" href="" showAs="KE XU"/>
+	<TLCRole eId="claimant" href="" showAs="Claimant"/>
+	<TLCRole eId="defendant" href="" showAs="Defendant"/>
+	<TLCRole eId="interested-party" href="" showAs="Interested Party"/>
+	<TLCPerson eId="judge-the-honourable-mr-justice-supperstone" href="/judge-the-honourable-mr-justice-supperstone" showAs="THE HONOURABLE MR JUSTICE SUPPERSTONE"/>
+      </references>
+      <proprietary source="#">
+	<uk:court>EWHC-QBD-Admin</uk:court>
+	<uk:year>2017</uk:year>
+	<uk:number>3364</uk:number>
+	<uk:cite>[2017] EWHC 3364 (Admin)</uk:cite>
+	<uk:parser>0.26.9</uk:parser>
+	<uk:hash>683fcaafbf2b271ccca57fcd2f63b60305d87264080abb1a4f262da410253fa9</uk:hash>
+	<uk:tna-enrichment-engine>6.0.2</uk:tna-enrichment-engine>
+      </proprietary>
+      <presentation source="#">
+	<html:style>
+#judgment { font-family: 'Times New Roman'; font-size: 12pt; }
+#judgment .Normal { font-size: 12pt; }
+#judgment .Heading1 { font-weight: bold; font-family: Arial; font-size: 16pt; }
+#judgment .Heading3 { font-weight: bold; font-family: Arial; font-size: 13pt; }
+#judgment .CoverDesc { text-align: center; font-weight: bold; font-size: 18pt; }
+#judgment .CoverMain { font-weight: bold; text-decoration-line: underline; text-decoration-style: solid; font-size: 12pt; }
+#judgment .CoverText { text-align: right; text-decoration-line: underline; text-decoration-style: solid; font-size: 12pt; }
+#judgment .ParaHeading { font-size: 12pt; }
+#judgment .ParaLevel1 { text-align: justify; margin-left: 0.5in; font-size: 12pt; }
+#judgment .ParaLevel2 { text-align: justify; margin-left: 0.98in; font-size: 12pt; }
+#judgment .ParaLevel3 { text-align: justify; margin-left: 1.48in; font-size: 12pt; }
+#judgment .ParaLevel4 { text-align: justify; margin-left: 1.97in; font-size: 12pt; }
+#judgment .ParaLevel5 { text-align: justify; margin-left: 2.46in; font-size: 12pt; }
+#judgment .ParaLevel6 { text-align: justify; margin-left: 2.95in; font-size: 12pt; }
+#judgment .ParaLevel7 { text-align: justify; margin-left: 3.45in; font-size: 12pt; }
+#judgment .ParaLevel8 { text-align: justify; margin-left: 3.94in; font-size: 12pt; }
+#judgment .ParaLevel9 { text-align: justify; margin-left: 4.43in; font-size: 12pt; }
+#judgment .ParaNoNumber { text-align: justify; font-size: 12pt; }
+#judgment .Quote { text-align: justify; margin-left: 1in; margin-right: 1in; font-size: 12pt; }
+#judgment .Header { font-family: Univers; font-size: 12pt; }
+#judgment .Footer { font-family: Univers; font-size: 12pt; }
+#judgment .Heading { font-size: 12pt; }
+#judgment .Title { text-align: center; font-weight: bold; font-size: 10pt; }
+#judgment .eMailBlock { text-align: center; font-weight: bold; font-size: 13pt; }
+</html:style>
+      </presentation>
+    </meta>
+    <header>
+      <p class="CoverText" style="text-align:left">Neutral Citation Number: <neutralCitation>[2017] EWHC 3364 (Admin)</neutralCitation></p>
+      <p class="CoverText">Case No: <docketNumber>CO/2365/2017</docketNumber></p>
+      <p class="CoverMain"><courtType refersTo="#ewhc-qbd-admin">IN THE HIGH COURT OF JUSTICE</courtType></p>
+      <p><courtType refersTo="#ewhc-qbd-admin" style="font-weight:bold;text-decoration-line:underline;text-decoration-style:solid">QUEEN'S BENCH DIVISION</courtType></p>
+      <p><courtType refersTo="#ewhc-qbd-admin" style="font-weight:bold;text-decoration-line:underline;text-decoration-style:solid">ADMINISTRATIVE COURT</courtType></p>
+      <p class="CoverText">Royal Courts of Justice</p>
+      <p class="CoverText">Strand, London, WC2A 2LL</p>
+      <p class="CoverText">Date: <docDate date="2017-12-20" refersTo="#judgment">20 December 2017</docDate></p>
+      <p style="text-align:center"><span style="font-weight:bold">Before</span> :</p>
+      <p class="CoverMain" style="text-align:center"><judge refersTo="#judge-the-honourable-mr-justice-supperstone">THE HONOURABLE MR JUSTICE SUPPERSTONE</judge></p>
+      <p style="text-align:center">- - - - - - - - - - - - - - - - - - - - -</p>
+      <p style="text-align:center"><span style="font-weight:bold">Between :</span></p>
+      <table uk:widths="1.23in 3.87in 1.24in">
+	<tr>
+	  <td>
+	    <p/>
+	  </td>
+	  <td>
+	    <p style="text-align:center"><party as="#claimant" refersTo="#the-queen" style="font-weight:bold">THE QUEEN </party></p>
+	    <p style="text-align:center"><party as="#claimant" refersTo="#on-the-application-of" style="font-weight:bold">on the application of </party></p>
+	    <p style="text-align:center"><party as="#claimant" refersTo="#corbiere-limited" style="font-weight:bold">(1) CORBIERE LIMITED </party></p>
+	    <p style="text-align:center"><party as="#claimant" refersTo="#trenchant-limited" style="font-weight:bold">(2) TRENCHANT LIMITED </party></p>
+	    <p style="text-align:center"><party as="#claimant" refersTo="#trenchant-employee-services-limited" style="font-weight:bold">(3) TRENCHANT EMPLOYEE SERVICES LIMITED</party></p>
+	  </td>
+	  <td>
+	    <p class="CoverMain" style="text-align:right"><role refersTo="#claimant">Claimants</role></p>
+	  </td>
+	</tr>
+	<tr>
+	  <td>
+	    <p/>
+	  </td>
+	  <td>
+	    <p style="text-align:center"><span style="font-weight:bold">- and -</span></p>
+	  </td>
+	  <td>
+	    <p class="CoverMain" style="text-align:right"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td>
+	    <p/>
+	  </td>
+	  <td>
+	    <p style="text-align:center"><party as="#defendant" refersTo="#secretary-of-state-for-justice" style="font-weight:bold">(1) SECRETARY OF STATE FOR JUSTICE </party></p>
+	    <p style="text-align:center"><party as="#defendant" refersTo="#secretary-of-state" style="font-weight:bold">(2) SECRETARY OF STATE </party></p>
+	    <p style="text-align:center"><party as="#defendant" refersTo="#for-the-home-department" style="font-weight:bold">FOR THE HOME DEPARTMENT</party></p>
+	  </td>
+	  <td>
+	    <p class="CoverMain" style="text-align:right"><role refersTo="#defendant">Defendants</role></p>
+	  </td>
+	</tr>
+	<tr>
+	  <td>
+	    <p/>
+	  </td>
+	  <td>
+	    <p style="text-align:center"><span style="font-weight:bold">- and -</span></p>
+	  </td>
+	  <td>
+	    <p class="CoverMain" style="text-align:right"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td>
+	    <p/>
+	  </td>
+	  <td>
+	    <p style="text-align:center"><party as="#interested-party" refersTo="#ke-xu" style="font-weight:bold">KE XU</party></p>
+	  </td>
+	  <td>
+	    <p class="CoverMain" style="text-align:right"><role refersTo="#interested-party" style="font-size:11pt">Interested Party</role></p>
+	  </td>
+	</tr>
+      </table>
+      <p style="text-align:center">- - - - - - - - - - - - - - - - - - - - -</p>
+      <p style="text-align:center">- - - - - - - - - - - - - - - - - - - - -</p>
+      <p style="text-align:center"><span style="font-weight:bold">Michael Fordham QC, Emma Dixon, Naina Patel and Tom Mountford</span></p>
+      <p style="text-align:center">(instructed by<span style="font-weight:bold"> Allen &amp; Overy LLP</span>) for the <span style="font-weight:bold">Claimants</span></p>
+      <p style="text-align:center"><span style="font-weight:bold">Robin Tam QC and Will Hays</span> (instructed by <span style="font-weight:bold">GLD</span>) for the <span style="font-weight:bold">First Defendant</span></p>
+      <p style="text-align:center"><span style="font-weight:bold">Robin Tam QC and Alan Payne</span> (instructed by <span style="font-weight:bold">GLD</span>) for the <span style="font-weight:bold">Second Defendant</span></p>
+      <p style="text-align:center"><span style="font-weight:bold">Raza Halim</span> (instructed by <span style="font-weight:bold">Imran Khan Sols</span>) for the <span style="font-weight:bold">Interested Party</span></p>
+      <p style="text-align:center">Hearing dates: 16,17 and 29 November 2017</p>
+      <p style="text-align:center">- - - - - - - - - - - - - - - - - - - - -</p>
+      <p class="CoverDesc">Judgment Approved</p>
+      <p><span style="font-weight:bold">Mr Justice Supperstone :</span></p>
+      <p class="ParaHeading"><span style="font-weight:bold">Introduction </span></p>
+    </header>
+    <judgmentBody>
+      <decision>
+	<paragraph eId="para_1">
+	  <num>1.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">This is an unusual case.  The Home Secretary has made a deportation order against a foreign criminal on the grounds that his deportation is conducive to the public good.  The potential deportee, Mr Xu, a Chinese national, wishes to be deported.  However third parties, his victims, oppose his deportation.  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_2">
+	  <num>2.</num>
+	  <intro>
+	    <p class="ParaLevel1" style="margin-left:0.5in">At this rolled-up judicial review hearing the Claimants challenge the following decisions, which raise four issues: </p>
+	  </intro>
+	  <subparagraph>
+	    <num style="margin-left:0.98in;text-indent:-0.49in">i)</num>
+	    <content>
+	      <p class="ParaLevel2" style="margin-left:0.98in">The decision of the First Defendant, the Secretary of State for Justice (&#8220;SSJ&#8221;) not to recall Mr Xu under his licence dated 19 August 2016.  (<span style="font-weight:bold">Issue 1: Recall</span>)</p>
+	    </content>
+	  </subparagraph>
+	  <subparagraph>
+	    <num style="margin-left:0.98in;text-indent:-0.49in">ii)</num>
+	    <content>
+	      <p class="ParaLevel2" style="margin-left:0.98in">The SSJ&#8217;s decision not to inform the Claimants of the terms of any future licence issued to Mr Xu.  (<span style="font-weight:bold">Issue 2: Licence Condition Disclosure</span>) </p>
+	    </content>
+	  </subparagraph>
+	  <subparagraph>
+	    <num style="margin-left:0.98in;text-indent:-0.49in">iii)</num>
+	    <content>
+	      <p class="ParaLevel2" style="margin-left:0.98in;text-indent:0.01in">The decision of the Second Defendant, the Secretary of State for the Home Department (&#8220;SSHD&#8221;) (a) not to accept that action to deport Mr Xu could not be lawful before 14 August 2018 at the earliest; (b) to make a deportation order in relation to Mr Xu and the Deportation Order dated 11 September 2017; and (c) on 15 September 2017 refusing to delay deportation, and to serve the Deportation Order on Mr Xu and effect the deportation of Mr Xu as soon as possible.  (<span style="font-weight:bold">Issue 3: Deportation</span>) </p>
+	    </content>
+	  </subparagraph>
+	  <subparagraph>
+	    <num style="margin-left:0.98in;text-indent:-0.49in">iv)</num>
+	    <content>
+	      <p class="ParaLevel2" style="margin-left:0.98in">(a) The SSHD&#8217;s decision dated 28 September 2017 changing her position in relation to the release of Mr Xu&#8217;s passport and proposing acceding to Mr Xu&#8217;s request for his passport so that he can leave the UK.  (b) The SSJ&#8217;s refusal to confirm that Mr Xu would not be given permission to travel outside the UK pursuant to standard licence conditions before August 2018 at the earliest.  (<span style="font-weight:bold">Issue 4: Return of Passport</span>)  </p>
+	    </content>
+	  </subparagraph>
+	</paragraph>
+	<level eId="lvl_1">
+	  <content>
+	    <p class="ParaHeading"><span style="font-weight:bold">The Factual Background</span></p>
+	  </content>
+	</level>
+	<paragraph eId="para_3">
+	  <num>3.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">The Claimants are engaged in quantitative investment research and software development.  They specialise in developing algorithmic investment strategies that allow computerised buying and selling of stocks and shares without human intervention.  Associated companies run these investment strategies on a computer platform to make investments on various financial markets.  The investment strategies are highly confidential and highly valuable.  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_4">
+	  <num>4.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">Mr Xu is a Chinese national who was employed as a quantitative analyst (or &#8220;quant&#8221;) by the Claimants from October 2012 to August 2014, working in an area known as the &#8220;Secure Zone&#8221; given the highly confidential nature of the work he undertook.  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_5">
+	  <num>5.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">Between March and August 2014 Mr Xu communicated with numerous recruitment consultants and potential employers in the quantitative finance market and attended interviews.  In these communications he claimed to be able to bring his own portfolio of investment strategies, capable of generating vast annual sums.  Two of these companies (one US and one Chinese) offered him highly lucrative contracts with a profit share in respect of investment strategies he &#8220;produced&#8221;.  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_6">
+	  <num>6.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">On 5 August 2014 he resigned from the Claimants, removing confidential materials from the Claimants&#8217; offices and flew the following morning to Hong Kong.  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_7">
+	  <num>7.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">The Claimants commenced civil proceedings against Mr Xu for breach of contract and breach of confidence in the High Court of Justice, Chancery Division (&#8220;the civil proceedings&#8221;).  By order of Mann J dated 6 August 2014 Mr Xu was required to deliver up the materials removed from the Claimants&#8217; premises in the Suitcase and the Secure Notebook, prohibited from using or copying any technical or confidential information relating to the Claimants&#8217; business, prohibited from leaving the jurisdiction and required to surrender his passport.  He having (unknown to the Claimants) already left the jurisdiction, injunctive relief mirroring the terms of this order was subsequently obtained in Hong Kong on 7 and 9 August 2014.  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_8">
+	  <num>8.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">On 9 August 2014 he was served with civil orders and he was arrested in Hong Kong a few days later on 14 August 2014.  It emerged in the civil proceedings that in the period leading up to and immediately following his departure from the UK Mr Xu arranged for the personal delivery of a number of computers and other electronic devices into the custody of his parents in China.  His parents-in-law and his wife had acted as couriers to transport other computers and electronic storage equipment out of the UK and from Hong Kong to mainland China.  In Hong Kong he was observed carrying a metallic rectangular item, later assessed by the Claimants to have been his personal laptop, and was later seen passing a shoulder bag to his wife.  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_9">
+	  <num>9.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">He was extradited back to the UK and pleaded guilty to fraud by abuse of position in relation to 55 confidential investment strategies owned by the First Claimant that he had accessed and reverse-engineered (i.e. essentially, hacked).  In his basis of plea Mr Xu said that of the 55 strategies, only 29 were live: 26 were not in use.  He accepted the strategies were useful and valuable to him.  He could use the bank of ideas as a way of promoting his career elsewhere.  He would have been able to produce similar or adapted strategies, piggy-backing on Claimants&#8217; models, so as to succeed more quickly and to a higher degree than otherwise.  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_10">
+	  <num>10.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">On 3 July 2015 he was sentenced to four years&#8217; imprisonment (the custody element to 14 August 2016, the licence period to 14 August 2018).  Sentencing Mr Xu, HHJ Tomlinson said that this was a grave abuse of trust on his part.  It was fraudulent activity carried out over a sustained period of time, with significant planning.  The offence involves in very simple language the misappropriation of intellectual property.  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_11">
+	  <num>11.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">In addition he was made the subject of a Serious Crime Prevention Order (&#8220;SCPO&#8221;).  By the SCPO Mr Xu was required to deliver up all copies of the company&#8217;s intellectual property within his possession or control and disclose all third parties to whom he had allowed possession of or access to the confidential information and the location of any copies.  He was prevented from using the strategies anywhere in the world.  Confiscation proceedings were also commenced.  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_12">
+	  <num>12.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">On 29 July 2016 Mr Xu was summonsed to answer five charges of breaching the SCPO.  The charges were that he had failed without reasonable excuse (1) to deliver up all copies of the intellectual property (Count 1); (2) to deliver up all physical devices on which copies of the intellectual property have at any time been stored (Count 2); (3) to deliver up all physical devices which were used by him to remotely access the Claimants&#8217; system (Count 3); (4) to disclose as required the fact that he had allowed third parties, namely his wife, mother, father, mother-in-law and/or father-in-law to possess or access the intellectual property (Count 4); and (5) to disclose as required the details of all the locations of all copies of the intellectual property (Count 5).</p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_13">
+	  <num>13.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">On 18 January 2017 Mr Xu was convicted at Southwark Crown Court of two counts (Counts 4 and 5) on the indictment.  He was acquitted on the delivery up counts (presumably, as Mr Michael Fordham QC, for the Claimants, suggests, on the basis there was doubt either as to whether the computers that had been used to access the systems were still in existence at the relevant time, or if they did exist, on the issue as to whether Mr Xu had possession or control over them, all of which he contested).  By their verdicts of guilty, the jury rejected Mr Xu&#8217;s denial of having taken copies of the Claimants&#8217; intellectual property.  On 20 January 2017 he was sentenced to a further 18 months&#8217; imprisonment, to run concurrently with the earlier four-year sentence.  Sentencing Mr Xu on 20 January 2017 HHJ Griffiths said: &#8220;If I hadn&#8217;t made it clear, I think that I wouldn&#8217;t have reached the same verdicts as the jury on 1, 2 and 3&#8221; (Transcript, Day 12, page 25, lines 3-6).  Nevertheless, as the Court of Appeal observed on 10 February 2017, rejecting Mr Xu&#8217;s application for leave to appeal against sentence on the papers, certifying it as totally without merit, Judge Griffiths &#8220;had to determine the basis of sentence in a way which was faithful to the verdicts of the jury and did so in a way which was favourable, perhaps overly so, to [Mr Xu]&#8221;.  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_14">
+	  <num>14.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">At a hearing on 16 May 2017 a confiscation order was made against Mr Xu in the sum of &#163;37,208.91, which sum represented Mr Xu&#8217;s only disclosed realisable and available assets.  Subsequently a fresh SCPO was issued on 7 July 2017.  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_15">
+	  <num>15.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">At the confiscation order hearing on 16 May 2017 before HHJ Tomlinson the Crown also applied for a continuing and revised SCPO to protect the Claimants from the risk of serious crime through Mr Xu&#8217;s ability to make use of the Claimants&#8217; intellectual property from overseas.  The judge issued a written ruling dated 1 June 2017.  The judge said: </p>
+	    <block name="embeddedStructure"><embeddedStructure>
+		<level>
+		  <content>
+		    <p class="Quote" style="margin-left:1in">&#8220;In time the value of these stolen strategies will degrade and that process of decline is in my judgment well underway, but I do not think that it can seriously be argued at this stage that they have no potential value to D, if he continues to have access to them (para 2). &#8230;</p>
+		  </content>
+		</level>
+		<level>
+		  <content>
+		    <p class="Quote" style="margin-left:1in">[Trenchant] plainly believes, with justification, that the SCPO is of no material effect unless D remains in the UK.  The prosecution supported this stance. &#8230; The most contentious part of the revised order, were I to make it, is to restrain D from leaving the UK until the licence period of his sentence has expired &#8230; in August 2018.  &#8230; So, D will either be held in detention for that time, or if he is released, he will be reliant on Trenchant for his financial support.  I have been assured that the necessary funds will simply be handed over to D or to his solicitor in one lump sum (para 7).&#8221;    </p>
+		  </content>
+		</level>
+	      </embeddedStructure></block>
+	    <p class="ParaNoNumber" style="margin-left:0.5in">The judge decided not to add any UK residence condition to the SCPO on the basis that deportation, permission to leave and the retention of Mr Xu&#8217;s passport, together with the imposition of other conditions of presence in the UK during the licence period were decisions for the SSHD and SSJ as the appropriate executive authorities, subject to any judicial review challenge. </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_16">
+	  <num>16.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">The judge noted at para 18(iv): </p>
+	    <block name="embeddedStructure"><embeddedStructure>
+		<level>
+		  <content>
+		    <p class="Quote" style="margin-left:1in">&#8220;It is agreed on all sides that it would be oppressive and disproportionate for D to be imprisoned as a detainee for the duration of the licence period of the sentences of imprisonment that have been imposed on him.  However unlikely that scenario may be, any decision as to the conditions in which he remains in the UK is beyond my control.  Therefore, I consider that it would be wrong for me to take into account the assurance from Trenchant that it would ensure that D will be put in funds to secure appropriate shelter and sustenance, however sincere that assurance was and is.&#8221; </p>
+		  </content>
+		</level>
+	      </embeddedStructure></block>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_17">
+	  <num>17.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">On 31 July 2017 there was a CMC in the civil proceedings which were adjourned to a further CMC on 17 October 2017.  Directions have been given and the trial has been listed for seven days starting on 30 April 2018.  </p>
+	  </content>
+	</paragraph>
+	<level eId="lvl_2">
+	  <content>
+	    <p class="ParaHeading"><span style="font-weight:bold">The Parties&#8217; Submissions and Discussion </span></p>
+	  </content>
+	</level>
+	<paragraph eId="para_18">
+	  <num>18.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">I shall consider the issues relating to (1) Recall, (2) Licence Condition Disclosure, (3) Deportation and (4) Return of Passport, set out in paragraph 2 above, in turn. </p>
+	  </content>
+	</paragraph>
+	<level eId="lvl_3">
+	  <content>
+	    <p class="ParaHeading"><span style="font-weight:bold">Issue 1: Recall </span></p>
+	  </content>
+	</level>
+	<paragraph eId="para_19">
+	  <num>19.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in"><ref href="http://www.legislation.gov.uk/id/ukpga/2003/44/section/254/1" uk:canonical="" uk:origin="TNA" uk:type="legislation">Section 254(1)</ref> of the <ref href="http://www.legislation.gov.uk/id/ukpga/2003/44" uk:canonical="2003 c. 44" uk:origin="TNA" uk:type="legislation">Criminal Justice Act 2003</ref> (&#8220;<ref href="http://www.legislation.gov.uk/id/ukpga/2003/44" uk:canonical="2003 c. 44" uk:origin="TNA" uk:type="legislation">the 2003 Act</ref>&#8221;) empowers the Secretary of State, in the case of any prisoner released on licence under <ref href="http://www.legislation.gov.uk/id/ukpga/2003/44" uk:canonical="2003 c. 44" uk:origin="TNA" uk:type="legislation">that Act</ref>, to revoke his licence and recall him to prison.    </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_20">
+	  <num>20.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">In <span style="font-style:italic">R (Calder) v Secretary of State for Justice</span> <ref href="https://caselaw.nationalarchives.gov.uk/ewca/civ/2015/1050" uk:canonical="[2015] EWCA Civ 1050" uk:isNeutral="true" uk:origin="TNA" uk:type="case" uk:year="2015">[2015] EWCA Civ 1050</ref>, Lord Thomas CJ referred to the two conditions which the Secretary of State must satisfy to establish the lawfulness of the decision to recall.  First, the requirement that there are reasonable grounds for concluding there was a breach of licence conditions; and second, the requirement that it was necessary to recall the claimant.  As for the second condition, in <span style="font-style:italic">R (Jorgenson) v Secretary of State for Justice</span> <ref href="https://caselaw.nationalarchives.gov.uk/admin/ch/2011/977" uk:canonical="[2011] EWHC 977 (Admin)" uk:isNeutral="true" uk:origin="TNA" uk:type="case" uk:year="2011">[2011] EWHC 977 (Admin)</ref>, Silber J concluded at paragraph 16 that it was not every breach of a licence which would justify a decision to recall an offender: </p>
+	    <block name="embeddedStructure"><embeddedStructure>
+		<level>
+		  <content>
+		    <p class="Quote" style="margin-left:1in">&#8220;In my view, in every case where the Secretary of State could reasonably conclude that there has been a breach, he or she must then proceed to consider as an important free-standing separate issue, which is what steps should be taken to deal with this breach.  In other words, the mere fact that a prisoner released on licence is in breach of his/her licence or is reasonably believed to be in breach does not mean that recall must automatically be ordered.  Of course, in many cases there will be no difficulty in concluding that the Secretary of State was entitled to order recall such as where the licensee has committed identical offences to those for which he was originally sentenced.&#8221; </p>
+		  </content>
+		</level>
+	      </embeddedStructure></block>
+	    <p class="ParaNoNumber" style="margin-left:0.5in">Lord Thomas observed (at para 27) &#8220;[Silber J] went on to say that almost invariably there would have to be consideration of two specific sub-issues, namely whether the offender had acted intentionally in breach of his or her licence conditions and whether the safety of the public would be at risk if the offender remained out on licence&#8221;. </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_21">
+	  <num>21.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">The relevant guidance document is headed &#8220;Recall Review and Re-release of Recall Offenders&#8221; (PS130/2014).  Para 3.1 states: <span style="font-style:italic">&#8220;recall and review of prisoners is a multi-agency process and requires effective liaison and co-operation between the agencies concerned&#8221;</span>.  Para 4.19 explains how the recall decision is instituted.  In this case it was by Ms Begum, the offender manager.   </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_22">
+	  <num>22.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">By letter dated 6 February 2017 to Ms Begum, Allen &amp; Overy LLP, the Claimants&#8217; solicitors, requested Mr Xu&#8217;s immediate recall to prison.  They wrote at para 2: </p>
+	    <block name="embeddedStructure"><embeddedStructure>
+		<level>
+		  <content>
+		    <p class="Quote" style="margin-left:1in">&#8220;The purpose of this letter is to invite you, in accordance with the provisions of the applicable guidance, to conduct an urgent review of Mr Xu&#8217;s case in light of those further convictions.  For the reasons explained below, we submit that the recent convictions, considered alongside the conduct underpinning them and Mr Xu&#8217;s behaviour during the recent trial, demonstrate that he poses a real risk of the commission of further offences, including offences which would cause serious harm to Trenchant.  It follows that there are compelling grounds for his immediate recall to prison on the Index Offence.&#8221; </p>
+		  </content>
+		</level>
+	      </embeddedStructure></block>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_23">
+	  <num>23.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">It is the Claimants&#8217; case that when prosecuted for a breach of the SCPO, Mr Xu (1) deliberately misled the Crown Court in his Defence Statement and Addendum Defence Statement; (2) committed perjury in his evidence to the jury; and (3) deliberately and flagrantly defied an order of the Crown Court in discussing with his mother his evidence and the jury&#8217;s reaction to it while he was in the middle of giving it.  He deliberately lied, and continued deliberately to conceal information, about taking copies of the investment strategies, as well as about those who had received copies and the whereabouts of the copies.  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_24">
+	  <num>24.</num>
+	  <intro>
+	    <p class="ParaLevel1" style="margin-left:0.5in">Ms Begum replied by letter dated 7 March 2017, making, <span style="font-style:italic">inter alia</span>, four points: </p>
+	  </intro>
+	  <subparagraph>
+	    <num style="margin-left:0.98in;text-indent:-0.49in">i)</num>
+	    <content>
+	      <p class="ParaLevel2" style="margin-left:0.98in">If an offender is sentenced to another period of imprisonment during the licence period and returned to custody then the licence relevant to the original offence ceases to exist and it has no effect as the offender is in custody pursuant to his or her second sentence.  </p>
+	    </content>
+	  </subparagraph>
+	  <subparagraph>
+	    <num style="margin-left:0.98in;text-indent:-0.49in">ii)</num>
+	    <content>
+	      <p class="ParaLevel2" style="margin-left:0.98in">The Secretary of State does not need to recall an offender to custody on the original licence for the first offence because the offender is in custody serving a sentence of imprisonment for the second offence.  </p>
+	    </content>
+	  </subparagraph>
+	  <subparagraph>
+	    <num style="margin-left:0.98in;text-indent:-0.49in">iii)</num>
+	    <content>
+	      <p class="ParaLevel2" style="margin-left:0.98in;text-indent:0.01in">It is only when an offender breaches his or her licence conditions during his licence period i.e. after release that the Secretary of State will consider revoking an offender&#8217;s licence and recalling him to custody.  </p>
+	    </content>
+	  </subparagraph>
+	  <subparagraph>
+	    <num style="margin-left:0.98in;text-indent:-0.49in">iv)</num>
+	    <content>
+	      <p class="ParaLevel2" style="margin-left:0.98in">A sentence of imprisonment imposed for an offence committed before release is not a breach of licence conditions as the offender was not on licence at the time the offence was committed.  </p>
+	    </content>
+	  </subparagraph>
+	</paragraph>
+	<paragraph eId="para_25">
+	  <num>25.</num>
+	  <intro>
+	    <p class="ParaLevel1" style="margin-left:0.5in">Mr Robin Tam QC, who appears for the SSJ and the SSHD, on behalf of the SSJ:</p>
+	  </intro>
+	  <subparagraph>
+	    <num style="margin-left:0.98in;text-indent:-0.49in">i)</num>
+	    <content>
+	      <p class="ParaLevel2" style="margin-left:0.98in">accepts, in relation to the first point, that as a matter of technical analysis that is wrong: a licence that has been issued does not cease to exist where a second sentence of imprisonment is imposed.  However, as a matter of practice it is likely to be correct because the purpose of a licence is to manage somebody who is at liberty, and if they are serving another sentence they will not need to be recalled to custody.    </p>
+	    </content>
+	  </subparagraph>
+	  <subparagraph>
+	    <num style="margin-left:0.98in;text-indent:-0.49in">ii)</num>
+	    <content>
+	      <p class="ParaLevel2" style="margin-left:0.98in">in relation to the second point, he says, again, in practice this is likely to be correct because it would not be necessary for the purposes of protecting the public to recall him (see para 20 above).    </p>
+	    </content>
+	  </subparagraph>
+	  <subparagraph>
+	    <num style="margin-left:0.98in;text-indent:-0.49in">iii)</num>
+	    <content>
+	      <p class="ParaLevel2" style="margin-left:0.98in;text-indent:0.01in">states the third point is correct because in practice the fact that a person is in prison would often mean that it would not be necessary to recall him on an earlier sentence.   </p>
+	    </content>
+	  </subparagraph>
+	  <subparagraph>
+	    <num style="margin-left:0.98in;text-indent:-0.49in">iv)</num>
+	    <content>
+	      <p class="ParaLevel2" style="margin-left:0.98in">states the fourth point is also correct.  </p>
+	    </content>
+	  </subparagraph>
+	</paragraph>
+	<paragraph eId="para_26">
+	  <num>26.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">On 26 April 2017 Ms Hubbard, responding to the letter before claim, wrote in relation to the further sentence of 18 months&#8217; imprisonment that: </p>
+	    <block name="embeddedStructure"><embeddedStructure>
+		<level>
+		  <content>
+		    <p class="Quote" style="margin-left:1in">&#8220;Whilst the new sentence was imposed after 12 August 2016, which is the date on which Mr Xu would have been released on licence under his original sentence but for the fact he was instead held on remand in respect of charges relating to the SCPO, the breaches of the SCPO took place in 2015 and well before his licence release date.  Therefore, at the time of the incidents of breach, Mr Xu was not on licence but was in prison serving his sentence and cannot be recalled in respect of the SCPO breaches.&#8221; </p>
+		  </content>
+		</level>
+	      </embeddedStructure></block>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_27">
+	  <num>27.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">Mr Fordham submits Ms Begum&#8217;s third point mis-appreciated that the misconduct relied on was during the licence period.  The licence period commenced on 12 August 2016.  The representations in the Claimants&#8217; letter of 6 February 2017 related to the conduct of Mr Xu during the course of the trial between 12 and 21 December 2016, resuming on 16 January 2017 as amounting to a breach of his licence conditions.  The subject matter of the request for recall is not the conduct that was on the indictment for the SCPO breaches.  The Crown Court at the SCPO breach trial was not dealing with the question of recall, and its sentence of further imprisonment was in respect of the SCPO breaches.  The Crown Court could only sentence in respect of those breaches.  The Crown Court was not saying that Mr Xu did not need to be recalled to custody.  Recall and the criminal process are independent functions that co-exist.  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_28">
+	  <num>28.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">Further, the judge could only sentence within the parameters of the jury&#8217;s verdicts.  But, Mr Fordham observes, the judge made compelling observations so far as the wider public interest is concerned.  In his sentencing remarks he said: </p>
+	    <block name="embeddedStructure"><embeddedStructure>
+		<level>
+		  <content>
+		    <p class="Quote" style="margin-left:1in">&#8220;I have to decide whether the breach [of the SCPO] was deliberate and I am sure it was&#8230; That to my mind added and adds to the risk of the commission of further offences by virtue of your possession of those codes.  The harm to be caused if there is a breach of the Serious Crime Prevention Order is serious because we all know the stakes for which you are playing and there was an order imposed to protect [the Claimants] from your possession of valuable codes&#8221;.  </p>
+		  </content>
+		</level>
+	      </embeddedStructure></block>
+	    <p class="ParaNoNumber" style="margin-left:0.5in">Mr Fordham emphasises that the conduct relied on by the Claimants occurred whilst Mr Xu was on licence.  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_29">
+	  <num>29.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">Mr Tam accepts that neither Ms Begum&#8217;s letter nor Ms Hubbard&#8217;s deal with this argument that it was the Claimants&#8217; contention that Mr Xu&#8217;s conduct during the course of the second trial that warranted his recall, but he responded to this contention in his oral submissions (see para 32 below).  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_30">
+	  <num>30.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">Mr Tam submits that Miss Begum&#8217;s letter of reply does not contain a decision not to recall Mr Xu; rather it consists of a general explanation of how the system of recall works.  She was not required, he submits, to embark on the process of deciding whether or not to &#8220;seek&#8221; (i.e. initiate) the recall of Mr Xu for four reasons: first, not every instance of alleged misbehaviour by an offender can require the SSJ to turn his mind to recall, with all the resource implications that such would entail.  The Claimants are third parties to the decision-making in Mr Xu&#8217;s case, and even on the matters put forward by them recall of Mr Xu was not the only rational conclusion which could be reached.  Second, nothing in Allen &amp; Overy&#8217;s letter required the SSJ to recall, given the test of breach of licence condition, a necessity for recall.  The breaches of the SCPO occurred before the licence conditions were imposed.  The conduct about which the Claimants complain occurred in the course of the criminal proceedings.  Such matters could be reflected in the view taken by the Crown Court of the seriousness of Mr Xu&#8217;s offending and of whether anything, and if so what, could be said on his behalf in mitigation.  If the conduct of his defence amounted to a contempt of court, that was for the court to assess and deal with.  Third, the SSJ was under a duty to release Mr Xu at the half way point of his sentence and was only required to consider recall if there were sufficient grounds for doing so, namely, because he could no longer be managed safely in the community subject to a licence condition (PSI30/2014, para 2.3).  Fourth, he had breached the SCPO and received a prison sentence for that breach, but it was not suggested that the SCPO was ineffective.  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_31">
+	  <num>31.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">Mr Fordham responds to the suggestion that any decision on whether Mr Xu would be recalled was not for Ms Begum to make, by saying that is no answer.  She is the decision maker at the gateway.  She has a duty, Mr Fordham submits, to decide whether or not to initiate the recall process (see <span style="font-style:italic">R (Cityhook Ltd) v OFT</span> <ref href="https://caselaw.nationalarchives.gov.uk/admin/ch/2009/57" uk:canonical="[2009] EWHC 57 (Admin)" uk:isNeutral="true" uk:origin="TNA" uk:type="case" uk:year="2009">[2009] EWHC 57 (Admin)</ref>, per Foskett J at para 176).  Without a positive decision from her, that is the end of the matter.  That is correct.  However Mr Tam submits she is not required to make a decision as to whether or not to institute the recall process in every case.  There is no authority to which I have been referred for the proposition that a request by a victim to initiate a recall that is not acceded to is a reviewable decision.  I accept Mr Tam&#8217;s submission that it is only if the decision not to institute the process is irrational that the decision is judicially reviewable.  Mr Tam referred to the case of <span style="font-style:italic">R v General Council of the Bar ex parte Percival</span> <ref href="#" uk:canonical="[1991] 1 QB 212" uk:isNeutral="false" uk:origin="TNA" uk:type="case" uk:year="1991">[1991] 1 QB 212</ref> at 234C-F per Watkins LJ which, albeit in a different context, provides some support for his submission as to the basis on which the non-decision in the present case can be challenged.  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_32">
+	  <num>32.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">I do not consider that in these circumstances there was any duty or requirement for the SSJ to consider recall; or that it was in any way unlawful for the SSJ not to exercise the discretionary power to recall.  The decision not to institute the recall process is not, on the evidence, irrational.  The breaches of the SCPO pre-dated the licence, so they do not amount to breaches of the licence conditions.  As for Mr Xu&#8217;s misconduct during the course of the trial, which is the real matter which the Claimants contend justified a recall, I agree with Mr Tam that what happened was commonplace in criminal trials.  They could have been dealt with in the proceedings or ancillary to them.  I do not consider that it could be said that it was necessary to recall Mr Xu on the basis of his conduct, in particular with the SCPO in place.  In any event this is not a case where a recall would result in Mr Xu remaining in prison until August 2018.  He would be eligible for a fixed term recall which would lead to his release in 28 days or less; if his recall was a standard recall the Parole Board would consider his case after 28 days.  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_33">
+	  <num>33.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">However, if I am wrong about that, and the SSJ was required to consider recall but did not do so, Mr Tam submits it is highly likely that the result (i.e. not to recall) would have been the same (<ref href="http://www.legislation.gov.uk/id/ukpga/1981/54/section/31" uk:canonical="" uk:origin="TNA" uk:type="legislation">s.31</ref>(2A) of the <ref href="http://www.legislation.gov.uk/id/ukpga/1981/54" uk:canonical="1981 c. 54" uk:origin="TNA" uk:type="legislation">Senior Courts Act 1981</ref>); as to which see <span style="font-style:italic">R (Wet Finishing Works Ltd) v Taunton Deane Borough Council</span> <ref href="https://caselaw.nationalarchives.gov.uk/admin/ch/2017/1837" uk:canonical="[2017] EWHC 1837 (Admin)" uk:isNeutral="true" uk:origin="TNA" uk:type="case" uk:year="2017">[2017] EWHC 1837 (Admin)</ref>, per Singh J (as he then was) at para 74; and <span style="font-style:italic">PCSU v Minister for the Cabinet Office</span> <ref href="https://caselaw.nationalarchives.gov.uk/admin/ch/2017/1787" uk:canonical="[2017] EWHC 1787 (Admin)" uk:isNeutral="true" uk:origin="TNA" uk:type="case" uk:year="2017">[2017] EWHC 1787 (Admin)</ref>, per Sales LJ at para 89.  The factors to which I have had regard in concluding that in the circumstances there was no requirement for the SSJ to consider recall apply equally to the situation now under consideration, namely that the SSJ was required to consider recall.  Applying the <span style="font-style:italic">Calder</span> test, in particular the requirement that it was necessary to recall Mr Xu, I consider it to be clear on the evidence that it is highly likely, at the very least, that the outcome of the SSJ&#8217;s consideration would have been that he would not have been recalled.   He was serving a significant prison sentence at the time the Claimants sought his recall.  </p>
+	  </content>
+	</paragraph>
+	<level eId="lvl_4">
+	  <content>
+	    <p class="ParaHeading"><span style="font-style:italic;font-weight:bold">Issue 2: Licence Condition Disclosure </span></p>
+	  </content>
+	</level>
+	<paragraph eId="para_34">
+	  <num>34.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">The SSJ&#8217;s &#8220;decision&#8221; not to inform the Claimants of relevant conditions of any future licence issued to Mr Xu arose as follows.  By letter dated 10 March 2017 Allen &amp; Overy requested <span style="font-style:italic">inter alia</span> (at para 8.33(8)) that:</p>
+	    <block name="embeddedStructure"><embeddedStructure>
+		<level>
+		  <content>
+		    <p class="Quote" style="margin-left:1in">&#8220;Trenchant will be informed about whether Mr Xu is to be subject to any licence conditions or supervision requirements in the event of his release and, if he is, will be provided with details of any licence condition or supervision requirements which relate to contact with Trenchant and other appropriate information <span style="text-decoration-line:underline;text-decoration-style:solid">before</span> Mr Xu is released (s.35(3), (5) and (7) of the 2004 Act).&#8221;</p>
+		  </content>
+		</level>
+	      </embeddedStructure></block>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_35">
+	  <num>35.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">At para 8.36 the letter continues:  </p>
+	    <block name="embeddedStructure"><embeddedStructure>
+		<level>
+		  <content>
+		    <p class="Quote" style="margin-left:1in">&#8220;details of any licence conditions or supervision requirements which relate to contact with Trenchant and other appropriate information (paragraph 8.33(8) above) extend to information as to whether or not all of the additional conditions proposed have been adopted in relation to Mr Xu.&#8221; </p>
+		  </content>
+		</level>
+	      </embeddedStructure></block>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_36">
+	  <num>36.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">Ms Hubbard responded by letter dated 21 March 2017: </p>
+	    <block name="embeddedStructure"><embeddedStructure>
+		<level>
+		  <content>
+		    <p class="Quote" style="margin-left:1in">&#8220;&#8230;As explained in my previous letter of 17 November, we have offered to consider any additional and new information that is solely relevant to any risk Mr Xu poses to the public.  An offender manager will consider risk information where it is relevant to the management of a case, regardless of the source. </p>
+		  </content>
+		</level>
+		<level>
+		  <content>
+		    <p class="Quote" style="margin-left:1in">&#8230; </p>
+		  </content>
+		</level>
+		<level>
+		  <content>
+		    <p class="Quote" style="margin-left:1in">&#8230; Your clients do not hold discretionary victim status and therefore are not entitled to receive information about Mr Xu or request licence conditions&#8230;&#8221; </p>
+		  </content>
+		</level>
+	      </embeddedStructure></block>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_37">
+	  <num>37.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">Mr Fordham advances a &#8220;procedural&#8221; challenge, namely that the SSJ&#8217;s decision refusing to disclose the details of relevant licence conditions to the Claimants is unlawful, unfair and disproportionate.  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_38">
+	  <num>38.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">It is common ground that the Claimants are not statutory victims within <ref href="http://www.legislation.gov.uk/id/ukpga/2004/28/section/35" uk:canonical="" uk:origin="TNA" uk:type="legislation">section 35</ref> of the <ref href="http://www.legislation.gov.uk/id/ukpga/2004/28" uk:canonical="2004 c. 28" uk:origin="TNA" uk:type="legislation">Domestic Violence, Crime and Victims Act 2004</ref> (&#8220;<ref href="http://www.legislation.gov.uk/id/ukpga/2004/28" uk:canonical="2004 c. 28" uk:origin="TNA" uk:type="legislation">the 2004 Act</ref>&#8221;).  <ref href="http://www.legislation.gov.uk/id/ukpga/2004/28/section/35" uk:canonical="" uk:origin="TNA" uk:type="legislation">S.35</ref> of <ref href="http://www.legislation.gov.uk/id/ukpga/2004/28" uk:canonical="2004 c. 28" uk:origin="TNA" uk:type="legislation">the 2004 Act</ref> provides, so far as is material: </p>
+	    <block name="embeddedStructure"><embeddedStructure>
+		<paragraph>
+		  <num>&#8220;35.</num>
+		  <content>
+		    <p class="Quote" style="margin-left:1in;text-indent:0.5in"><span style="font-weight:bold">Victims&#8217; rights to make representations and receive information</span></p>
+		  </content>
+		</paragraph>
+		<paragraph>
+		  <num>(3)</num>
+		  <intro>
+		    <p class="Quote" style="margin-left:1in;text-indent:0.5in">The local probation board for the area in which the sentence is imposed&#8230; must take all reasonable steps to ascertain whether a person who appears to the board to be the victim of the offence or to act for the victim of the offence wishes&#8212;</p>
+		  </intro>
+		  <subparagraph>
+		    <num>(a)</num>
+		    <content>
+		      <p class="Quote" style="margin-left:1.18in;text-indent:0.32in">to make representations about the matters specified in sub-section (4); </p>
+		    </content>
+		  </subparagraph>
+		  <subparagraph>
+		    <num>(b)</num>
+		    <content>
+		      <p class="Quote" style="margin-left:1.18in;text-indent:0.32in">to receive the information specified in sub-section (5). </p>
+		    </content>
+		  </subparagraph>
+		</paragraph>
+		<paragraph>
+		  <num>(4)</num>
+		  <intro>
+		    <p class="Quote" style="margin-left:1in;text-indent:0.5in">The matters are&#8212;</p>
+		  </intro>
+		  <subparagraph>
+		    <num>(a)</num>
+		    <content>
+		      <p class="Quote" style="margin-left:1.18in;text-indent:0.32in">whether the offender should be subject to any licence conditions or supervision requirements in the event of his release; </p>
+		    </content>
+		  </subparagraph>
+		  <subparagraph>
+		    <num>(b)</num>
+		    <content>
+		      <p class="Quote" style="margin-left:1.18in;text-indent:0.32in">if so, what licence conditions or supervision requirements. </p>
+		    </content>
+		  </subparagraph>
+		</paragraph>
+		<paragraph>
+		  <num>(5)</num>
+		  <content>
+		    <p class="Quote" style="margin-left:1in;text-indent:0.5in">The information is information about any licence conditions or supervision requirements to which the offender is to be subject in the event of his release. </p>
+		  </content>
+		</paragraph>
+		<paragraph>
+		  <num>(7)</num>
+		  <intro>
+		    <p class="Quote" style="margin-left:1in;text-indent:0.5in">If a local probation board&#8230; has ascertained under sub-section (3) that a person wishes to receive the information specified in sub-section (5), the relevant probation body must take all reasonable steps&#8212;</p>
+		  </intro>
+		  <subparagraph>
+		    <num>(a)</num>
+		    <content>
+		      <p class="Quote" style="margin-left:1.18in;text-indent:0.32in">to inform the person whether or not the offender is to be subject to any licence conditions or supervision requirements in the event of his release, </p>
+		    </content>
+		  </subparagraph>
+		  <subparagraph>
+		    <num>(b)</num>
+		    <content>
+		      <p class="Quote" style="margin-left:1.18in;text-indent:0.32in">if he is, to provide the person with details of any licence conditions or supervision requirements which relate to contact with the victim or his family, and </p>
+		    </content>
+		  </subparagraph>
+		  <subparagraph>
+		    <num>(c)</num>
+		    <content>
+		      <p class="Quote" style="margin-left:1.18in;text-indent:0.32in">to provide the person with such other information as the relevant probation body considers appropriate in all the circumstances of the case.&#8221; </p>
+		    </content>
+		  </subparagraph>
+		</paragraph>
+	      </embeddedStructure></block>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_39">
+	  <num>39.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">Accordingly if a statutory victim wishes to receive &#8220;information about any licence conditions or supervision requirements to which the offender is to be subject in the event of his release&#8221;, the relevant probation body must take all reasonable steps &#8220;to provide the person with details of any licence conditions or supervision requirements which relate to contact with the victim or his family, and to provide the person with such other information as the relevant probation body considers appropriate in all the circumstances of the case&#8221; (<ref href="http://www.legislation.gov.uk/id/ukpga/2004/28/section/35/5" uk:canonical="" uk:origin="TNA" uk:type="legislation">s.35(5)</ref> and (7) of <ref href="http://www.legislation.gov.uk/id/ukpga/2004/28" uk:canonical="2004 c. 28" uk:origin="TNA" uk:type="legislation">the 2004 Act</ref>).  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_40">
+	  <num>40.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">In a pre-action letter of response dated 26 April 2017 Ms Hubbard wrote: </p>
+	    <block name="embeddedStructure"><embeddedStructure>
+		<level>
+		  <content>
+		    <p class="Quote" style="margin-left:1in">&#8220;I can confirm that decisions about licence conditions will be taken in line with PI 09/2015.  &#8230; </p>
+		  </content>
+		</level>
+		<level>
+		  <content>
+		    <p class="Quote" style="margin-left:1in">&#8230; </p>
+		  </content>
+		</level>
+		<level>
+		  <content>
+		    <p class="Quote" style="margin-left:1in">Your client does not fall within the criteria for inclusion in the VCS [Victim Contact Scheme].  The guidance on offering contact to victims who do not meet the statutory criteria has recently been clarified in PI 03/2017 and your client does not meet the criteria under the discretionary scheme.  In any case, under the statutory or discretionary victim scheme, victims are not provided with a copy of an offender&#8217;s licence.  A victim will only be told about conditions which directly relate to them.  For example, if a condition was set for an offender not to contact a particular person that person would be told that the condition has been set.  The Secretary of State does not disclose information about offenders and how they are being managed unless it is necessary and can be justified in accordance with data protection principles.  Whilst it is appreciated your client was previously forwarded the licence that had been prepared for Mr Xu this would have been an error and any further licence will not be shared.&#8221; </p>
+		  </content>
+		</level>
+	      </embeddedStructure></block>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_41">
+	  <num>41.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">Mr Fordham submits that this is an exceptional case justifying discretionary contact under PI 03/2017.  The Claimants&#8217; case is that the offending against them is extremely serious and should not be minimised simply because they are a corporate rather than an individual victim, and the harm they have suffered is financial rather than physical or psychological.  Further, Mr Fordham submits that fairness requires that the SSJ, having previously provided details of the licence conditions imposed, do so again in analogous circumstances.  Knowing the outcome is essential.  He asks, by way of example, how can the Claimants know whether they have to make an application to the civil court for an order that Mr Xu&#8217;s passport not be returned to him if they do not know whether the SSJ has decided, following representations from the Claimants, whether further special licence conditions should include the surrender by Mr Xu of his passport.  The Claimants are entitled, he submits, in fairness (at common law) to know what the SSJ decided, whether the conditions they sought were included, and if not why not (see <span style="font-style:italic">R v Secretary of State for the Home Department ex parte Doody</span> <ref href="#" uk:canonical="[1994] 1 AC 531" uk:isNeutral="false" uk:origin="TNA" uk:type="case" uk:year="1994">[1994] 1 AC 531</ref> per Lord Mustill at 560-562).  Mr Fordham submits that there is no reason why the sort of information that was properly given to the Claimants in response to previous representations should be denied to them if and when representations relating to licence conditions are made on a future occasion.  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_42">
+	  <num>42.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">I reject these submissions.  The witness statement of Mr Doherty, who at the material time was Head of Offender Management at HMP Wandsworth, explains that when the previous licence was sent to the Claimants that was done by mistake.  There is no challenge to PI 03/2017.  The SSJ has applied his policy and concluded that the Claimants do not qualify for the discretionary scheme.  What the Claimants, Mr Tam observes, are asking for, is to be in a better position even than the policy provides for statutory or discretionary victims.  No <span style="font-style:italic">Wednesbury</span> challenge to this conclusion has been made out.  I agree with Mr Tam that if and in so far as the Claimants have been provided with information in the past beyond that to which they were entitled, such a past error does not entail the consequence that the SSJ is obliged to repeat the error in the future for the sake of consistency (see <span style="font-style:italic">R v Secretary of State for Defence ex parte Wilkins</span> (CO/4676/2000)).  The present challenge is in any event premature.  The SSJ, Mr Tam says, does not know whether or not it will be appropriate to have any condition relating to the passport at the time the licence comes into force.  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_43">
+	  <num>43.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">In any event the result would be no different if the Claimants had been granted discretionary victim status.  In those circumstances they would have received the same level of service as those with a statutory entitlement.  The Claimants are not entitled, as they contend, to be informed of the terms of any future licence issued to Mr Xu.</p>
+	  </content>
+	</paragraph>
+	<level eId="lvl_5">
+	  <content>
+	    <p class="ParaHeading"><span style="font-weight:bold">Issue 3: Deportation </span></p>
+	    <p class="ParaHeading"><span style="font-style:italic;font-weight:bold">The legal framework </span></p>
+	  </content>
+	</level>
+	<paragraph eId="para_44">
+	  <num>44.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">By <ref href="http://www.legislation.gov.uk/id/ukpga/1971/77/section/3/5" uk:canonical="" uk:origin="TNA" uk:type="legislation">section 3(5)</ref>(a) of the <ref href="http://www.legislation.gov.uk/id/ukpga/1971/77" uk:canonical="1971 c. 77" uk:origin="TNA" uk:type="legislation">Immigration Act 1971</ref>, a person who is not a British citizen is liable to deportation from the UK if the SSHD deems his deportation to be &#8220;conducive to the public good&#8221;.  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_45">
+	  <num>45.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">The <ref href="http://www.legislation.gov.uk/id/ukpga/2007/30" uk:canonical="2007 c. 30" uk:origin="TNA" uk:type="legislation">UK Borders Act 2007</ref> (&#8220;UKBA&#8221;), <ref href="http://www.legislation.gov.uk/id/ukpga/2007/30/section/32" uk:canonical="" uk:origin="TNA" uk:type="legislation">sections 32</ref>-34, so far as material, provide: </p>
+	    <block name="embeddedStructure"><embeddedStructure>
+		<paragraph>
+		  <num>&#8220;32.</num>
+		  <content>
+		    <p class="Quote" style="margin-left:1in;text-indent:0.5in"><span style="font-weight:bold">Automatic deportation</span></p>
+		  </content>
+		</paragraph>
+		<paragraph>
+		  <num style="margin-left:1.25in;text-indent:-0.25in">(1)</num>
+		  <intro>
+		    <p class="Quote" style="margin-left:1.25in;text-indent:0.12in">In this section &#8216;foreign criminal&#8217; means a person&#8212;</p>
+		  </intro>
+		  <subparagraph>
+		    <num>(a)</num>
+		    <content>
+		      <p class="Quote" style="margin-left:1.18in;text-indent:0.32in">who is not a British citizen, </p>
+		    </content>
+		  </subparagraph>
+		  <subparagraph>
+		    <num>(b)</num>
+		    <content>
+		      <p class="Quote" style="margin-left:1.18in;text-indent:0.32in">who is convicted in the United Kingdom of an offence, and </p>
+		    </content>
+		  </subparagraph>
+		  <subparagraph>
+		    <num>(c)</num>
+		    <content>
+		      <p class="Quote" style="margin-left:1.18in;text-indent:0.32in">to whom Condition 1 or 2 applies. </p>
+		    </content>
+		  </subparagraph>
+		</paragraph>
+		<paragraph>
+		  <num>(2)</num>
+		  <content>
+		    <p class="Quote" style="margin-left:1in;text-indent:0.5in">Condition 1 is that the person is sentenced to a period of imprisonment of at least 12 months. </p>
+		  </content>
+		</paragraph>
+		<paragraph>
+		  <num>(4)</num>
+		  <content>
+		    <p class="Quote" style="margin-left:1in;text-indent:0.5in">For the purposes of <ref href="http://www.legislation.gov.uk/id/ukpga/1971/77/section/3/5" uk:canonical="" uk:origin="TNA" uk:type="legislation">section 3(5)</ref>(a) of the <ref href="http://www.legislation.gov.uk/id/ukpga/1971/77" uk:canonical="1971 c. 77" uk:origin="TNA" uk:type="legislation">Immigration Act 1971</ref> the deportation of a foreign criminal is conducive to the public good.  </p>
+		  </content>
+		</paragraph>
+		<paragraph>
+		  <num>(5)</num>
+		  <content>
+		    <p class="Quote" style="margin-left:1in;text-indent:0.5in">The Secretary of State must make a deportation order in respect of a foreign criminal (subject to section 33). </p>
+		  </content>
+		</paragraph>
+		<paragraph>
+		  <num style="font-weight:bold">33.</num>
+		  <content>
+		    <p class="Quote" style="margin-left:1in;text-indent:0.5in"><span style="font-weight:bold">Exceptions</span></p>
+		  </content>
+		</paragraph>
+		<paragraph>
+		  <num>(1)</num>
+		  <intro>
+		    <p class="Quote" style="margin-left:1in;text-indent:0.5in"><ref href="http://www.legislation.gov.uk/id/ukpga/2007/30/section/32/4" uk:canonical="" uk:origin="TNA" uk:type="legislation">section 32(4)</ref> and (5)&#8212;</p>
+		  </intro>
+		  <subparagraph>
+		    <num>(a)</num>
+		    <content>
+		      <p class="Quote" style="margin-left:1.18in;text-indent:0.32in">do not apply where an exception in this section applies (subject to sub-section (7) below)&#8230; </p>
+		    </content>
+		  </subparagraph>
+		</paragraph>
+		<paragraph>
+		  <num>(2)</num>
+		  <intro>
+		    <p class="Quote" style="margin-left:1in;text-indent:0.5in">Exception 1 is where removal of the foreign criminal in pursuance of the deportation order would breach&#8212;</p>
+		  </intro>
+		  <subparagraph>
+		    <num>(a)</num>
+		    <content>
+		      <p class="Quote" style="margin-left:1.18in;text-indent:0.32in">a person&#8217;s Convention rights&#8230; </p>
+		    </content>
+		  </subparagraph>
+		</paragraph>
+		<paragraph>
+		  <num>(7)</num>
+		  <intro>
+		    <p class="Quote" style="margin-left:1in;text-indent:0.5in">The application of an exception&#8212;</p>
+		  </intro>
+		  <subparagraph>
+		    <num>(a)</num>
+		    <content>
+		      <p class="Quote" style="margin-left:1.18in;text-indent:0.32in">does not prevent the making of a deportation order; </p>
+		    </content>
+		  </subparagraph>
+		  <subparagraph>
+		    <num>(b)</num>
+		    <content>
+		      <p class="Quote" style="margin-left:1.18in;text-indent:0.32in">results in it being assumed neither that deportation of the person concerned is conducive to the public good nor that it is not conducive to the public good; </p>
+		    </content>
+		  </subparagraph>
+		  <wrapUp>
+		    <p class="Quote" style="margin-left:1in">but <ref href="http://www.legislation.gov.uk/id/ukpga/2007/30/section/32/4" uk:canonical="" uk:origin="TNA" uk:type="legislation">section 32(4)</ref> applies despite the application of Exception 1 or 4. </p>
+		  </wrapUp>
+		</paragraph>
+		<paragraph>
+		  <num style="font-weight:bold">34.</num>
+		  <content>
+		    <p class="Quote" style="margin-left:1in;text-indent:0.5in"><span style="font-weight:bold">Timing </span></p>
+		  </content>
+		</paragraph>
+		<paragraph>
+		  <num>(1)</num>
+		  <content>
+		    <p class="Quote" style="margin-left:1in;text-indent:0.5in"><ref href="http://www.legislation.gov.uk/id/ukpga/2007/30/section/32/5" uk:canonical="" uk:origin="TNA" uk:type="legislation">Section 32(5)</ref> requires a deportation order to be made at a time chosen by the Secretary of State. </p>
+		  </content>
+		</paragraph>
+		<paragraph>
+		  <num>(2)</num>
+		  <intro>
+		    <p class="Quote" style="margin-left:1in;text-indent:0.5in">A deportation order may not be made under <ref href="http://www.legislation.gov.uk/id/ukpga/2007/30/section/32/5" uk:canonical="" uk:origin="TNA" uk:type="legislation">section 32(5)</ref> while an appeal or further appeal against the conviction or sentence by reference to which the order is to be made&#8212;</p>
+		  </intro>
+		  <subparagraph>
+		    <num>(a)</num>
+		    <content>
+		      <p class="Quote" style="margin-left:1.18in;text-indent:0.32in">has been instituted and neither withdrawn nor determined, or </p>
+		    </content>
+		  </subparagraph>
+		  <subparagraph>
+		    <num>(b)</num>
+		    <content>
+		      <p class="Quote" style="margin-left:1.18in;text-indent:0.32in">could be brought. </p>
+		    </content>
+		  </subparagraph>
+		  <subparagraph>
+		    <content>
+		      <p class="Quote" style="margin-left:1.18in">&#8230;&#8221; </p>
+		    </content>
+		  </subparagraph>
+		</paragraph>
+	      </embeddedStructure></block>
+	  </content>
+	</paragraph>
+	<level eId="lvl_6">
+	  <content>
+	    <p class="ParaHeading"><span style="font-style:italic;font-weight:bold">The Deportation Decision </span></p>
+	  </content>
+	</level>
+	<paragraph eId="para_46">
+	  <num>46.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">The Claimants&#8217; solicitors made written representations on behalf of Trenchant Limited and other group companies (the Claimants) on 31 July 2017 in relation to the potential deportation of Mr Xu (&#8220;the A&amp;O representations&#8221;).  They submitted that: </p>
+	    <block name="embeddedStructure"><embeddedStructure>
+		<level>
+		  <content>
+		    <p class="Quote" style="margin-left:1in">&#8220;Mr Xu should not, and indeed cannot lawfully, be deported or subject to a Deportation Order until, at the earliest, (i) the end of the licence element of his custodial sentences (14 August 2018); or (if later) (ii) the conclusion of the civil proceedings (including enforcement of judgment and of any final orders) (the <span style="font-weight:bold">Relevant Periods</span>)&#8221; (para 1.3).  </p>
+		  </content>
+		</level>
+	      </embeddedStructure></block>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_47">
+	  <num>47.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">The representations, at paras 1.5 and 1.6, continue: </p>
+	    <block name="embeddedStructure"><embeddedStructure>
+		<paragraph>
+		  <num>&#8220;1.5</num>
+		  <content>
+		    <p class="Quote" style="margin-left:1in;text-indent:0.5in">Deportation during the Relevant Periods in the present case would involve very serious risk of very serious harm to Trenchant as the victims of Mr Xu&#8217;s wrongdoing.  It would allow Mr Xu to avoid any supervision through the licence period which forms part of his sentence of imprisonment.  It would remove the effectiveness of the SCPO identified as appropriate by the Crown Court.  It would facilitate further criminal and civil wrongdoing by Mr Xu.  It would enable him not only to complete his original plan of getting the fruits of his wrongdoing beyond the jurisdiction of the English courts so as to exploit them unhindered by English law, but also to avoid the consequences of further wrongdoing and, indeed, his wrongdoing to date.  That, moreover, would be while Mr Xu is still serving a criminal sentence in the UK, while he could be in no better position than being subject to important licence conditions. </p>
+		  </content>
+		</paragraph>
+		<paragraph>
+		  <num>1.6</num>
+		  <content>
+		    <p class="Quote" style="margin-left:1in;text-indent:0.5in">At the outset it can be observed that: </p>
+		  </content>
+		</paragraph>
+		<paragraph>
+		  <num>(a)</num>
+		  <content>
+		    <p class="Quote" style="margin-left:1in;text-indent:0.5in">Deportation would give rise to the real risk that Mr Xu will be reunited with the fruits of his criminal behaviour, namely Trenchant&#8217;s Intellectual Property (as defined in the SCPO).  </p>
+		  </content>
+		</paragraph>
+		<paragraph>
+		  <num>(b)</num>
+		  <content>
+		    <p class="Quote" style="margin-left:1in;text-indent:0.5in">The Crown Court judge who heard the evidence in the SCPO proceedings&#8230; made it clear at the sentencing hearing that, in his view, it was established beyond reasonable doubt that copies of the Intellectual Property remain in existence and within Mr Xu&#8217;s control.  </p>
+		  </content>
+		</paragraph>
+		<paragraph>
+		  <num>(c)</num>
+		  <content>
+		    <p class="Quote" style="margin-left:1in;text-indent:0.5in">That position has now been reinforced by the making of a fresh SCPO by the Crown Court against Mr Xu on 7 July 2017.  Such an order can only be made where there is a real risk of serious crimes being committed by the defendant. </p>
+		  </content>
+		</paragraph>
+		<paragraph>
+		  <num>(d)</num>
+		  <content>
+		    <p class="Quote" style="margin-left:1in;text-indent:0.5in">Deportation in these circumstances would clearly be against an important public interest.  It would moreover be an unjustifiable facilitation by the state of the criminal exploitation of Trenchant&#8217;s intellectual property rights, to the detriment of Trenchant, who ought properly to be protected by the public authorities as the victims of Mr Xu&#8217;s wrongdoing. </p>
+		  </content>
+		</paragraph>
+		<paragraph>
+		  <num>(e)</num>
+		  <content>
+		    <p class="Quote" style="margin-left:1in;text-indent:0.5in">Deportation during the Relevant Periods would allow Mr Xu to avoid the implications and consequences of the SCPO which is designed to prevent crime. </p>
+		  </content>
+		</paragraph>
+		<paragraph>
+		  <num>(f)</num>
+		  <content>
+		    <p class="Quote" style="margin-left:1in;text-indent:0.5in">It would also allow Mr Xu to avoid what would otherwise be his position under the criminal law &#8211; serving the remainder of his criminal sentence on licence pursuant to appropriate licence conditions.  It would put him beyond any supervision, enforcement or recall to prison, even in circumstances where such measures would be clearly justified. </p>
+		  </content>
+		</paragraph>
+		<paragraph>
+		  <num>(g)</num>
+		  <content>
+		    <p class="Quote" style="margin-left:1in;text-indent:0.5in">Deportation at this time would undermine Trenchant&#8217;s rights to an effective trial of the civil proceedings and enforcement of practical and effective relief against Mr Xu in those proceedings.  It would also allow Mr Xu to avoid appearing at, or being required to give evidence in the context of, the trial of civil proceedings against him seeking the delivery up of the confidential information he stole from Trenchant.  It would allow Mr Xu to avoid the enforcement against him of any remedies granted at the conclusion of the civil proceedings and, in particular, to avoid the enforcement of requirements to provide delivery up of the confidential information which are likely to be imposed upon him by way of final relief in those proceedings.  The prospects of being able to enforce an order of the English Court in China, obtained at a trial at which the Defendant was not present, are so remote as to be discounted from consideration.&#8221; </p>
+		  </content>
+		</paragraph>
+	      </embeddedStructure></block>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_48">
+	  <num>48.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">On the Claimants&#8217; behalf it is contended that to make a Deportation Order would breach the Claimants&#8217; Convention rights, in particular: (i) their rights to intellectual property pursuant to ECHR Article 1 Protocol 1 (&#8220;A1P1&#8221;); and (ii) their right to a fair trial in relation to those intellectual property rights pursuant to ECHR Article 6(1), including in relation to effective remedies and the enforcement of judgment.  Accordingly, the statutory protection imposed by Parliament in section 33(2)(a) UKBA applies and no Deportation Order may lawfully be made.  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_49">
+	  <num>49.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">A minute titled &#8220;Deportation Order Explanatory Minute&#8221;  dated 11 September 2017 states: </p>
+	    <block name="embeddedStructure"><embeddedStructure>
+		<level>
+		  <content>
+		    <p class="Quote" style="margin-left:1in">&#8220;No representations was [sic] received from Mr Xu and he continues to state that he wishes to return to China as soon as possible, however representations have been received [from] Allen &amp; Overy on 31 July 2017 and a response is being collated.  The decision to deport has therefore been maintained and there is no right of appeal against this decision.&#8221;</p>
+		  </content>
+		</level>
+	      </embeddedStructure></block>
+	    <p class="ParaNoNumber" style="margin-left:0.5in">There is a further minute titled &#8220;Non-EEA Deportation Minute&#8221; also dated 11 September 2017 which concludes: &#8220;For the reasons stated above, the exception to deportation does not apply and there are no very compelling circumstances that outweigh the public interest in deportation&#8221;.  The senior caseworker agreed with the proposal of the caseworker that the decision to deport is appropriate and notes that the company for whom Mr Xu worked is making representations to prevent his removal from the UK.  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_50">
+	  <num>50.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">On 11 September 2017 the deportation order was signed.  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_51">
+	  <num>51.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">On 15 September 2017 the GLD sent the Claimants&#8217; solicitors &#8220;the SSHD&#8217;s response to representations made by Claimants against deportation of Mr Xu&#8221; (&#8220;the response&#8221;).  Paragraph 15 of the response stated: </p>
+	    <block name="embeddedStructure"><embeddedStructure>
+		<level>
+		  <content>
+		    <p class="Quote" style="margin-left:1in">&#8220;The purpose of this letter has been to set out the principal matters upon which the SSHD has relied in reaching her decision.&#8221; </p>
+		  </content>
+		</level>
+	      </embeddedStructure></block>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_52">
+	  <num>52.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">At para 4 of the response the SSHD refused the request for a further delay in the deportation of Mr Xu.  She considered it to be in the wider public interest (and consistent with the proper exercise of her statutory function) for deportation to proceed without further delay. </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_53">
+	  <num>53.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">First, the SSHD considered that the timing of a deportation order is a matter for her discretion under UKBA s.34, however this discretion should be exercised in a manner which is consistent with the wider statutory purpose.  In this regard (at para 5) she notes the following four points: (a) <ref href="http://www.legislation.gov.uk/id/ukpga/2007/30/section/32" uk:canonical="" uk:origin="TNA" uk:type="legislation">s.32</ref> reflects Parliament&#8217;s settled view that it is in the public interest that foreign criminals are deported and (implicitly therefore) that they should not remain in the UK.  (b) There has already been a significant delay in the making of a deportation order in this case because of the earlier decision&#8212;made on an exceptional basis&#8212;to await the outcome of the application for a SCPO preventing Mr Xu from leaving the jurisdiction.  (c) A further (and important) purpose behind the statutory deportation provisions is to protect the UK population <span style="font-style:italic">as a whole</span> from the risk of further criminality resulting from that individual&#8217;s presence in the country.  The SSHD is satisfied that it is in the interests of the wider community that Mr Xu be deported as soon as possible (although she recognises that it is not in the interests of the Claimants and has taken full account of this in the exercise of her discretion).  (d) Mr Xu will shortly need to be released if deportation does not take place.  This will provide him with an opportunity to use his physical presence in the UK to commit offences against third parties in this country.  Whilst the risk of him committing further offences in the UK may be low, it is one from which Parliament intended the wider UK population to be protected.  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_54">
+	  <num>54.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">Second, the SSHD was satisfied that if she were to delay the deportation of Mr Xu until August 2018 or beyond, it would not be possible to continue to detain him.  Release would give rise to the real risk of him absconding and thereby frustrating his deportation from the UK.  Such an outcome would undermine public trust and confidence in the immigration system.  It is important that the SSHD demonstrates to the public that those whose offending renders them subject to the mandatory deportation provisions are in fact deported, as opposed to that individual disappearing.  This applies even if (as is likely in this case) the disappearance takes the form of returning to the country of origin (para 6).  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_55">
+	  <num>55.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">The SSHD states (at para 7) that she has taken account of the risk of harm to the Claimants&#8217; commercial interests if Mr Xu is deported to China.  Consideration has also been given to the fact that his departure would undermine the effectiveness of the provisions in the SCPO which remain in place, including those imposed in July 2017.  The response continues: </p>
+	    <block name="embeddedStructure"><embeddedStructure>
+		<level>
+		  <content>
+		    <p class="Quote" style="margin-left:1in">&#8220;The SSHD notes that the risk of damage to your organisation is impossible to calculate with any degree of precision.  The risk is contingent upon Mr Xu (i) obtaining access to the data which was removed and (ii) being able to exploit the data in a manner which causes damage to your client.  She is prepared to accept for the purposes of this decision that there is a real risk that if Mr Xu returns to China, he will engage in further criminality and that, as a result, your client may suffer harm to its commercial well-being, albeit of a nature which is declining in severity with the passage of time.  &#8230;&#8221; </p>
+		  </content>
+		</level>
+	      </embeddedStructure></block>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_56">
+	  <num>56.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">The SSHD further (at para 8) considered that the risk of such harm should not be viewed as solely contingent upon the act of deportation.  If Mr Xu is released, there is a high risk that he will return to China of his own volition.  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_57">
+	  <num>57.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">At para 9 the response continues: </p>
+	    <block name="embeddedStructure"><embeddedStructure>
+		<level>
+		  <content>
+		    <p class="Quote" style="margin-left:1in">&#8220;Having regard to all of the circumstances (including relevant compassionate factors relating to Mr Xu), the SSHD does not consider that the risk of harm to your client&#8217;s commercial interests is sufficient to outweigh the strong public interest in his deportation.  She concludes therefore that there is no sufficient basis for further delaying Mr Xu&#8217;s deportation.&#8221; </p>
+		  </content>
+		</level>
+	      </embeddedStructure></block>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_58">
+	  <num>58.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">At paras 10-14 the SSHD explains why she does not accept that the decision to deport Mr Xu amounts to an interference with the Claimants&#8217; rights under A1P1 or that the removal will interfere with their rights under Article 6.  However, the SSHD is satisfied that any such interference with rights under A1P1 or Article 6 would be lawful.  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_59">
+	  <num>59.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">On 18 September 2017 GLD wrote to A&amp;O: </p>
+	    <block name="embeddedStructure"><embeddedStructure>
+		<level>
+		  <content>
+		    <p class="Quote" style="margin-left:1in">&#8220;As for the deportation order, the reason that it was signed was so that my client would be in a position to deport Mr Xu <span style="font-style:italic">should</span> the decision be taken to reject your clients&#8217; representations.  There was never any intention to effect deportation whilst your clients&#8217; submissions were outstanding.  You client was properly notified of the deportation order together with the Secretary of State&#8217;s submissions rejecting your clients&#8217; representations.  Mr Xu was served on the same day with the deportation order.  There is nothing unusual about a deportation being signed and served at a later date.  Clearly, deportation cannot be effected until the deportation has been served.&#8221;</p>
+		  </content>
+		</level>
+	      </embeddedStructure></block>
+	  </content>
+	</paragraph>
+	<level eId="lvl_7">
+	  <content>
+	    <p class="ParaHeading"><span style="font-style:italic;font-weight:bold">The parties&#8217; submissions and discussion </span></p>
+	  </content>
+	</level>
+	<paragraph eId="para_60">
+	  <num>60.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">Mr Fordham submits that the internal documents of 11 September 2017 that have been disclosed by SSHD cast doubt on whether the decision to deport Mr Xu was taken for the reasons given on 15 September 2017.  Mr Fordham picks up on the use of the word &#8220;submissions&#8221; to describe the document headed &#8220;Secretary of State&#8217;s response to representations&#8221; and observes that is precisely what they are.  What is set out in that document is not the reasons of the decision makers but the external presentation of those reasons (see, by analogy, <span style="font-style:italic">Needham v Nursing and Midwifery Council </span><ref href="https://caselaw.nationalarchives.gov.uk/admin/ch/2003/1141" uk:canonical="[2003] EWHC 1141 (Admin)" uk:isNeutral="true" uk:origin="TNA" uk:type="case" uk:year="2003">[2003] EWHC 1141 (Admin)</ref>, per Sullivan J at para 13).  A further matter of concern is that there appear to have been discussions on 11 September 2017 relevant to the decision which are said to be covered by legal professional privilege.  The fact is, Mr Fordham submits, that the reasons given in the internal documents of 11 September 2017 that have been disclosed do not &#8220;stack up&#8221;.  In <span style="font-style:italic">R (Rose) v Thanet Clinical Commissioning Group</span> <ref href="#" uk:canonical="[2014] ACD 120" uk:isNeutral="false" uk:origin="TNA" uk:type="case" uk:year="2014">[2014] ACD 120</ref> at para 95, Jay J said: </p>
+	    <block name="embeddedStructure"><embeddedStructure>
+		<level>
+		  <content>
+		    <p class="Quote" style="margin-left:1in">&#8220;In my view, it is certainly possible to advance what may be seen as a somewhat narrower irrationality challenge which focuses on the quality and logicality of the reasons actually given by the decision maker in the particular case.  For example, in <span style="font-style:italic">R (Interbrew SA) v Competition Commission</span> [2001] EWHC (Admin) 367, Moses J commented that the Court can intervene &#8216;if the reasons make no sense and are without foundation&#8217;, or fail to &#8216;stack up&#8217;.&#8221;</p>
+		  </content>
+		</level>
+	      </embeddedStructure></block>
+	    <p class="ParaNoNumber" style="margin-left:0.5in">The two case workers did not grapple with the fact that there is a public protection from serious crime interest which weighs against removal.  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_61">
+	  <num>61.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">I reject this submission.  I accept that in the response of 15 September 2017 the SSHD set out her reasons for her decision which was made on 11 September 2017.  The A&amp;O representations that the Claimants A1P1 and Article 6 rights would be breached by Mr Xu&#8217;s deportation were not considered by the caseworkers, but by other officials.  Mr Tam explained that there were two strands to the decision making process: first, the conventional approach reflected in the internal documents of 11 September 2017 which involved consideration of whether Mr Xu was suggesting that he should not be deported; and second, that part of the decision making process which involved consideration of the Claimants&#8217; representations.  It was after both strands of the decision making process had been completed that the deportation order was signed.  The letter and response sent by GLD on 15 September 2017 sets out the reasons of the decision makers.  Mr Tam acknowledged that the documentation is not the clearest as to what happened, but I am satisfied that the response of 15 September 2017 does record the SSHD&#8217;s reasons for her decision.  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_62">
+	  <num>62.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">Mr Fordham acknowledges that the general public interest requires the deportation of Mr Xu; the question is when.  He submits that the timing of any deportation order is for the SSHD&#8217;s open discretion (see <span style="font-style:italic">Macdonald&#8217;s</span><span/><span style="font-style:italic">Immigration Law &amp; Practice in the UK</span> 9<span style="vertical-align:super;font-size:smaller">th</span> Ed, vol.1, para 16.18: &#8220;complete discretion as to timing&#8221;).  The exercise of the timing power falls, he submits, to be justified by reasons which relate to timing (see <span style="font-style:italic">Kiarie v SSHD</span> <ref href="https://caselaw.nationalarchives.gov.uk/uksc/2017/42" uk:canonical="[2017] UKSC 42" uk:isNeutral="true" uk:origin="TNA" uk:type="case" uk:year="2017">[2017] UKSC 42</ref>, per Lord Wilson at paras 34-35).  Mr Fordham submits that the question as to the appropriate time is especially important where the individual is eager to leave the UK, would be free of the restrictions of the licence conditions if he left, would escape the civil process which is underway, and would be free from the SCPO restriction imposed by the criminal court.  An effective SCPO is premised on Mr Xu remaining in the UK &#8211; that is the public interest in not deporting him now.  The specific public interest that is engaged and justifies delaying deportation is the prevention of crime which in this case essentially involves protecting the Claimants.  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_63">
+	  <num>63.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">I do not accept this submission.  I agree with Mr Tam that the understanding of the SSHD as to how the discretion in s.34 should be exercised is correct (see para 53 above).  Parliament has directed that foreign criminals such as Mr Xu must be deported.  It is not conducive to the public good that they remain in the UK.  Implicit in that is that, as Mr Tam puts it, the sooner that they go the better.  Accordingly, whilst the Secretary of State has a discretion as to the timing of a deportation that is only so that regard can be had to practical considerations.  The case management of an individual case may affect the precise timing of the deportation.  The discretion in s.34 does not give the SSHD the power to delay the date of deportation by months (or even years) for reasons suggested by the Claimants.  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_64">
+	  <num>64.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">The SSHD acknowledges that there is a balancing exercise to be conducted when considering the public interest.    </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_65">
+	  <num>65.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">Mr Fordham criticises the SSHD for characterising the risk of harm to the Claimants as engaging &#8220;commercial interests&#8221;, and for distinguishing between &#8220;the interests of the wider community&#8221; and &#8220;the interests of your client&#8221; (response, para 5(c)).  I do not accept that the SSHD has set up a false antithesis, as he contends.  The commercial interest is the public interest.  It is the Claimants who have focussed on their commercial interests.  The response, read as a whole, makes clear that the SSHD appreciates that the Claimants&#8217; interests are an aspect of the relevant &#8220;public interest&#8221;, and that the SSHD has properly balanced one aspect of the public interest, namely the Claimants&#8217; commercial interests, against the interests of the wider community.  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_66">
+	  <num>66.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">Mr Fordham submits that the potential harm to the Claimants is vast, and that the SSHD has not appreciated the scale and seriousness of this.  He contends that to decide not to deport Mr Xu at this stage would mean a real protection and a very significantly reduced harm.  Mr Fordham refers to a detention review dated 29 September 2017 which includes an assessment of the risk of Mr Xu re-offending as &#8220;High, as he has breached his SCPO and it is considered he is highly likely to do this again&#8221;.  The SSJ and SSHD have ample authority and resources to monitor Mr Xu&#8217;s compliance: electronic monitoring or weekly reporting, for example, could be imposed.  If he deliberately acts contrary to his licence conditions, he can be recalled.  Accordingly it does not follow that the risk and harm are the same if Mr Xu is in the UK, and if he is in China.  The Claimants do not accept that he could clandestinely secure importation of copies of strategies stored on computers and currently located in China, and start exploiting them here.  That being so they take issue with the SSHD&#8217;s contention that if Mr Xu is released there is a very real risk that he will abscond and simply disappear within the UK or return to China.  Where there are, as here, powers that can control him, there is a strong public interest in not deporting him at this stage because of the serious risk of serious harm.  In these circumstances Mr Fordham submits that the decision to deport Mr Xu at the present time is not a reasonable exercise of discretionary power.</p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_67">
+	  <num>67.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">However the A&amp;O representations merely stated that Mr Xu would benefit by &#163;31million from his criminal conduct.  This had been the Claimants&#8217; estimate of the value of the strategies as at August 2014.  It did not take into account the reduction in value over the ensuing three years reflecting the diminishing &#8220;shelf life&#8221; of the strategies.  Further the benefit value to Mr Xu does not indicate the level of harm to the Claimants if Mr Xu re-offends.  Before the hearing the Claimants reduced the figure of &#163;31million to &#163;12million.  In their re-amended pleadings dated 2 October 2017 the Claimants state at para 7.69: </p>
+	    <block name="embeddedStructure"><embeddedStructure>
+		<level>
+		  <content>
+		    <p class="Quote" style="margin-left:1in">&#8220;If the conservative &#163;31million figure is taken to be the value at the time of the offending (August 2014) and taking a linear (three-fifths) decay of value, the harm at stake would exceed &#163;12million.&#8221; </p>
+		  </content>
+		</level>
+	      </embeddedStructure></block>
+	    <p class="ParaNoNumber" style="margin-left:0.5in">During the course of the hearing Mr Fordham submitted that the figure of &#163;31million, agreed as at 16 May 2017 between the Crown and Mr Xu, was a very conservative assessment.  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_68">
+	  <num>68.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">In support of this submission he referred to the witness statement of Mr Leadsom, the Claimants&#8217; Business Manager, dated 21 July 2016, which refers to a successful strategy generating in the order of US$1-10 million per year, strategies tending to have an average trading lifetime of around five years (para 6).  He also referred to the Victim Impact Statement of Mr Harlow, a director of the First Claimant, dated 2 July 2015, which under the heading &#8220;significant potential loss&#8221; says that &#8220;the risk of substantial loss to our business is very real&#8221;.  Mr Harlow says: &#8220;It is impossible for us to quantify the ultimate cost to our business of [Mr Xu&#8217;s] actions or to protect ourselves against the potentially catastrophic losses to which he has exposed us&#8221;.  Mr Fordham says that when Mr Xu is released from custody we can only assume he will be reunited with the strategies, which it is reasonable to assume are stored on the computer equipment he took with him when he fled to Hong Kong, which he still has not delivered up.  Mr Harlow estimated that over &#163;7.5million had been spent on protective measures in terms of investigations and enhanced security.  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_69">
+	  <num>69.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">Mr Raza Halim, who appears for Mr Xu, contends that in the confiscation proceedings Mr Xu established on a balance of probabilities, and the Crown accepted, that he did not have access to any of the strategies (see &#8220;schedule of available or realisable assets&#8221; to the confiscation order), and that therefore there are no hidden assets.  This is not correct.  The question of hidden assets was not pursued in the confiscation proceedings for good reason.  In <span style="font-style:italic">R v Islam</span> <ref href="#" uk:canonical="[2009] 1 AC 1076" uk:isNeutral="false" uk:origin="TNA" uk:type="case" uk:year="2009">[2009] 1 AC 1076</ref>, Lord Hope said (at para 18): &#8220;The market that has to be contemplated for the assessment of the available amount under <ref href="http://www.legislation.gov.uk/id/ukpga/2002/29/section/9" uk:canonical="" uk:origin="TNA" uk:type="legislation">s.9</ref> of <ref href="http://www.legislation.gov.uk/id/ukpga/2002/29" uk:canonical="2002 c. 29" uk:origin="TNA" uk:type="legislation">POCA 2002</ref> must be taken to be one to which the Defendant can resort to realise his assets without acting illegally&#8221;.    </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_70">
+	  <num>70.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">Nevertheless, as Mr Tam observes, there is an important distinction to be drawn between the value of the strategies (whether in 2014 when they were stolen or currently) and how much harm could be caused to the Claimants by misuse of the strategies now.  Mr Xu has not deprived the Claimants of the information itself; they have continued to use the information which they have modified and updated.   That makes the calculation of the possible future harm a very difficult question.  It is not possible to calculate with any precision the loss that may ensue if these strategies were to be misused.  The magnitude of the likely harm, Mr Tam comments, is very uncertain.  The A&amp;O representations assert that it may be &#8220;hundreds of millions of pounds of loss to the Claimants&#8221;.  However there is no indication, as Mr Tam observes, in the 44-page letter as to how this figure is arrived at.  Mr Caisley has given more detail in his latest witness statement.  At paragraph 17 he refers to a specific strategy, one of the Hadfield strategies.  A value has been given as part of a marginal simulation which is based on trading this particular strategy as part of the pool of other strategies which have been selected to work together to best advantage.  One question that arises is whether Mr Xu would have access to all of the other strategies, many of which the Claimants have amended.  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_71">
+	  <num>71.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">Mr Tam submits that the position is further complicated by the fact that the Claimants have now explained that (1) of the 28 strategies that remain &#8220;live&#8221; a number have been amended and refined.  However the Claimants have not explained how use of the original strategies would undermine the profitability of amended versions of the strategies now used by them; and (2) strategies are not used to trade on a stand alone basis.  Rather, trading decisions are determined by a pool of strategies which, in the case of the Claimants, include many which Mr Xu has never had access to.  It is unclear how any stand alone use of the strategies by Mr Xu, or even use of the strategies as part of a wider pool of competitive strategies would sufficiently mimic the trading decisions taken by the Claimants&#8217; current pool of strategies so as to reduce or destroy their profitability.    </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_72">
+	  <num>72.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">What, in my view, is clear from all the evidence is that whilst there is a potential risk that the Claimants could suffer significant harm to their commercial interests, any financial loss that they are likely to sustain remains unquantifiable and very uncertain.  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_73">
+	  <num>73.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">The public interest is wider than the risk of re-offending.  In <span style="font-style:italic">CD (Jamaica) v Home Secretary</span> <ref href="https://caselaw.nationalarchives.gov.uk/ewca/civ/2016/1433" uk:canonical="[2016] EWCA Civ 1433" uk:isNeutral="true" uk:origin="TNA" uk:type="case" uk:year="2016">[2016] EWCA Civ 1433</ref>, Elias LJ at para 11 endorsed the dicta of Wilson LJ in <span style="font-style:italic">OH (Serbia) v Home Secretary</span> <ref href="https://caselaw.nationalarchives.gov.uk/ewca/civ/2008/694" uk:canonical="[2008] EWCA Civ 694" uk:isNeutral="true" uk:origin="TNA" uk:type="case" uk:year="2008">[2008] EWCA Civ 694</ref> in which the following facets of the public interest were identified at para 15: </p>
+	    <block name="embeddedStructure"><embeddedStructure>
+		<paragraph>
+		  <num>&#8220;(a)</num>
+		  <content>
+		    <p class="Quote" style="margin-left:1in;text-indent:0.5in">The risk of re-offending by the person concerned; </p>
+		  </content>
+		</paragraph>
+		<paragraph>
+		  <num>(b)</num>
+		  <content>
+		    <p class="Quote" style="margin-left:1in;text-indent:0.5in">The need to deter foreign criminals from committing serious crimes by leading them to understand that, whatever the other consequences, one consequence of them may well be deportation; and </p>
+		  </content>
+		</paragraph>
+		<paragraph>
+		  <num>(c)</num>
+		  <content>
+		    <p class="Quote" style="margin-left:1in;text-indent:0.5in">The role of deportation&#8230; in building public confidence in the treatment of foreign citizens who have committed serious crimes.&#8221; </p>
+		  </content>
+		</paragraph>
+	      </embeddedStructure></block>
+	    <p class="ParaNoNumber" style="margin-left:0.5in">Elias LJ noted: </p>
+	    <block name="embeddedStructure"><embeddedStructure>
+		<level>
+		  <content>
+		    <p class="Quote" style="margin-left:1in">&#8220;This has been reaffirmed in numerous cases: see, for example, <span style="font-style:italic">RU (Bangladesh v Secretary of State for the Home Department</span> <ref href="https://caselaw.nationalarchives.gov.uk/ewca/civ/2011/651" uk:canonical="[2011] EWCA Civ 651" uk:isNeutral="true" uk:origin="TNA" uk:type="case" uk:year="2011">[2011] EWCA Civ 651</ref>, especially from paragraph 43, where Aitkens LJ, giving the judgment of the court, emphasised the importance of the need to ensure that the public has confidence in the operation of the immigration system.&#8221; </p>
+		  </content>
+		</level>
+	      </embeddedStructure></block>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_74">
+	  <num>74.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">Mr Tam submits that the Claimants seriously underplay the importance of these other public interests that are involved in the decision to deport Mr Xu.  In addition he makes the point that the Claimants do not appear to have addressed the fact that the person whose interests are most directly affected by the deportation is Mr Xu.  He is a foreign national with no leave to be in the UK.  In those circumstances it is highly unlikely that he would be granted permission to work; that being so he will be in a state of limbo and the question arises as to whether the State will be obliged to provide him with care and accommodation.  In addition, as Mr Halim observes, if he is not permitted to leave the UK, he will be kept apart from his family in China; and all this, says Mr Halim, to serve the uncertain commercial interests of the Claimants.  By contrast, the Claimants, who are only indirectly affected by the decision, are able to take other steps to protect their position, which they have done through civil proceedings.  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_75">
+	  <num>75.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">The SSHD acknowledges that the risk of Mr Xu committing further offences in the UK in the future against third parties, other than the Claimants, may be &#8220;low&#8221; (response, para 5(d)).  However, as Mr Tam observes, there is no logical reason why the Claimants are the only persons against whom Mr Xu may offend if he were able to do so.  There must be some risk of him re-offending and that risk cannot be limited to re-offending against the Claimants.  The SSHD was entitled in my view to proceed on the basis that Mr Xu represented a risk of criminal re-offending which did not target the Claimants.  However even if, as the Claimants contend, he poses no risk of harm to third parties that does not vitiate the public interest in his deportation.  What the Secretary of State has to do is strike a balance between all the considerations to which she must properly have regard, and form a view as to whether deportation is in the public interest or not.  That she has done.  She has, in my judgment, properly considered and balanced the competing public interests, the public interest in deporting a foreign criminal and the interests of the Claimants identified in their representations which also form, as she accepts, part of the public interest.  In so doing she has assessed and taken into account the risk of harm to the Claimants&#8217; commercial interests.  </p>
+	  </content>
+	</paragraph>
+	<level eId="lvl_8">
+	  <content>
+	    <p class="ParaHeading"><span style="font-weight:bold">ECHR Article 1 Protocol 1 (A1P1)</span></p>
+	  </content>
+	</level>
+	<paragraph eId="para_76">
+	  <num>76.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">At the outset of the hearing Mr Tam did not accept that A1P1 is engaged because there was a question as to whether any interference with the Claimants&#8217; confidential information would be within the UK&#8217;s jurisdiction for A1P1 purposes.  The relevant &#8220;possessions&#8221; are the intellectual property rights in the stolen strategies.  These strategies are owned by the First Claimant, a company registered and domiciled in Bermuda.  The Second and Third Claimants do not own or use the strategies.  They are used or operated by off-shore companies.  Mr Lawson Caisley of Allen &amp; Overy explains the relationship of the Claimants to the UK at paras 48-50 of his fifth witness statement dated 30 October 2017.  At para 49 he states: </p>
+	    <block name="embeddedStructure"><embeddedStructure>
+		<level>
+		  <content>
+		    <p class="Quote" style="margin-left:1in">&#8220;Together, the Second and Third Claimants, as the group&#8217;s on-shore companies, are solely responsible for the research and development through which the investment strategies are produced.  The group&#8217;s trading and investment is carried out through a number of companies incorporated outside the UK.  The First Claimant does not carry out any trading or investment.  Its role is as a holding company for some of the group&#8217;s intellectual property.  It is the UK-based companies that all quants owe their duties of confidence at common law and by virtue of their contracts of employment.  Thus the victims of Mr Xu&#8217;s breaches of confidence in relation to the strategies, whether past or future breaches, are the Second and Third Claimants&#8230;&#8221; </p>
+		  </content>
+		</level>
+	      </embeddedStructure></block>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_77">
+	  <num>77.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">On that factual basis Mr Tam made the submission that there is no authority that supports the Claimants&#8217; case that A1P1 obliges a State to prevent a foreign national (who has no lawful basis for being in the State) leaving its jurisdiction in order to reduce the risk of a foreign national committing a crime abroad against other foreign nationals.  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_78">
+	  <num>78.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">Mr Fordham responded that where the act complained of is carried out by a Contracting State within its own territory, it occurs within the jurisdiction of the Convention.  In support of this submission he relies on the cases of <span style="font-style:italic">Bosphorous v Ireland</span> [2006] 42 EHRR 1 (where A1P1 was held to be engaged where a State impounded aircraft within their territory) and <span style="font-style:italic">Bank Mellat</span><span/><span style="font-style:italic">v HMT</span> <ref href="#" uk:canonical="[2014] AC 700" uk:isNeutral="false" uk:origin="TNA" uk:type="case" uk:year="2014">[2014] AC 700</ref> (where HM Treasury effectively shut down the Bank&#8217;s operations within its territory).  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_79">
+	  <num>79.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">In any event Mr Fordham submits the strategies are the confidential information of the Second and Third Claimants; and the confidential information (which is the relevant possessions for the purposes of A1P1) remains with these Claimants.  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_80">
+	  <num>80.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">I can take this point shortly in the light of further evidence that the Claimants filed during the course of the hearing. On the second day of the hearing Mr Fordham said the Second and Third Claimants received service payments via a service company based on the success in trading the investment strategies.  In his sixth witness statement dated 27 November 2017 Mr Lawson Caisley of Allen &amp; Overy has explained that this service company is a UK LLP (Island Research LLP (&#8220;the LLP&#8221;)) of which the Second and Third Claimants are members.  The LLP accounts dated 31 December 2016 show that in 2016 the LLP received over &#163;105 million from fees from group companies all of which arose in the UK, of which it paid over &#163;95 million to the Second and Third Claimants in the same year.  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_81">
+	  <num>81.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">That being so, I consider that A1P1 is engaged, and in the light of the new evidence Mr Tam did not argue to the contrary.  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_82">
+	  <num>82.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">However the SSHD contends that even if A1P1 is engaged and Mr Xu&#8217;s deportation would interfere with the First Claimant&#8217;s possessions, any such interference is proportionate.  Mr Xu&#8217;s deportation would be pursuant to a legitimate aim.  The issue is whether it strikes a fair balance between the demands of the general interest of the community and the requirements of the protection of the Claimants&#8217; rights.  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_83">
+	  <num>83.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">In <span style="font-style:italic">Ali v Secretary of State for the Home Department</span> <ref href="#" uk:canonical="[2016] 1 WLR 4799" uk:isNeutral="false" uk:origin="TNA" uk:type="case" uk:year="2016">[2016] 1 WLR 4799</ref>, Lord Reed JSC, delivering the majority judgment, said at para 14 that: </p>
+	    <block name="embeddedStructure"><embeddedStructure>
+		<level>
+		  <content>
+		    <p class="Quote" style="margin-left:1in">&#8220;<ref href="http://www.legislation.gov.uk/id/ukpga/2007/30/section/32" uk:canonical="" uk:origin="TNA" uk:type="legislation">Sections 32</ref> and 33 [of <ref href="http://www.legislation.gov.uk/id/ukpga/2007/30" uk:canonical="2007 c. 30" uk:origin="TNA" uk:type="legislation">the 2007 Act</ref>] make clear Parliament&#8217;s view that there is a strong public interest in the deportation of foreign nationals who have committed serious offences, and that the procedures for their deportation should be expeditious and effective.  The strength of that public interest is reflected in Laws LJ&#8217;s observation that for a claim under Article 8 of the Convention on Human Rights to prevail, it must be &#8216;a very strong claim indeed&#8217;: <span style="font-style:italic">SS (Nigeria) v Secretary of State for the Home Department</span> <ref href="#" uk:canonical="[2014] 1 WLR 998" uk:isNeutral="false" uk:origin="TNA" uk:type="case" uk:year="2014">[2014] 1 WLR 998</ref>, para 54.&#8221; </p>
+		  </content>
+		</level>
+	      </embeddedStructure></block>
+	    <p class="ParaNoNumber" style="margin-left:0.5in">I consider a similar approach should be adopted when A1P1 is in play.  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_84">
+	  <num>84.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">Mr Xu has been sentenced to four years&#8217; imprisonment.  He therefore falls within the top tier of the most serious criminals identified in paragraph 398(a) of the Immigration Rules.  In addition to the public interest factors arising from his criminal conduct, there are the general immigration considerations arising from the fact that he has no leave to be in the UK.  These are therefore compelling reasons of immigration policy as well as Mr Xu&#8217;s criminality which favour his deportation.  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_85">
+	  <num>85.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">Mr Fordham submits that it is not in the public interest for a foreign criminal who wishes to leave the UK, in circumstances of a known serious risk of further serious criminality if he does so, to have that wish facilitated.  In all the circumstances of this case, applying the four-fold test set out in <span style="font-style:italic">Bank Mellat</span>, Mr Fordham submits deportation will be disproportionate.  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_86">
+	  <num>86.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">When assessing the risk of harm posed by Mr Xu and striking a fair balance Mr Tam observes that it is well established that A1P1 rights are not as weighty as some of the other qualified rights.  Further, the evidence now before the court, Mr Tam submits, shows that the financial risk posed by Mr Xu to the Claimants is highly speculative.  In his fifth witness statement (at para 40) Mr Caisley states: </p>
+	    <block name="embeddedStructure"><embeddedStructure>
+		<level>
+		  <content>
+		    <p class="Quote" style="margin-left:1in">&#8220;The ability of an investment strategy to generate the significant levels of profit to which I have been referring is dependent in part upon its uniqueness and its confidentiality.  Investment strategies that become known to others can have significantly impaired profitability.  Each strategy works by identifying a particular inefficiency or opportunity in the market.  That inefficiency or opportunity can close, or disappear altogether, if others try to exploit it too.&#8221; </p>
+		  </content>
+		</level>
+	      </embeddedStructure></block>
+	    <p class="ParaNoNumber" style="margin-left:0.5in">Mr Tam submits that accordingly, the potential harm the Claimants say they face is the risk that the profit they might make in the future from using the strategies is reduced or eradicated if, because of Mr Xu&#8217;s actions, the use of the strategies become sufficiently widespread so as to make the relevant inefficiencies/opportunities close or disappear.  In practical terms therefore: (1) whatever benefit value is placed on the strategies the Claimants would suffer a risk of such a loss of profitability if through Mr Xu&#8217;s actions the strategies became known to the world (and it would only be a risk).  (2) Mr Xu and/or his prospective employer would only be able to profit from the strategies if they prevent them from becoming widely available.  Consequently, Mr Xu would have every incentive not to disseminate the strategies further.  (3) There is no evidence as to what if any harm the Claimants would risk if only Mr Xu and/or his employer (but no other third party) were to use the strategies.  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_87">
+	  <num>87.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">I agree with Mr Tam that the human rights arguments add nothing to the conventional public law analysis.  I am entirely satisfied that the Claimants have not established sufficiently compelling circumstances so as to outweigh the powerful public interest in deporting a serious foreign criminal such as Mr Xu.  His deportation would be pursuant to a legitimate aim.  There is no bar to deporting a foreign criminal during the licence period, nor whilst the SCPO is in force.  I reject the contention that the decision of the SSHD is disproportionate.  In my judgment the SSHD has not acted unlawfully in concluding that the public interest in deporting Mr Xu without further delay is not outweighed by any increase in the potential risk of him interfering with the possessions of the Claimants abroad.    </p>
+	  </content>
+	</paragraph>
+	<level eId="lvl_9">
+	  <content>
+	    <p class="ParaHeading"><span style="font-weight:bold">ECHR Article 6 </span></p>
+	  </content>
+	</level>
+	<paragraph eId="para_88">
+	  <num>88.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">The Claimants contend that if Mr Xu were to be deported before 14 August 2018 this would interfere with their fair trial rights in the civil proceedings.  Mr Fordham submits that there is no practical and effective civil process if Mr Xu has been allowed to leave the UK.  He could not effectively be brought to account and civil remedies against him could not effectively be secured and enforced.  There is obvious benefit, it is said, to the Claimants in being able to cross-examine Mr Xu on the material issues in the civil proceedings.  If returned to China he would be very unlikely to attend cross-examination by video link, and even if he were to do so, such evidence would be substantially inferior to live evidence.  Further, the remedies that the Claimants seek are likely to be frustrated by his deportation.  The enforcement of any judgment in China will be very difficult.  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_89">
+	  <num>89.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">Mr Tam submits that, absent a specific order from the court, it is a matter for Mr Xu whether or not he chooses to exercise his Article 6 right to participate in the civil proceedings.  If he chooses not to, he may waive his own Article 6 rights but this would not amount to an interference with the Claimants&#8217; Article 6 rights.  Mr Xu&#8217;s consent to deportation demonstrates that he does not wish to participate from within the UK.  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_90">
+	  <num>90.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">In any event, even if Mr Xu&#8217;s deportation would somehow interfere with the Claimants&#8217; Article 6 rights Mr Tam submits that the strong public interest in deporting a serious foreign criminal such as Mr Xu outweighs any such interference.  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_91">
+	  <num>91.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">Mr Tam submits that if the Claimants fear that Mr Xu&#8217;s departure from the UK will interfere with their Article 6 rights they can apply within the civil proceedings for an order prohibiting his travel outside the UK.  Mr Fordham accepts that the most appropriate forum for consideration of the Article 6 issue is in the civil proceedings and he has informed me that the Claimants have recently made arrangements for such an application to be made to a judge in the civil proceedings in the event that they do not succeed in the present claim.  </p>
+	  </content>
+	</paragraph>
+	<level eId="lvl_10">
+	  <content>
+	    <p class="ParaHeading"><span style="font-weight:bold">Issue 4: facilitated exit </span></p>
+	  </content>
+	</level>
+	<paragraph eId="para_92">
+	  <num>92.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">This issue is only of practical significance if the SSHD cannot herself remove Mr Xu from the UK pursuant to the Deportation Order, which in my judgment she can.  That being so I can deal with this issue shortly.  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_93">
+	  <num>93.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">Presently the SSHD is in possession of Mr Xu&#8217;s passport.  His licence contains a condition that he cannot travel without the permission of the SSJ.  Under <ref href="http://www.legislation.gov.uk/id/ukpga/2003/44/section/250/4" uk:canonical="" uk:origin="TNA" uk:type="legislation">s.250(4)</ref> of the <ref href="http://www.legislation.gov.uk/id/ukpga/2003/44" uk:canonical="2003 c. 44" uk:origin="TNA" uk:type="legislation">Criminal Justice Act 2003</ref> the SSJ has the power to impose additional conditions to a licence to require Mr Xu to surrender his passport to the SSJ.  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_94">
+	  <num>94.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">In response to Allen &amp; Overy&#8217;s letter dated 21 September 2017 (following the hearing in this matter on 19 September 2017), GLD wrote on 28 September 2017: </p>
+	    <block name="embeddedStructure"><embeddedStructure>
+		<level>
+		  <content>
+		    <p class="Quote" style="margin-left:1in">&#8220;The point that was made [was] that no undertaking had been given in the context of these proceedings that Mr Xu&#8217;s passport would not be returned to him.  This remains the position (and for the avoidance of doubt, although this [is] not deemed necessary, this letter should be treated as confirmation of a change of circumstances referred to in the letter of November 2016).  Mr Xu is subject to a deportation order which requires him to leave the UK. If he is released and requests the return of his passport to comply with the terms of the deportation order this request will be considered in light of the circumstances appertaining at the relevant time.  It is a matter for your clients to contact those acting for Mr Xu to seek their agreement to notify you of any request for the return of the passport that is made on behalf of Mr Xu.  Unless my client receives confirmation directly from Mr Xu or his representatives that he does not object to my client notifying you of the request for and decision as to the return of the passport, my client does not consider it appropriate to notify you of such events.&#8221;  </p>
+		  </content>
+		</level>
+	      </embeddedStructure></block>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_95">
+	  <num>95.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">Earlier on 12 May 2017 Allen &amp; Overy had written to Ms Begum seeking confirmation that there was no question of any &#8220;permission&#8221; for travel outside the UK being given to Mr Xu for as long as his passport is retained by the Home Office.  On 15 May 2017 the GLD replied on behalf of the SSJ asking why such a confirmation was now being sought.  Mr Fordham says that the issue was thereby left open, and that it crystallized upon the SSHD&#8217;s decision of 28 September 2017.  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_96">
+	  <num>96.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">Mr Fordham submits that if it is established that the SSHD cannot lawfully deport Mr Xu before 14 August 2018 at the earliest, it necessarily follows that (1) the SSHD could not lawfully release Mr Xu&#8217;s passport to him; and (2) the SSJ could not lawfully give permission for him to leave the UK.  It would follow, he contends, (just as it followed at the stage of interim relief: see my judgment at <ref href="https://caselaw.nationalarchives.gov.uk/admin/ch/2017/2555" uk:canonical="[2017] EWHC 2555 (Admin)" uk:isNeutral="true" uk:origin="TNA" uk:type="case" uk:year="2017">[2017] EWHC 2555 (Admin)</ref> at para 6) that the order of the court may not lawfully be undermined by their action facilitating his voluntary exit from the UK.  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_97">
+	  <num>97.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">I reject this submission.  The SSHD has only limited powers to retain a passport.  <ref href="http://www.legislation.gov.uk/id/ukpga/2004/19/section/17" uk:canonical="" uk:origin="TNA" uk:type="legislation">Section 17</ref> of the <ref href="http://www.legislation.gov.uk/id/ukpga/2004/19" uk:canonical="2004 c. 19" uk:origin="TNA" uk:type="legislation">Asylum and Immigration (Treatment of Claimants, etc) Act 2004</ref> provides: </p>
+	    <block name="embeddedStructure"><embeddedStructure>
+		<level>
+		  <content>
+		    <p class="Quote" style="margin-left:1in">&#8220;Where a document comes into the possession of the Secretary of State or an immigration officer in the course of the exercise of an immigration function, the Secretary of State or an immigration officer may retain the document while he suspects that&#8212;</p>
+		  </content>
+		</level>
+		<paragraph>
+		  <num>(a)</num>
+		  <content>
+		    <p class="Quote" style="margin-left:1in;text-indent:0.5in">a person to whom the document relates may be liable to removal from the United Kingdom in accordance with a provision of the Immigration Acts, and </p>
+		  </content>
+		</paragraph>
+		<paragraph>
+		  <num>(b)</num>
+		  <content>
+		    <p class="Quote" style="margin-left:1in;text-indent:0.5in">retention of the document may facilitate the removal.&#8221; </p>
+		  </content>
+		</paragraph>
+	      </embeddedStructure></block>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_98">
+	  <num>98.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">If Mr Xu cannot be deported before 14 August 2018 at the earliest he is not liable to removal from the UK under the deportation order.  I agree with Mr Tam that <ref href="http://www.legislation.gov.uk/id/ukpga/2004/19/section/17" uk:canonical="" uk:origin="TNA" uk:type="legislation">s.17</ref> does not confer a power on the SSHD in effect to impound an individual&#8217;s passport for other purposes, such as to prevent the voluntary departure from the UK of an individual whom she is not proposing herself to remove from the UK.  The Claimants want the SSHD to hold Mr Xu&#8217;s passport in order to prevent him leaving the UK.  That, Mr Tam submits, and I agree, would be an exercise of the power under <ref href="http://www.legislation.gov.uk/id/ukpga/2004/19/section/17" uk:canonical="" uk:origin="TNA" uk:type="legislation">s.17</ref> for an unlawful purpose.  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_99">
+	  <num>99.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">I further accept Mr Tam&#8217;s submission that if such an individual is to be prevented from travelling from the UK, some other measure must be put in place to prohibit such travel.  In the context of Mr Xu&#8217;s case that could be an order within the civil proceedings.  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_100">
+	  <num>100.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">The SSJ has never been asked whether or not he would give permission to Mr Xu to travel.  There is therefore presently no decision to challenge.  Mr Tam says, and I accept, whether or not Mr Xu would be given permission to travel is a decision which would be taken at the material time.  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_101">
+	  <num>101.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">If, as I consider, the SSHD has no power to retain Mr Xu&#8217;s passport, there is no legal basis for the Claimants&#8217; contention that they must be given reasonable notice of (and a reasonable opportunity to make representations in relation to) any request by Mr Xu for permission to travel outside the UK.  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_102">
+	  <num>102.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">In the hypothetical situation that is envisaged of Mr Xu&#8217;s passport being returned to him and he asking for permission to leave the jurisdiction, the SSJ does not deny that the Claimants should be given a reasonable opportunity to make representations in relation thereto.  </p>
+	  </content>
+	</paragraph>
+	<level eId="lvl_11">
+	  <content>
+	    <p class="ParaHeading"><span style="font-weight:bold">Conclusion </span></p>
+	  </content>
+	</level>
+	<paragraph eId="para_103">
+	  <num>103.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">I consider the proper forum for any Article 6 issue to be raised is in the civil proceedings.  Permission is therefore refused on the Article 6 ground.  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_104">
+	  <num>104.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">I am persuaded that the other grounds of challenge are arguable.  I therefore grant permission.  However, for the reasons I have given, none of the grounds are made out.  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_105">
+	  <num>105.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">Accordingly this claim is dismissed.  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_106">
+	  <num>106.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">The parties should endeavour to agree ancillary matters.  I will determine any outstanding issues on the papers.  </p>
+	  </content>
+	</paragraph>
+      </decision>
+    </judgmentBody>
+  </judgment>
+</akomaNtoso>

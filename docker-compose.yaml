@@ -1,0 +1,110 @@
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.17.3
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+      - "http.cors.enabled=true"
+      - "http.cors.allow-origin=\"*\""
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - ./data/elasticsearch/data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9200"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.17.3
+    container_name: kibana
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5601/api/status"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+
+  backend:
+    build:
+      context: .
+      dockerfile: ./src/backend/Dockerfile
+    container_name: backend
+    ports:
+      - "8000:8080"
+    env_file:
+      - .env
+    environment:
+      - ELASTIC_MODE=${ELASTIC_MODE:-local}
+      - ELASTIC_CLOUD_ID=${ELASTIC_CLOUD_ID:-}
+      - ELASTIC_API_KEY=${ELASTIC_API_KEY:-}
+      - ELASTIC_USERNAME=${ELASTIC_USERNAME:-}
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD:-}
+      - ELASTIC_HOST=http://elasticsearch:9200
+      - ENVIRONMENT=${ENVIRONMENT:-localhost}
+      - ELASTIC_LOGS_INDEX_PIPELINE=${ELASTIC_LOGS_INDEX_PIPELINE:-logs-pipeline}
+      - ELASTIC_LEGISLATION_INDEX=${ELASTIC_LEGISLATION_INDEX:-lex-dev-legislation}
+      - ELASTIC_LEGISLATION_SECTION_INDEX=${ELASTIC_LEGISLATION_SECTION_INDEX:-lex-dev-legislation-section}
+      - ELASTIC_CASELAW_INDEX=${ELASTIC_CASELAW_INDEX:-lex-dev-caselaw}
+      - ELASTIC_CASELAW_SECTION_INDEX=${ELASTIC_CASELAW_SECTION_INDEX:-lex-dev-caselaw-section}
+      - ELASTIC_EXPLANATORY_NOTE_INDEX=${ELASTIC_EXPLANATORY_NOTE_INDEX:-lex-dev-explanatory-note}
+      - ELASTIC_AMENDMENT_INDEX=${ELASTIC_AMENDMENT_INDEX:-lex-dev-amendment}
+    volumes:
+      - ./data:/app/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/healthcheck"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    
+  pipeline:
+    build:
+      context: .
+      dockerfile: ./src/lex/Dockerfile
+    container_name: pipeline
+    env_file:
+      - .env
+    environment:
+      - ELASTIC_MODE=${ELASTIC_MODE:-local}
+      - ELASTIC_CLOUD_ID=${ELASTIC_CLOUD_ID:-}
+      - ELASTIC_API_KEY=${ELASTIC_API_KEY:-}
+      - ELASTIC_USERNAME=${ELASTIC_USERNAME:-}
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD:-}
+      - ELASTIC_HOST=http://elasticsearch:9200
+      - ENVIRONMENT=${ENVIRONMENT:-localhost}
+      - ELASTIC_LOGS_INDEX_PIPELINE=${ELASTIC_LOGS_INDEX_PIPELINE:-logs-pipeline}
+      - ELASTIC_LEGISLATION_INDEX=${ELASTIC_LEGISLATION_INDEX:-lex-dev-legislation}
+      - ELASTIC_LEGISLATION_SECTION_INDEX=${ELASTIC_LEGISLATION_SECTION_INDEX:-lex-dev-legislation-section}
+      - ELASTIC_CASELAW_INDEX=${ELASTIC_CASELAW_INDEX:-lex-dev-caselaw}
+      - ELASTIC_CASELAW_SECTION_INDEX=${ELASTIC_CASELAW_SECTION_INDEX:-lex-dev-caselaw-section}
+      - ELASTIC_EXPLANATORY_NOTE_INDEX=${ELASTIC_EXPLANATORY_NOTE_INDEX:-lex-dev-explanatory-note}
+      - ELASTIC_AMENDMENT_INDEX=${ELASTIC_AMENDMENT_INDEX:-lex-dev-amendment}
+    volumes:
+      - ./data:/app/data
+    # Keep container running for executing commands
+    tty: true
+    stdin_open: true
+    # Add memory limit to prevent OOM issues
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 1G
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+

@@ -1,0 +1,268 @@
+<akomaNtoso xmlns="http://docs.oasis-open.org/legaldocml/ns/akn/3.0" xmlns:html="http://www.w3.org/1999/xhtml" xmlns:uk="https://caselaw.nationalarchives.gov.uk/akn">
+  <judgment name="judgment">
+    <meta>
+      <identification source="#tna">
+	<FRBRWork>
+	  <FRBRthis value="https://caselaw.nationalarchives.gov.uk/id/ewhc/ch/2017/3414"/>
+	  <FRBRuri value="https://caselaw.nationalarchives.gov.uk/id/ewhc/ch/2017/3414"/>
+	  <FRBRdate date="2017-12-21" name="judgment"/>
+	  <FRBRauthor href="#ewhc-chancery"/>
+	  <FRBRcountry value="GB-UKM"/>
+	  <FRBRnumber value="3414"/>
+	  <FRBRname value="Union Des Associations Europ&#233;ennes De Football v British Telecommunications Plc &amp; Ors"/>
+	</FRBRWork>
+	<FRBRExpression>
+	  <FRBRthis value="https://caselaw.nationalarchives.gov.uk/ewhc/ch/2017/3414"/>
+	  <FRBRuri value="https://caselaw.nationalarchives.gov.uk/ewhc/ch/2017/3414"/>
+	  <FRBRdate date="2017-12-21" name="judgment"/>
+	  <FRBRauthor href="#ewhc-chancery"/>
+	  <FRBRlanguage language="eng"/>
+	</FRBRExpression>
+	<FRBRManifestation>
+	  <FRBRthis value="https://caselaw.nationalarchives.gov.uk/ewhc/ch/2017/3414/data.xml"/>
+	  <FRBRuri value="https://caselaw.nationalarchives.gov.uk/ewhc/ch/2017/3414/data.xml"/>
+	  <FRBRdate date="2024-11-01T07:01:03" name="transform"/>
+	  <FRBRdate date="2024-11-29T21:53:00" name="tna-enriched"/>
+	  <FRBRauthor href="#tna"/>
+	  <FRBRformat value="application/xml"/>
+	</FRBRManifestation>
+      </identification>
+      <lifecycle source="#">
+	<eventRef date="2017-12-21" refersTo="#judgment" source="#"/>
+      </lifecycle>
+      <references source="#tna">
+	<TLCOrganization eId="ewhc-chancery" href="https://www.gov.uk/courts-tribunals/chancery-division-of-the-high-court" shortForm="The Chancery Division" showAs="The Chancery Division of the High Court"/>
+	<TLCOrganization eId="tna" href="https://www.nationalarchives.gov.uk/" showAs="The National Archives"/>
+	<TLCEvent eId="judgment" href="#" showAs="judgment"/>
+	<TLCPerson eId="union-des-associations-europ&#233;ennes-de-football" href="" showAs="UNION DES ASSOCIATIONS EUROP&#201;ENNES DE FOOTBALL"/>
+	<TLCPerson eId="british-telecommunications-plc" href="" showAs="BRITISH TELECOMMUNICATIONS PLC"/>
+	<TLCPerson eId="ee-limited" href="" showAs="EE LIMITED"/>
+	<TLCPerson eId="plusnet-plc" href="" showAs="PLUSNET PLC"/>
+	<TLCPerson eId="sky-uk-limited" href="" showAs="SKY UK LIMITED"/>
+	<TLCPerson eId="talktalk-telecom-limited" href="" showAs="TALKTALK TELECOM LIMITED"/>
+	<TLCPerson eId="virgin-media-limited" href="" showAs="VIRGIN MEDIA LIMITED"/>
+	<TLCRole eId="claimant" href="" showAs="Claimant"/>
+	<TLCRole eId="defendant" href="" showAs="Defendant"/>
+	<TLCPerson eId="judge-mr-justice-arnold" href="/judge-mr-justice-arnold" showAs="MR JUSTICE ARNOLD"/>
+      </references>
+      <proprietary source="#">
+	<uk:court>EWHC-Chancery</uk:court>
+	<uk:year>2017</uk:year>
+	<uk:number>3414</uk:number>
+	<uk:cite>[2017] EWHC 3414 (Ch)</uk:cite>
+	<uk:parser>0.26.9</uk:parser>
+	<uk:hash>21cbd10914407cb50e071ca318682b731602c19a323efdb475f308a5f38af0e5</uk:hash>
+	<uk:tna-enrichment-engine>6.0.2</uk:tna-enrichment-engine>
+      </proprietary>
+      <presentation source="#">
+	<html:style>
+#judgment { font-family: 'Times New Roman'; font-size: 12pt; }
+#judgment .Normal { font-size: 12pt; }
+#judgment .Heading1 { font-weight: bold; font-family: Arial; font-size: 16pt; }
+#judgment .Heading3 { font-weight: bold; font-family: Arial; font-size: 13pt; }
+#judgment .CoverDesc { text-align: center; font-weight: bold; font-size: 18pt; }
+#judgment .CoverMain { font-weight: bold; text-decoration-line: underline; text-decoration-style: solid; font-size: 12pt; }
+#judgment .CoverText { text-align: right; text-decoration-line: underline; text-decoration-style: solid; font-size: 12pt; }
+#judgment .ParaHeading { font-size: 12pt; }
+#judgment .ParaLevel1 { text-align: justify; margin-left: 0.5in; font-size: 12pt; }
+#judgment .ParaLevel2 { text-align: justify; margin-left: 0.98in; font-size: 12pt; }
+#judgment .ParaLevel3 { text-align: justify; margin-left: 1.48in; font-size: 12pt; }
+#judgment .ParaLevel4 { text-align: justify; margin-left: 1.97in; font-size: 12pt; }
+#judgment .ParaLevel5 { text-align: justify; margin-left: 2.46in; font-size: 12pt; }
+#judgment .ParaLevel6 { text-align: justify; margin-left: 2.95in; font-size: 12pt; }
+#judgment .ParaLevel7 { text-align: justify; margin-left: 3.45in; font-size: 12pt; }
+#judgment .ParaLevel8 { text-align: justify; margin-left: 3.94in; font-size: 12pt; }
+#judgment .ParaLevel9 { text-align: justify; margin-left: 4.43in; font-size: 12pt; }
+#judgment .ParaNoNumber { text-align: justify; font-size: 12pt; }
+#judgment .Quote { text-align: justify; margin-left: 1in; margin-right: 1in; font-size: 12pt; }
+#judgment .Header { font-family: Univers; font-size: 12pt; }
+#judgment .Footer { font-family: Univers; font-size: 12pt; }
+#judgment .Heading { font-size: 12pt; }
+#judgment .Title { text-align: center; font-weight: bold; font-size: 10pt; }
+#judgment .eMailBlock { text-align: center; font-weight: bold; font-size: 13pt; }
+#judgment .Heading1Char { font-weight: bold; font-size: 16pt; }
+#judgment .Heading3Char { font-weight: bold; font-family: Arial; font-size: 13pt; }
+#judgment .QuoteChar { font-style: italic; font-size: 12pt; color: #404040; }
+#judgment .HeaderChar { font-family: Univers; font-size: 12pt; }
+#judgment .FooterChar { font-size: 12pt; }
+#judgment .TitleChar { font-weight: bold; font-size: 16pt; }
+</html:style>
+      </presentation>
+    </meta>
+    <header>
+      <p class="CoverText">Case No: <docketNumber>IL-2017-000052</docketNumber></p>
+      <p class="CoverText" style="text-align:left">Neutral Citation Number: <neutralCitation>[2017] EWHC 3414 (Ch)</neutralCitation></p>
+      <p class="CoverMain">IN THE HIGH COURT OF JUSTICE</p>
+      <p><span style="font-weight:bold;text-decoration-line:underline;text-decoration-style:solid">BUSINESS AND PROPERTY COURTS OF ENGLAND AND WALES</span></p>
+      <p><span style="font-weight:bold;text-decoration-line:underline;text-decoration-style:solid">INTELLECTUAL PROPERTY LIST (CHANCERY DIVISION)</span></p>
+      <p class="CoverText">Rolls Buildings</p>
+      <p class="CoverText">Fetter Lane, London EC4A 1NL </p>
+      <p class="CoverText">Date: <docDate date="2017-12-21" refersTo="#judgment">21 December 2017</docDate></p>
+      <p style="text-align:center"><span style="font-weight:bold">Before</span> :</p>
+      <p class="CoverMain" style="text-align:center"><judge refersTo="#judge-mr-justice-arnold">MR JUSTICE ARNOLD</judge></p>
+      <p style="text-align:center">- - - - - - - - - - - - - - - - - - - - -</p>
+      <p style="text-align:center"><span style="font-weight:bold">Between :</span></p>
+      <table uk:widths="1.23in 3.87in 1.24in">
+	<tr>
+	  <td>
+	    <p/>
+	  </td>
+	  <td>
+	    <p style="text-align:center"><party as="#claimant" refersTo="#union-des-associations-europ&#233;ennes-de-football" style="font-weight:bold">UNION DES ASSOCIATIONS EUROP&#201;ENNES DE FOOTBALL</party></p>
+	  </td>
+	  <td>
+	    <p class="CoverMain" style="text-align:right"><role refersTo="#claimant">Claimant</role></p>
+	  </td>
+	</tr>
+	<tr>
+	  <td>
+	    <p/>
+	  </td>
+	  <td>
+	    <p style="text-align:center"><span style="font-weight:bold">- and -</span></p>
+	  </td>
+	  <td>
+	    <p class="CoverMain" style="text-align:right"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td>
+	    <p/>
+	  </td>
+	  <td>
+	    <blockContainer>
+	      <num style="font-weight:bold;margin-left:0.5in;text-indent:-0.25in">(1)</num>
+	      <p style="text-align:center;margin-left:0.5in;text-indent:0.12in"><party as="#defendant" refersTo="#british-telecommunications-plc" style="font-weight:bold">BRITISH TELECOMMUNICATIONS PLC</party></p>
+	    </blockContainer>
+	    <blockContainer>
+	      <num style="font-weight:bold;margin-left:0.5in;text-indent:-0.25in">(2)</num>
+	      <p style="text-align:center;margin-left:0.5in;text-indent:0.12in"><party as="#defendant" refersTo="#ee-limited" style="font-weight:bold">EE LIMITED</party></p>
+	    </blockContainer>
+	    <blockContainer>
+	      <num style="font-weight:bold;margin-left:0.5in;text-indent:-0.25in">(3)</num>
+	      <p style="text-align:center;margin-left:0.5in;text-indent:0.12in"><party as="#defendant" refersTo="#plusnet-plc" style="font-weight:bold">PLUSNET PLC</party></p>
+	    </blockContainer>
+	    <blockContainer>
+	      <num style="font-weight:bold;margin-left:0.5in;text-indent:-0.25in">(4)</num>
+	      <p style="text-align:center;margin-left:0.5in;text-indent:0.12in"><party as="#defendant" refersTo="#sky-uk-limited" style="font-weight:bold">SKY UK LIMITED</party></p>
+	    </blockContainer>
+	    <blockContainer>
+	      <num style="font-weight:bold;margin-left:0.5in;text-indent:-0.25in">(5)</num>
+	      <p style="text-align:center;margin-left:0.5in;text-indent:0.12in"><party as="#defendant" refersTo="#talktalk-telecom-limited" style="font-weight:bold">TALKTALK TELECOM LIMITED</party></p>
+	    </blockContainer>
+	    <blockContainer>
+	      <num style="font-weight:bold;margin-left:0.5in;text-indent:-0.25in">(6)</num>
+	      <p style="text-align:center;margin-left:0.5in;text-indent:0.12in"><party as="#defendant" refersTo="#virgin-media-limited" style="font-weight:bold">VIRGIN MEDIA LIMITED</party></p>
+	    </blockContainer>
+	  </td>
+	  <td>
+	    <p class="CoverMain" style="text-align:right"><role refersTo="#defendant">Defendants</role></p>
+	  </td>
+	</tr>
+      </table>
+      <p style="text-align:center">- - - - - - - - - - - - - - - - - - - - -</p>
+      <p style="text-align:center">- - - - - - - - - - - - - - - - - - - - -</p>
+      <p style="text-align:center"><span style="font-weight:bold">Janni Riordan  </span>(instructed by<span style="font-weight:bold"> CMS Cameron McKenna Olswang LLP</span>) for the filed </p>
+      <p style="text-align:center">written submission on behalf of the<span style="font-weight:bold"> Claimant</span></p>
+      <p style="text-align:center"><span style="font-weight:bold">The Defendants </span>were not represented</p>
+      <p style="text-align:center">The application was considered on paper</p>
+      <p style="text-align:center">- - - - - - - - - - - - - - - - - - - - -</p>
+      <p class="CoverDesc">Judgment</p>
+      <p><span style="font-weight:bold">MR JUSTICE ARNOLD :</span></p>
+    </header>
+    <judgmentBody>
+      <decision>
+	<paragraph eId="para_1">
+	  <num>1.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">The Claimant (&#8220;UEFA&#8221;) is the governing body for association football in Europe. Its members consist of 55 national football associations. It is the organiser of a number of European football competitions including the UEFA Champions League and the UEFA Europa League (together, &#8220;the UEFA Competitions&#8221;). The UEFA Competitions are very popular with television viewers in the UK: this year&#8217;s Champions League final attracted several million viewers.</p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_2">
+	  <num>2.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">UEFA&#8217;s evidence establishes that it owns the copyright in television broadcasts of all matches in the UEFA Competitions, and in films (particularly replays), artistic works and musical works which are incorporated within those broadcasts. </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_3">
+	  <num>3.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">The Defendants are the six main retail internet service providers (&#8220;ISPs&#8221;) in the United Kingdom. The First Defendant (&#8220;BT&#8221;) has since 2013 been the exclusive licensee of the rights to broadcast and transmit the UEFA Competitions in the UK. The rights are very valuable: BT currently pays approximately &#163;360 million each season for these rights together with the rights in respect of the UEFA Super Cup.   </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_4">
+	  <num>4.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">By this claim UEFA seeks an injunction against the Defendants pursuant to <ref href="http://www.legislation.gov.uk/id/ukpga/1988/48/section/97" uk:canonical="" uk:origin="TNA" uk:type="legislation">section 97</ref>A of the <ref href="http://www.legislation.gov.uk/id/ukpga/1988/48" uk:canonical="1988 c. 48" uk:origin="TNA" uk:type="legislation">Copyright, Designs and Patents Act 1988</ref> (&#8220;<ref href="http://www.legislation.gov.uk/id/ukpga/1988/48" uk:canonical="1988 c. 48" uk:origin="TNA" uk:type="legislation">the 1988 Act</ref>&#8221;), which implements Article 8(3) of European Parliament and Council Directive 2001/29/EC of 22 May 2001 on the harmonisation of certain aspects of copyright and related rights in the information society (&#8220;the Information Society Directive&#8221;), requiring the Defendants to take measures to block, or at least impede, access by their customers to streaming servers which deliver infringing live streams of UEFA Competition matches to UK consumers.</p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_5">
+	  <num>5.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">The order which UEFA seeks is very similar to the order which I made in <span style="font-style:italic">Football Association Premier League Ltd v British Telecommunications plc</span> <ref href="https://caselaw.nationalarchives.gov.uk/ewhc/ch/2017/1877" uk:canonical="[2017] EWHC 1877 (Ch)" uk:isNeutral="true" uk:origin="TNA" uk:type="case" uk:year="2017">[2017] EWHC 1877 (Ch)</ref>, (&#8220;<span style="font-style:italic">FAPL v BT II</span>&#8221;) following the earlier order in <span style="font-style:italic">Football Association Premier League Ltd v British Telecommunications plc</span> <ref href="https://caselaw.nationalarchives.gov.uk/ewhc/ch/2017/480" uk:canonical="[2017] EWHC 480 (Ch)" uk:isNeutral="true" uk:origin="TNA" uk:type="case" uk:year="2017">[2017] EWHC 480 (Ch)</ref>, [2017] ECC 17 (&#8220;<span style="font-style:italic">FAPL v BT I</span>&#8221;), and the application is supported by similar evidence to that relied upon by FAPL in those cases. The order will take effect on 13 February 2018 and last until 26 May 2018.</p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_6">
+	  <num>6.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">All of the Defendants except for the Fifth Defendant (&#8220;Talk Talk&#8221;) support the application, and the First, Fourth and Sixth Defendants have filed evidence in support of it. TalkTalk neither supports nor opposes the application. The terms of the order have been agreed between the parties. The application is also supported by FAPL and by Formula One World Championship Ltd, whose content has been observed being streamed from some of the Target Servers.  Since the order affects third parties who are not before the Court, however, the fact that the application is either supported or not opposed by the Defendants does not absolve the Court from the responsibility of considering whether the order is justified.</p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_7">
+	  <num>7.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">UEFA contends that the threshold jurisdictional requirements for making an order under <ref href="http://www.legislation.gov.uk/id/ukpga/1988/48/section/97" uk:canonical="" uk:origin="TNA" uk:type="legislation">section 97</ref>A of <ref href="http://www.legislation.gov.uk/id/ukpga/1988/48" uk:canonical="1988 c. 48" uk:origin="TNA" uk:type="legislation">the 1988 Act</ref> are satisfied for essentially the same reasons <span style="font-style:italic">mutatis mutandis</span> as I gave in <span style="font-style:italic">FAPL v BT I </span>at [28]-[42]. I accept this contention. It is unnecessary to elaborate, but I would add two brief points. </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_8">
+	  <num>8.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">First, the conclusion I reached at [34] (namely that the operators of the Target Servers commit an act of communication) is supported by the subsequent decision of the Court of Justice of the European Union in <ref href="#" uk:canonical="Case C-610/15" uk:isNeutral="true" uk:origin="TNA" uk:type="case">Case C-610/15</ref> <span style="font-style:italic">Stichting BREIN v Ziggo BV</span> [EU:C:2017:456] at [30]-[34]. </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_9">
+	  <num>9.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">Secondly, the conclusion I reached at [36] (namely that streaming is a different technical means to cable or satellite broadcasts which requires a separate authorisation from the rightholder) is supported by the subsequent decision of the CJEU in <ref href="#" uk:canonical="Case C-265/16" uk:isNeutral="true" uk:origin="TNA" uk:type="case">Case C-265/16</ref> <span style="font-style:italic">VCAST Ltd v RTI SpA </span>[EU:C:2017:913] at [48]-[50].</p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_10">
+	  <num>10.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">UEFA also contends that the order it seeks is appropriate and proportionate for essentially the same reasons <span style="font-style:italic">mutatis mutandis</span> as I gave in <span style="font-style:italic">FAPL v BT I </span>at [43]-[69]. Again, I accept that contention. Again, it is unnecessary to elaborate, but I will add three brief points. </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_11">
+	  <num>11.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">First, the need for such orders has been emphasised by further evidence which has become available since then as to the scale of the problem of illicit streaming. By way of example, in a report entitled <span style="font-style:italic">Cracking Down on Digital Piracy</span> published by the Federation Against Copyright Theft in September 2017, the UK Intellectual Property Office was quoted as saying that it believed that, at a conservative estimate, a million set-top boxes with software added to them to facilitate illegal streaming had been sold in the UK in the last couple of years. </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_12">
+	  <num>12.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">Secondly, as noted in <span style="font-style:italic">FAPL v BT II</span> at [5], the evidence filed by FAPL in that case demonstrated that the order made in <span style="font-style:italic">FAPL v BT I </span>was very effective in achieving the blocking of access to the Target Servers during Premier League matches and that no evidence had been found of overblocking. The evidence filed in support of the present application is that the order made in <span style="font-style:italic">FAPL v BT II </span>has also been very effective and there is still no evidence of overblocking.</p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_13">
+	  <num>13.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">Thirdly, the order sought by UEFA contains the same three criteria for selection of Target Servers as the orders in <span style="font-style:italic">FAPL v BT</span> (see <span style="font-style:italic">FAPL v BT I</span> at [21]), but it also includes a fourth criterion which provides an additional safeguard against overblocking.  </p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_14">
+	  <num>14.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">For the reasons given above, I am satisfied that the Court has jurisdiction to make the order sought and that it is appropriate to do so.</p>
+	  </content>
+	</paragraph>
+	<paragraph eId="para_15">
+	  <num>15.</num>
+	  <content>
+	    <p class="ParaLevel1" style="margin-left:0.5in">As in the <span style="font-style:italic">FAPL v BT</span> applications (see <span style="font-style:italic">FAPL v BT I</span> at [9]), UEFA contends that some of its evidence in support of the application and part of the order should be kept confidential. I am satisfied that this is justified.</p>
+	  </content>
+	</paragraph>
+      </decision>
+    </judgmentBody>
+  </judgment>
+</akomaNtoso>

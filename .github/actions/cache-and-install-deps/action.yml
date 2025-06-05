@@ -1,0 +1,35 @@
+name: "Cache and Install Dependencies"
+description: "Caches and installs Poetry dependencies for a specified directory"
+inputs:
+  directory:
+    description: "The directory containing the Poetry project"
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Restore cached dependencies
+      id: cache-dependencies-restore
+      uses: actions/cache/restore@v4
+      with:
+        path: ${{ inputs.directory }}/.venv
+        key: ${{ runner.os }}-venv-${{ inputs.directory }}-${{ hashFiles(format('{0}/**/poetry.lock', inputs.directory)) }}
+
+    - name: Install dependencies
+      if: steps.cache-dependencies-restore.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        cd ${{ inputs.directory }}
+        poetry config virtualenvs.in-project true
+        if poetry show --tree | grep -q '\[dev\]'; then
+          poetry install --no-interaction --with dev
+        else
+          poetry install --no-interaction
+        fi
+
+    - name: Save dependencies
+      if: steps.cache-dependencies-restore.outputs.cache-hit != 'true'
+      uses: actions/cache/save@v4
+      with:
+        path: ${{ inputs.directory }}/.venv
+        key: ${{ steps.cache-dependencies-restore.outputs.cache-primary-key }}

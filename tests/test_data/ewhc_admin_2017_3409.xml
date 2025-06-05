@@ -1,0 +1,960 @@
+<akomaNtoso xmlns="http://docs.oasis-open.org/legaldocml/ns/akn/3.0" xmlns:html="http://www.w3.org/1999/xhtml" xmlns:uk="https://caselaw.nationalarchives.gov.uk/akn">
+  <judgment name="judgment">
+    <meta>
+      <identification source="#tna">
+	<FRBRWork>
+	  <FRBRthis value="https://caselaw.nationalarchives.gov.uk/id/ewhc/admin/2017/3409"/>
+	  <FRBRuri value="https://caselaw.nationalarchives.gov.uk/id/ewhc/admin/2017/3409"/>
+	  <FRBRdate date="2017-12-21" name="judgment"/>
+	  <FRBRauthor href="#ewhc-qbd-admin"/>
+	  <FRBRcountry value="GB-UKM"/>
+	  <FRBRnumber value="3409"/>
+	  <FRBRname value="D2M Solutions Ltd v Secretary of State for Communities and Local Government"/>
+	</FRBRWork>
+	<FRBRExpression>
+	  <FRBRthis value="https://caselaw.nationalarchives.gov.uk/ewhc/admin/2017/3409"/>
+	  <FRBRuri value="https://caselaw.nationalarchives.gov.uk/ewhc/admin/2017/3409"/>
+	  <FRBRdate date="2017-12-21" name="judgment"/>
+	  <FRBRauthor href="#ewhc-qbd-admin"/>
+	  <FRBRlanguage language="eng"/>
+	</FRBRExpression>
+	<FRBRManifestation>
+	  <FRBRthis value="https://caselaw.nationalarchives.gov.uk/ewhc/admin/2017/3409/data.xml"/>
+	  <FRBRuri value="https://caselaw.nationalarchives.gov.uk/ewhc/admin/2017/3409/data.xml"/>
+	  <FRBRdate date="2024-11-05T02:36:33" name="transform"/>
+	  <FRBRdate date="2024-11-20T17:39:08" name="tna-enriched"/>
+	  <FRBRauthor href="#tna"/>
+	  <FRBRformat value="application/xml"/>
+	</FRBRManifestation>
+      </identification>
+      <lifecycle source="#">
+	<eventRef date="2017-12-21" refersTo="#judgment" source="#"/>
+      </lifecycle>
+      <references source="#tna">
+	<TLCOrganization eId="ewhc-qbd-admin" href="https://www.gov.uk/courts-tribunals/administrative-court" shortForm="The Administrative Court" showAs="The Administrative Court (Queen's Bench Division)"/>
+	<TLCOrganization eId="tna" href="https://www.nationalarchives.gov.uk/" showAs="The National Archives"/>
+	<TLCEvent eId="judgment" href="#" showAs="judgment"/>
+	<TLCPerson eId="d2m-solutions-ltd" href="" showAs="D2M Solutions Ltd"/>
+	<TLCPerson eId="secretary-of-state-for-communities-and-local-government" href="" showAs="Secretary of State for Communities and Local Government"/>
+	<TLCRole eId="claimant" href="" showAs="Claimant"/>
+	<TLCRole eId="defendant" href="" showAs="Defendant"/>
+	<TLCPerson eId="judge-mr-justice-holgate" href="/judge-mr-justice-holgate" showAs="MR JUSTICE HOLGATE"/>
+      </references>
+      <proprietary source="#">
+	<uk:court>EWHC-QBD-Admin</uk:court>
+	<uk:year>2017</uk:year>
+	<uk:number>3409</uk:number>
+	<uk:cite>[2017] EWHC 3409 (Admin)</uk:cite>
+	<uk:parser>0.26.9</uk:parser>
+	<uk:hash>a05a9aed33d798385d9b66b05800d31401f5745045aa56f7cf75352967abbe43</uk:hash>
+	<uk:tna-enrichment-engine>6.0.2</uk:tna-enrichment-engine>
+      </proprietary>
+      <presentation source="#">
+	<html:style>
+#judgment { font-family: 'Times New Roman'; font-size: 12pt; }
+#judgment .Normal { font-size: 12pt; }
+#judgment .Heading1 { font-weight: bold; font-family: Arial; font-size: 16pt; }
+#judgment .Heading3 { font-weight: bold; font-family: Arial; font-size: 13pt; }
+#judgment .CoverDesc { text-align: center; font-weight: bold; font-size: 18pt; }
+#judgment .CoverMain { font-weight: bold; text-decoration-line: underline; text-decoration-style: solid; font-size: 12pt; }
+#judgment .CoverText { text-align: right; text-decoration-line: underline; text-decoration-style: solid; font-size: 12pt; }
+#judgment .ParaHeading { font-size: 12pt; }
+#judgment .ParaLevel1 { text-align: justify; margin-left: 0.5in; font-size: 12pt; }
+#judgment .ParaLevel2 { text-align: justify; margin-left: 0.98in; font-size: 12pt; }
+#judgment .ParaLevel3 { text-align: justify; margin-left: 1.48in; font-size: 12pt; }
+#judgment .ParaLevel4 { text-align: justify; margin-left: 1.97in; font-size: 12pt; }
+#judgment .ParaLevel5 { text-align: justify; margin-left: 2.46in; font-size: 12pt; }
+#judgment .ParaLevel6 { text-align: justify; margin-left: 2.95in; font-size: 12pt; }
+#judgment .ParaLevel7 { text-align: justify; margin-left: 3.45in; font-size: 12pt; }
+#judgment .ParaLevel8 { text-align: justify; margin-left: 3.94in; font-size: 12pt; }
+#judgment .ParaLevel9 { text-align: justify; margin-left: 4.43in; font-size: 12pt; }
+#judgment .ParaNoNumber { text-align: justify; font-size: 12pt; }
+#judgment .Quote { text-align: justify; margin-left: 1in; margin-right: 1in; font-size: 12pt; }
+#judgment .Header { font-family: Univers; font-size: 12pt; }
+#judgment .Footer { font-family: Univers; font-size: 12pt; }
+#judgment .Heading { font-size: 12pt; }
+#judgment .Title { text-align: center; font-weight: bold; font-size: 10pt; }
+#judgment .BalloonText { font-family: 'Segoe UI'; font-size: 9pt; }
+#judgment .eMailBlock { text-align: center; font-weight: bold; font-size: 13pt; }
+#judgment .Heading1Char { font-weight: bold; font-size: 16pt; }
+#judgment .Heading3Char { font-weight: bold; font-size: 13pt; }
+#judgment .QuoteChar { font-style: italic; font-size: 12pt; color: #404040; }
+#judgment .HeaderChar { font-size: 12pt; }
+#judgment .FooterChar { font-family: Univers; font-size: 12pt; }
+#judgment .TitleChar { font-weight: bold; font-size: 16pt; }
+#judgment .BalloonTextChar { font-family: 'Segoe UI'; font-size: 9pt; }
+</html:style>
+      </presentation>
+    </meta>
+    <header>
+      <p class="CoverText">Case No: <docketNumber>CO/3030/2017</docketNumber></p>
+      <p class="CoverText" style="text-align:left">Neutral Citation Number: <neutralCitation>[2017] EWHC 3409 (Admin)</neutralCitation></p>
+      <p class="CoverMain"><courtType refersTo="#ewhc-qbd-planning">IN THE HIGH COURT OF JUSTICE</courtType></p>
+      <p><courtType refersTo="#ewhc-qbd-planning" style="font-weight:bold;text-decoration-line:underline;text-decoration-style:solid">QUEEN'S BENCH DIVISION</courtType></p>
+      <p><courtType refersTo="#ewhc-qbd-planning" style="font-weight:bold;text-decoration-line:underline;text-decoration-style:solid">PLANNING COURT</courtType></p>
+      <p class="CoverText">Royal Courts of Justice</p>
+      <p class="CoverText">Strand, London, WC2A 2LL</p>
+      <p class="CoverText">Date: <docDate date="2017-12-21" refersTo="#judgment">21/12/2017</docDate></p>
+      <p style="text-align:center"><span style="font-weight:bold">Before</span>:</p>
+      <p class="CoverMain" style="text-align:center"><judge refersTo="#judge-mr-justice-holgate">MR JUSTICE HOLGATE</judge></p>
+      <p style="text-align:center">- - - - - - - - - - - - - - - - - - - - -</p>
+      <p style="text-align:center"><span style="font-weight:bold">Between:</span></p>
+      <table uk:widths="1.23in 3.87in 1.24in">
+	<tr>
+	  <td>
+	    <p/>
+	  </td>
+	  <td>
+	    <p style="text-align:center"><party as="#claimant" refersTo="#d2m-solutions-ltd" style="font-weight:bold">D2M Solutions Ltd</party></p>
+	  </td>
+	  <td>
+	    <p class="CoverMain" style="text-align:right"><role refersTo="#claimant">Claimant</role></p>
+	  </td>
+	</tr>
+	<tr>
+	  <td>
+	    <p/>
+	  </td>
+	  <td>
+	    <p style="text-align:center"><span style="font-weight:bold">- and -</span></p>
+	  </td>
+	  <td>
+	    <p class="CoverMain" style="text-align:right"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td>
+	    <p/>
+	  </td>
+	  <td>
+	    <p style="text-align:center"><party as="#defendant" refersTo="#secretary-of-state-for-communities-and-local-government" style="font-weight:bold">Secretary of State for Communities and Local Government</party></p>
+	  </td>
+	  <td>
+	    <p class="CoverMain" style="text-align:right"><role refersTo="#defendant">Defendant</role></p>
+	  </td>
+	</tr>
+      </table>
+      <p style="text-align:center">- - - - - - - - - - - - - - - - - - - - -</p>
+      <p style="text-align:center">- - - - - - - - - - - - - - - - - - - - -</p>
+      <p style="text-align:center"><span style="font-weight:bold">Mr Richard Turney </span>(instructed by<span style="font-weight:bold"> Kingsley Smith Solicitors LLP</span>) for the <span style="font-weight:bold">Claimant</span></p>
+      <p style="text-align:center"><span style="font-weight:bold">Miss Isabella Tafur</span> (instructed by <span style="font-weight:bold">Government Legal Department</span>) for the <span style="font-weight:bold">Defendant</span></p>
+      <p style="text-align:center">Hearing date: 23<span style="vertical-align:super;font-size:smaller">rd </span>November, 2017</p>
+      <p style="text-align:center">- - - - - - - - - - - - - - - - - - - - -</p>
+      <p class="CoverDesc">Judgment</p>
+    </header>
+    <judgmentBody>
+      <decision>
+	<level class="author">
+	  <content>
+	    <p><span style="font-weight:bold">Mr Justice Holgate:</span></p>
+	  </content>
+	</level>
+	<level eId="lvl_1">
+	  <heading class="ParaHeading"><span style="font-weight:bold;text-decoration-line:underline;text-decoration-style:solid">Introduction</span></heading>
+	  <paragraph eId="para_1">
+	    <num>1.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">The Claimant, D2M Solutions Limited, applies for judicial review of the decision taken on behalf of the Defendant, the Secretary of State for Communities and Local Government (&#8220;SSCLG&#8221;) by the Planning Inspectorate (&#8220;PINS&#8221;) by letter dated 4<span style="vertical-align:super;font-size:smaller">th</span> April 2017.</p>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_2">
+	    <num>2.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">In his Acknowledgment of Service, the Defendant conceded that the decision should be quashed on one of the Claimant&#8217;s four grounds of challenge, ground 2.  On 10 September 2017, I granted permission to apply for judicial review on all grounds (except paragraph 31a of the Claimant&#8217;s Statement of Facts and Grounds which had been abandoned), on the basis that, in this particular case, it was necessary for those matters to be resolved before any redetermination took place.</p>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_3">
+	    <num>3.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">On 11 October 2017 PINS, acting on behalf of the Defendant, issued a further decision letter which sought to overcome the error identified in ground 2, but which was otherwise to the same effect as the earlier decision.  At the substantive hearing before me, Mr Richard Turney, who appeared on behalf of the Claimant, submitted that this further decision letter was still open to challenge on part of ground 2 and applied to amend the claim to enable the court to review that aspect.  Ms Isabella Tafur did not object to that application.  No formal amendments of the Claim were put before the Court, but I accepted that the matter could be dealt with by oral submissions on both sides directed to the matters raised in paragraph 41a to 41c of the Claimant&#8217;s skeleton.  </p>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_4">
+	    <num>4.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">The main issues raised by this challenge are firstly whether, as a matter of interpretation, the ex gratia scheme for paying financial compensation for errors made by PINS includes a claim for loss of profits or earnings and secondly, whether the Claimant is entitled under Article 1 of the First Protocol of the European Convention on Human Rights (&#8220;A1P1&#8221;) to compensation for loss of profits resulting from such an error. </p>
+	    </content>
+	  </paragraph>
+	</level>
+	<level eId="lvl_2">
+	  <heading class="ParaHeading"><span style="font-weight:bold;text-decoration-line:underline;text-decoration-style:solid">Factual Background</span></heading>
+	  <paragraph eId="para_5">
+	    <num>5.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">The background to the claim is set out in the Statement of Facts and Grounds and the witness statement of Mr. Melvyn Gillam (dated 23 June 2017), the Managing Director and the shareholder of the Claimant.  </p>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_6">
+	    <num>6.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">The Claimant provides engineering consultancy services to clients involved in aerospace, civil engineering and renewable energy projects.  It has done so since 2002.  The annual turnover exceeds &#163;100,000 and derives essentially from the fees charged by Mr. Gillam for his consultancy work.</p>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_7">
+	    <num>7.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">Mr. Gillam is now aged 54 and as part of his planning for retirement has sought to carry out two wind turbine developments which would provide him with a guaranteed level of return based on the Feed-in Tariff Scheme, established by the Department for Business, Energy and Industrial Strategy (&#8220;BEIS&#8221;) and administrated by the Office of Gas and Electricity Markets (&#8220;Ofgem&#8221;).  As Mr. Gillam points out (paragraph 2), this strategy &#8220;is distinct from the ongoing consultancy work performed, which is the source of the company&#8217;s turnover&#8221;.</p>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_8">
+	    <num>8.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">The Claimant successfully acquired a site and obtained planning permission for a wind turbine development in Wales.  That scheme is now operational.  </p>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_9">
+	    <num>9.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">The second site is at Honeypot Lane, near Colsterworth, Grantham, Lincolnshire.  It is said that the Claimant obtained an option for a lease of the site from the owner.  On 28 June 2013, the Claimant applied to the local planning authority, South Kesteven District Council (&#8220;SKDC&#8221;), for planning permission for a wind turbine development.  The Claimant appealed against SKDC&#8217;s refusal of permission to the Defendant.</p>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_10">
+	    <num>10.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">The appeal was dealt with by way of written representations.  Following a site visit, the Inspector issued his decision letter on 20 January 2015 dismissing the appeal.  He said that there were four issues.  In relation to the first issue, the effect of the development on the historic environment, he concluded that the development would harm the setting and significance of the Knights Templar preceptory, a scheduled ancient monument, and of St Mary&#8217;s Church, North Witham, a Grade I listed building, albeit that the harm would be &#8220;less than substantial&#8221;.  The proposal therefore conflicted with policy EN1 of the South Kesteven Core Strategy.  Furthermore, paragraph 134 of the National Planning Policy Framework (&#8220;NPPF&#8221;) required the &#8220;less than substantial harm&#8221; to be weighed against the benefits of the proposal.  On the second issue, the Inspector concluded that the proposal would have a significant adverse effect on the outlook from two residential properties so as to conflict with Policy EN1 of the Core Strategy.  The third issue related to the environmental benefit of the proposal as a renewable energy development.  The Inspector attached &#8220;some weight&#8221; to the offsetting of the effects of climate change by the production of about <span style="font-style:italic">170,000 kWh</span> of renewable energy.  Under the fourth issue, the overall planning balance, the Inspector decided that the &#8220;limited benefits of the wind energy development&#8221; did not outweigh the &#8220;less than substantial harm&#8221; to the two heritage assets and the significant adverse effect upon residential amenity.  That conclusion led him to dismiss the appeal.  The Inspector referred to an objection which had been made by the Ministry of Defence (&#8220;MoD&#8221;) on the grounds of unacceptable interference to air traffic control radars at RAF Wittering, but reached no conclusion on that aspect.  </p>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_11">
+	    <num>11.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">It is common ground that the Inspector made an error by treating the amount of renewable energy that would be produced each year as 170,000 kWh rather than <span style="font-style:italic">1.7m kWh</span>.</p>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_12">
+	    <num>12.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">Mr. Gillam pointed out this error to PINS in an email dated 4 February 2015 and issued a claim under <ref href="http://www.legislation.gov.uk/id/ukpga/1990/8/section/288" uk:canonical="" uk:origin="TNA" uk:type="legislation">section 288</ref> of the <ref href="http://www.legislation.gov.uk/id/ukpga/1990/8" uk:canonical="1990 c. 8" uk:origin="TNA" uk:type="legislation">Town and Country Planning Act 1990</ref> (&#8220;<ref href="http://www.legislation.gov.uk/id/ukpga/1990/8" uk:canonical="1990 c. 8" uk:origin="TNA" uk:type="legislation">TCPA 1990</ref>&#8221;) on 26 February 2015 to quash the decision so that the appeal would be re-determined.  On 4 March 2015, PINS acknowledged the error but somewhat strangely filed an Acknowledgment of Service on 12 March 2015 stating that the claim would be defended.  It was not until 14 June 2015 that the Defendant conceded that the decision on the appeal should be quashed. A consent order was sealed on 7 July 2015.</p>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_13">
+	    <num>13.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">In the hearing before me, it was common ground that the appeal decision was quashed solely because of the error made by the Inspector as to the amount of renewable energy that would be produced each year, and not in relation to his assessment of impacts upon heritage assets and residential amenity.  </p>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_14">
+	    <num>14.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">On 9 July 2015, PINS wrote to say that the appeal would be re-determined following the written representation procedure.  They pointed out that the second Inspector might not reach a different overall conclusion.  On the same date, PINS stated that redetermination appeals are treated as a priority and so every effort would be made to ensure that the Claimant&#8217;s appeal would be dealt with in &#8220;a timely manner&#8221;.  From then on the Claimant and its Solicitors continued to explain to PINS why the redetermination needed to take place urgently.</p>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_15">
+	    <num>15.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">On 16 July 2015 both the Claimant and SKDC notified PINS that no further information would be submitted on the appeal.  Although the second Inspector carried out his site visit on 29 September 2015, his decision letter was not issued until 14 December 2015.  He allowed the appeal.  He reached rather different judgments to the first Inspector.  He concluded that the proposal would not have any harmful impact on any heritage asset (and therefore paragraph 134 of the NPPF was not engaged at all), there would be no detrimental impact upon residential amenity, no material effect upon radar or the use of RAF Wittering, the amount of renewable energy which would be produced carried &#8220;significant weight&#8221; and so the appeal should be allowed.</p>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_16">
+	    <num>16.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">The MoD sought to challenge this grant of permission by making an application under <ref href="http://www.legislation.gov.uk/id/ukpga/1990/8/section/288" uk:canonical="" uk:origin="TNA" uk:type="legislation">section 288</ref> of <ref href="http://www.legislation.gov.uk/id/ukpga/1990/8" uk:canonical="1990 c. 8" uk:origin="TNA" uk:type="legislation">TCPA 1990</ref>.  But on 20 April 2016, Dove J refused permission to apply on the papers and the matter was not pursued any further.  </p>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_17">
+	    <num>17.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">Unfortunately, by the time the second decision letter was issued, substantial changes had been made to the Feed-in Tariff Scheme.  First, BEIS&#8217;s predecessor had decided that the level of tariff should be reduced substantially.  For example, in January 2016 the rate payable was approximately half that payable between October and December 2015. Second, with effect from 1 October 2015, the Department removed an operator&#8217;s ability to become pre-accredited under the scheme so as to secure a particular level of tariff.  The Claimant contends that by September 2015 it had met all the essential requirements for proceeding with the Honeypot Lane scheme except for obtaining planning permission, and that it was because permission had not been granted by that stage that the Claimant lost the ability to secure a favourable tariff of at least 12.49p per kWh.  </p>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_18">
+	    <num>18.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">On 23 December 2015 the Claimant applied for an ex gratia payment under PINS scheme.  The Claimant contended that if the First Inspector had not made an error in his decision, it would have been possible for the Claimant to obtain pre-accreditation at a guaranteed generation tariff rate of 12.05p per kWh, whereas, following the Government&#8217;s decision to re-introduce pre-accreditation on 8 February 2016, the Claimant was only able to obtain a guaranteed generation tariff of 5.46p.  This formed the basis for the main item of the claim. The difference between the two rates applied to future production over a 20 year period was said to involve a loss of &#163;2,364,650.  However, this claim was expressed in purely nominal terms.  It made no attempt to discount these projected future cash flows using an appropriate risk rate, (nor did it address any difference in expenses attributable to the higher tariff rate).  The claim also included some other items of loss relating to various costs.</p>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_19">
+	    <num>19.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">Subsequently, the Claimant submitted to PINS a report by a Chartered Surveyor at Fisher German LLP dated 26 September 2016 on the market value of the company&#8217;s leasehold interest in the development site in three different scenarios. Section 3 of the report described the nature of the Claimant&#8217;s interest in the site.  It appears that Heads of Terms were signed on 20 October 2014 giving the Claimant exclusivity &#8220;until the signing of the Option Agreement&#8221; subject to a 12 months longstop and &#8220;unspecified extension provisions&#8221;.  The lease, if granted, was to commence 6 months after the grant of planning permission and pre-accreditation &#8220;being agreed&#8221;.  The valuer was instructed that the option had not been exercised, but the &#8220;Heads of Terms remain applicable and in place with the Landlord&#8221;.  He added that although he had seen no evidence that the Heads of Terms were legally binding, he assumed that they were (paragraph 3.6).  No point appears to have been taken about these matters and, although they should be noted, they do not inhibit the court in determining the issues which have been raised in this claim by the parties. The expert valued the Claimant&#8217;s assumed leasehold interest by reference to the projected future net income stream and by using discounting techniques (see paragraph 15.1). As Mr Turney accepted, the valuer arrived at a substantially lower figure than had previously been advanced.  Plainly, material of this nature would need to be tested, but all that must be subject to the question of legal principle which this claim raises. </p>
+	    </content>
+	  </paragraph>
+	</level>
+	<level eId="lvl_3">
+	  <heading class="ParaHeading"><span style="font-weight:bold;text-decoration-line:underline;text-decoration-style:solid">&#8220;PINS guidance on reviewing claims for financial compensation by an ex-gratia payment&#8221;</span></heading>
+	  <paragraph eId="para_20">
+	    <num>20.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">The introduction to the document states: -</p>
+	      <block name="embeddedStructure"><embeddedStructure>
+		  <level>
+		    <content>
+		      <p class="Quote" style="margin-left:1in">&#8220;Where maladministration or poor service has led to injustice or hardship, PINS should offer a range of remedies that aim to return the complainant to the position they would have been in before the error occurred.  This range includes, where appropriate, financial compensation by means of an ex-gratia payment for reasonable costs suffered as a result of an acknowledged error or failure by PINS.  Such payments do not give rise to liability or a legal obligation but may nonetheless be considered where compelling reasons exist to provide such compensation&#8221;</p>
+		    </content>
+		  </level>
+		</embeddedStructure></block>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_21">
+	    <num>21.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">The next section of the document entitled &#8220;Determination of Claims&#8221; states: -</p>
+	      <block name="embeddedStructure"><embeddedStructure>
+		  <paragraph>
+		    <intro>
+		      <p class="Quote" style="margin-left:1in">&#8220;In line with Treasury guidance on Managing Public Money, such payments are designed to restore the wronged party to the position they would have been in, had things been done correctly.  In determining such requests for payment PINS will:</p>
+		    </intro>
+		    <subparagraph>
+		      <num style="font-family:Symbol;margin-left:1.5in;text-indent:-0.25in">&#8226;</num>
+		      <content>
+			<p class="Quote" style="margin-left:1.5in">assess the wasted costs the claimant has demonstrably incurred;</p>
+		      </content>
+		    </subparagraph>
+		    <subparagraph>
+		      <num style="font-family:Symbol;margin-left:1.5in;text-indent:-0.25in">&#8226;</num>
+		      <content>
+			<p class="Quote" style="margin-left:1.5in">apply, where appropriate, an interest rate to the sum lost, aimed at restoring complainants to the position they would have been in if the maladministration or error had not occurred;</p>
+		      </content>
+		    </subparagraph>
+		    <subparagraph>
+		      <num style="font-family:Symbol;margin-left:1.5in;text-indent:-0.25in">&#8226;</num>
+		      <content>
+			<p class="Quote" style="margin-left:1.5in">apply, if appropriate, an additional &#8220;goodwill&#8221; payment in acknowledgement of substantial injustice, inconvenience, hardship or distress caused as a result of our error.&#8221;</p>
+		      </content>
+		    </subparagraph>
+		  </paragraph>
+		</embeddedStructure></block>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_22">
+	    <num>22.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">Save in exceptional circumstances, PINS will only accept claims made in writing within six months of the date of the relevant error, or of any subsequent &#8220;appeal decision&#8221; related to that error.</p>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_23">
+	    <num>23.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">The following section, under the heading &#8220;What it covers&#8221; states: - </p>
+	      <block name="embeddedStructure"><embeddedStructure>
+		  <paragraph>
+		    <intro>
+		      <p class="Quote" style="margin-left:1in">&#8220;The ex-gratia process is designed to cover situations where appellants have incurred additional expenses as a result of a PINS error.  The most common examples are:</p>
+		    </intro>
+		    <subparagraph>
+		      <num style="font-family:Symbol;margin-left:1.5in;text-indent:-0.25in">&#8226;</num>
+		      <content>
+			<p class="Quote" style="margin-left:1.5in">Costs or expenses incurred due to an appeal being re-determined following a successful challenge in the High Court;</p>
+		      </content>
+		    </subparagraph>
+		    <subparagraph>
+		      <num style="font-family:Symbol;margin-left:1.5in;text-indent:-0.25in">&#8226;</num>
+		      <content>
+			<p class="Quote" style="margin-left:1.5in">Costs incurred as a result of a procedural error, such as a failure to give the correct details of a site visit, or where an Inspector fails to arrive for a prearranged event;</p>
+		      </content>
+		    </subparagraph>
+		    <subparagraph>
+		      <num style="font-family:Symbol;margin-left:1.5in;text-indent:-0.25in">&#8226;</num>
+		      <content>
+			<p class="Quote" style="margin-left:1.5in">Costs incurred in having to make a fresh application to the LPA as an alternative to making a High Court challenge, following an error in a decision;</p>
+		      </content>
+		    </subparagraph>
+		    <subparagraph>
+		      <num style="font-family:Symbol;margin-left:1.5in;text-indent:-0.25in">&#8226;</num>
+		      <content>
+			<p class="Quote" style="margin-left:1.5in">Costs incurred in discharging an erroneously imposed condition in the decision with the LPA;</p>
+		      </content>
+		    </subparagraph>
+		    <subparagraph>
+		      <num style="font-family:Symbol;margin-left:1.5in;text-indent:-0.25in">&#8226;</num>
+		      <content>
+			<p class="Quote" style="margin-left:1.5in">Costs incurred as a result of having to pursue a complaint about the poor service that led to the claim&#8221;</p>
+		      </content>
+		    </subparagraph>
+		  </paragraph>
+		</embeddedStructure></block>
+	    </content>
+	  </paragraph>
+	</level>
+	<level eId="lvl_4">
+	  <heading class="ParaLevel1">The document states that a request for payment may be made by: -</heading>
+	  <level eId="lvl_4_1">
+	    <content>
+	      <p class="Quote" style="margin-left:1in">&#8220;Anyone directly affected by an error, and who has incurred wasted costs or expenses as a result, including not only the appellant and the local planning authority but also third parties&#8221;</p>
+	    </content>
+	  </level>
+	  <paragraph eId="para_24">
+	    <num>24.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">Under the heading &#8220;Establishing whether or not a payment is appropriate&#8221; the document states: -</p>
+	      <block name="embeddedStructure"><embeddedStructure>
+		  <level>
+		    <content>
+		      <p class="Quote" style="margin-left:1in">&#8220;PINS will consider making a payment only if it is first accepted that we are at fault in some way.  There is normally little doubt where the High Court has quashed a decision due to a PINS error and the appeal has to be re-determined.</p>
+		    </content>
+		  </level>
+		  <level>
+		    <content>
+		      <p class="Quote" style="margin-left:1in">Where a claimant says, for instance, that they were not advised of a change of site visit date, or that a condition was imposed which did not reflect what had been agreed at an inquiry, and he/she had been put to unnecessary expense, we will consult with the people concerned, including the Inspector if appropriate.  Only when we are fully satisfied that we have all relevant information and have established that we were at fault, will we proceed to consider the request.&#8221;</p>
+		    </content>
+		  </level>
+		</embeddedStructure></block>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_25">
+	    <num>25.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">The following section is entitled &#8220;Consideration of the claim&#8221; and states: -</p>
+	      <block name="embeddedStructure"><embeddedStructure>
+		  <level>
+		    <content>
+		      <p class="Quote" style="margin-left:1in">&#8220;The initial claim for a payment will be administrated by PINS Quality Unit, who will advise the claimant within 14 days of receipt of all relevant information, whether the circumstances fall within our agreed criteria for making compensatory payments.  The Quality Unit will consider the details of the claim and assess whether an ex gratia payment is appropriate and necessary to remedy the error.</p>
+		    </content>
+		  </level>
+		  <level>
+		    <content>
+		      <p class="Quote" style="margin-left:1in">Each case will be decided on its facts.  If the Quality Unit is unsure about any aspect of the claim (for example, the level of fees claimed, the work undertaken or the detail included in the submitted invoices), they will write to the claimant requesting further details.  Based on the evidence provided, QAU may delete or reduce any part of the claim if, in its reasonable view, it is considered that element cannot be substantiated.&#8221;</p>
+		    </content>
+		  </level>
+		</embeddedStructure></block>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_26">
+	    <num>26.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">For claims made on or after 1 April 2016, the scheme set out above was superseded by a new policy: &#8220;Claims for Repayment of Additional Costs (Ex Gratia Scheme)&#8221;.  Section 4 of this document explicitly describes matters which are not covered by the scheme.  It states that PINS &#8220;would not usually consider making a payment&#8221; for <span style="font-style:italic">inter alia</span> &#8220;negative impacts on property prices or profits, as they are not direct additional costs.&#8221;</p>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_27">
+	    <num>27.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">Quite rightly, neither party sought to rely upon this document as supporting their own contentions or refuting those of the opposing party on the construction of the policy document which applied at the time of the decision under challenge.</p>
+	    </content>
+	  </paragraph>
+	</level>
+	<level eId="lvl_5">
+	  <heading class="ParaHeading"><span style="font-weight:bold;text-decoration-line:underline;text-decoration-style:solid">The decision letter dated 4 April 2017</span></heading>
+	  <paragraph eId="para_28">
+	    <num>28.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">PINS first issued a decision letter on 25 July 2016.  Following pre-action protocol correspondence, the Defendant agreed to retake the decision which resulted in the decision under challenge dated 4 April 2017.  In these proceedings neither party has sought to rely upon the earlier decision letter or the correspondence relating to it. I need not refer to this material.</p>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_29">
+	    <num>29.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">The letter dated 4 April 2017 gave a detailed response in some 11 pages to the claim for compensation.  On the subject of general principles the letter stated: - </p>
+	      <block name="embeddedStructure"><embeddedStructure>
+		  <level>
+		    <content>
+		      <p class="Quote" style="margin-left:1in">&#8220;What falls to be considered through the reassessment of your claim is whether the costs you are seeking to have reimbursed by the Planning Inspectorate by means of an ex gratia payment are proportionate, substantiated, reasonable, and demonstrable in relation to the acknowledged error and the need to determine the remitted appeal.  The Planning Inspectorate has been consistent in rejecting costs of claimants that are estimated, optional, unreasonable, or excessive and has only ever considered making a discretionary payment on the basis that such costs have been fully substantiated, are directly related to the acknowledged error, are justified in the public interest, and meet the general principles of its ex gratia scheme, in the absence of any liability, legal obligation or statutory scheme under legislation placed upon the Planning Inspectorate in relation to financial redress&#8221;</p>
+		    </content>
+		  </level>
+		</embeddedStructure></block>
+	      <p class="ParaLevel1" style="margin-left:0.5in">The letter explained that despite several requests from PINS for supporting evidence to be provided, certain heads of claim were not substantiated and therefore could not be accepted.  No challenge is made to that reasoning.</p>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_30">
+	    <num>30.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">The letter went carefully and separately through each item claimed.  It began with the most substantial claim for over &#163;2m in relation to loss of earnings.  Referring to the report prepared by Fisher German LLP the letter stated: -</p>
+	      <block name="embeddedStructure"><embeddedStructure>
+		  <level>
+		    <content>
+		      <p class="Quote" style="margin-left:1in">&#8220;Testing the veracity of such documents or reports in respect of assessing wasted costs, particularly where loss of profit is cited, is not the purpose of the ex gratia scheme as administered by the Customer Quality team, whose role it is to assess receipts and invoices in support of directly attributable costs arising from an acknowledged error of the Planning Inspectorate.  Nor is it the Planning Inspectorate&#8217;s policy to make ex gratia payments other than in respect of directly attributable, incurred costs.</p>
+		    </content>
+		  </level>
+		  <level>
+		    <content>
+		      <p class="Quote" style="margin-left:1in">In that context, I should explain that a claim for loss of earnings does not fall within the remit or general principles of the ex gratia scheme.  Whether or not it has been explicitly set out in the superseded scheme or new policy, the Planning Inspectorate&#8217;s scheme has always been to consider actual costs that are directly related to an acknowledged error.  The Planning Inspectorate has been consistent in rejecting claims for loss of earning or loss of profit.  In redetermination cases, our guiding principle has been to consider reimbursing costs involved in the reviewing and updating of evidence essential to the reconsideration of the remitted appeal and any additional work undertaken following any relevant policy and legislative changes that occurred from the date the first decision was quashed.  Our policy states that ex gratia payments are designed to restore the wronged party to the position they would have been in before the error occurred.  The scheme clearly refers throughout to reasonable wasted costs or expenses incurred as a result of an acknowledged error.  It does not refer to loss of earnings or loss of profit, since they are not recognised as wasted costs because they are not directly attributable to an Inspector error in decision-making in the same way as, for example, professional fees incurred from needing to revise evidence for a redetermination appeal or the reasonable travel and subsistence expenses associated with attending a further appeal Hearing.  Conversely, loss of earnings is posited here as potential future profit which cannot be guaranteed or demonstrated as a direct wasted cost&#8221;</p>
+		    </content>
+		  </level>
+		</embeddedStructure></block>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_31">
+	    <num>31.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">Having referred to the limited nature of the error which formed the basis for the consent order quashing the first decision letter on the appeal, namely the error as to the anticipated output of the proposed turbine, the letter from PINS continued: -</p>
+	      <block name="embeddedStructure"><embeddedStructure>
+		  <level>
+		    <content>
+		      <p class="Quote" style="margin-left:1in">&#8220;It cannot simply be deduced that except for this error, the appellant would have secured planning permission for the proposed development in January 2015, irrespective of the decision of the second Inspector to grant planning permission.  The first Inspector had refused permission having considered the main issues, being the effect of the proposal on the historic environment and residential amenity, as well as the environmental benefit of the renewable energy development and the overall planning balance.  It was not a ground of challenge in the claim that the Inspector erred in his reasoning on the main issues and it similarly went untested as to whether the Inspector would have reached the same conclusion on the main issues, had this error in calculation not occurred.  Thus, it is possible that permission may still have been refused by the Inspector and it would have been for the High Court to judge whether the Inspector had erred in his reasoning on the main issues in circumstances where such grounds of challenge had been brought.  Our revised policy for ex gratia payments has clarified that where the Secretary of State decided, on the basis of legal advice, not to defend a challenge brought and submits to the Court&#8217;s judgment, we will consider what went wrong and whether an ex gratia payment in respect of the costs of the redetermination is appropriate.  There is nothing in the former policy that limits or prohibits us from applying the same principle.  It is only accepted that the error caused the appeal to be remitted for reconsideration, therefore, only deliberation of reimbursing reasonable and proportionate additional costs directly arising from the redetermination process fall to be considered. Loss of earnings, as asserted here, is not considered to be a reasonable or proportionate &#8220;cost&#8221; that can be said to directly arise from the redetermination process.&#8221;</p>
+		    </content>
+		  </level>
+		</embeddedStructure></block>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_32">
+	    <num>32.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">The claim for loss of earnings was also rejected on other grounds.  But for the purposes of this challenge it is sufficient to identify two important grounds upon which the claim was rejected.  First, the policy or scheme applicable to the Claimant&#8217;s request for an ex gratia payment covered <span style="font-style:italic">costs</span>, such as wasted costs, directly attributable to the error but not a loss of earnings or profits. Second, and in any event, the claim was misconceived because it depended on an assumption that if the first Inspector had not made his single error, the outcome would have been the grant of planning permission. </p>
+	    </content>
+	  </paragraph>
+	</level>
+	<level eId="lvl_6">
+	  <heading class="ParaHeading"><span style="font-weight:bold;text-decoration-line:underline;text-decoration-style:solid">Ground 1</span></heading>
+	  <paragraph eId="para_33">
+	    <num>33.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">The Claimant submits that on a true interpretation a claim for loss of earnings or loss of profits does not fall outside the scope of PINS&#8217; ex gratia scheme.</p>
+	    </content>
+	  </paragraph>
+	</level>
+	<level eId="lvl_7">
+	  <heading class="ParaHeading"><span style="font-style:italic">Legal Principles</span></heading>
+	  <paragraph eId="para_34">
+	    <num>34.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">There was no real dispute between the parties about the relevant legal principles which I can summarise briefly.</p>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_35">
+	    <num>35.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">The application of an ex gratia compensation scheme is subject to judicial review on normal public law principles (<span style="text-decoration-line:underline;text-decoration-style:solid">R (Mullen) v Secretary of State for the Home Department <ref href="#" uk:canonical="[2005] 1 AC 1" uk:isNeutral="false" uk:origin="TNA" uk:type="case" uk:year="2005">[2005] 1 AC 1</ref>; Dinnell v Scottish Ministers [2015] SC 429</span>).  It is for the court to determine what is meant by the language used in such a scheme, its purpose and its scope.  A scheme should be interpreted purposively (<span style="text-decoration-line:underline;text-decoration-style:solid">R (Raissi) v Secretary of State for the Home Department <ref href="#" uk:canonical="[2008] QB 836" uk:isNeutral="false" uk:origin="TNA" uk:type="case" uk:year="2008">[2008] QB 836</ref>, 870-1).</span></p>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_36">
+	    <num>36.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">The meaning or interpretation of a policy or ex gratia scheme is an objective question of law for the court to determine in accordance with the language used, and read according to its proper context.  Such a document is not to be construed as if it were a statute or set of statutory regulations.  Moreover, the interpretation of the policy or scheme by the court should be distinguished from the application of that policy properly interpreted by the decision-maker, <span style="font-style:italic">a</span><span/><span style="font-style:italic">fortiori</span> if that involves the use of judgment.  The exercise of such a judgment can generally only be challenged if irrational or perverse (<span style="text-decoration-line:underline;text-decoration-style:solid">R v Criminal Injuries Compensation Board ex parte Webb <ref href="#" uk:canonical="[1987] QB 74" uk:isNeutral="false" uk:origin="TNA" uk:type="case" uk:year="1987">[1987] QB 74</ref>, 78A</span>; <span style="text-decoration-line:underline;text-decoration-style:solid">Raissi;</span><span/><span style="text-decoration-line:underline;text-decoration-style:solid">Tesco Stores Ltd v Dundee City Council <ref href="#" uk:canonical="[2012] PTSR 983" uk:isNeutral="false" uk:origin="TNA" uk:type="case" uk:year="2012">[2012] PTSR 983</ref></span> at paragraph 19).</p>
+	    </content>
+	  </paragraph>
+	</level>
+	<level eId="lvl_8">
+	  <heading class="ParaHeading"><span style="font-style:italic">HM Treasury &#8211; &#8220;Managing Public Money&#8221;</span></heading>
+	  <paragraph eId="para_37">
+	    <num>37.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">PINS&#8217; ex gratia scheme draws upon the Treasury&#8217;s document, which sets out the main principles for managing public resources.  Paragraph 4.7.5 states that it is important that (<span style="font-style:italic">inter alia</span>) ex gratia payments &#8220;are made in the public interest, objectively and without favouritism&#8221;.  More detailed guidance for setting up such schemes is given in Annex 4.14.  In the context of &#8220;prompt and efficient complaint handling&#8221; the document states that where public services have been found to be deficient, public sector organisations should consider whether to provide remedies to complainants, separate from the administration of statutory rights or legal obligations.  Remedies may take several different forms, but should be proportionate and appropriate.</p>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_38">
+	    <num>38.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">Paragraph A4.14.4. states that:-</p>
+	      <block name="embeddedStructure"><embeddedStructure>
+		  <paragraph>
+		    <intro>
+		      <p class="Quote" style="margin-left:1in">&#8220;As section 4.11 explains, when public sector organisations have caused injustice or hardship because of maladministration or service failure, they should consider:</p>
+		    </intro>
+		    <subparagraph>
+		      <num style="font-family:Symbol;margin-left:1.5in;text-indent:-0.25in">&#8226;</num>
+		      <content>
+			<p class="Quote" style="margin-left:1.5in">providing remedies so that, as far as reasonably possible, they restore the wronged party to the position that they would be in had things been done correctly&#8230;&#8221;</p>
+		      </content>
+		    </subparagraph>
+		  </paragraph>
+		</embeddedStructure></block>
+	      <p class="ParaNoNumber" style="margin-left:0.5in">Remedies may take a variety of forms <span style="font-style:italic">including</span> financial payments (paragraph A4.14.5).</p>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_39">
+	    <num>39.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">Paragraph A4.14.6 states that financial remedies for individual cases are normally ex gratia payments.  However, where a pattern develops, and a number of similar cases need to be dealt with, it may be sensible to set up as an extra-statutory scheme.  Financial remedies should be fair, reasonable and proportionate to the damage suffered by a complainant.  They should not allow a recipient to gain a financial advantage compared to what would have happened in the absence of the error (paragraph A4.14.9).  </p>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_40">
+	    <num>40.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">Paragraph A4.4.10 states that a decision to provide a financial remedy or &#8220;financial compensation&#8221; should take into account all relevant factors including: - </p>
+	      <block name="embeddedStructure"><embeddedStructure>
+		  <paragraph>
+		    <num style="font-family:Symbol;margin-left:1.5in;text-indent:-0.25in">&#8226;</num>
+		    <content>
+		      <p class="Quote" style="margin-left:1.5in">&#8220;Whether a loss has been caused by failure to pay an entitlement, eg to a grant or benefit.</p>
+		    </content>
+		  </paragraph>
+		  <paragraph>
+		    <num style="font-family:Symbol;margin-left:1.5in;text-indent:-0.25in">&#8226;</num>
+		    <content>
+		      <p class="Quote" style="margin-left:1.5in">Whether someone has faced any additional costs as a result of the action or inaction of a public sector organisation, eg because of delay.</p>
+		    </content>
+		  </paragraph>
+		  <paragraph>
+		    <num style="font-family:Symbol;margin-left:1.5in;text-indent:-0.25in">&#8226;</num>
+		    <content>
+		      <p class="Quote" style="margin-left:1.5in">Whether the process of making the complaint has imposed costs on the person complaining, eg lost earnings or costs of pursuing the complaint.</p>
+		    </content>
+		  </paragraph>
+		  <paragraph>
+		    <num style="font-family:Symbol;margin-left:1.5in;text-indent:-0.25in">&#8226;</num>
+		    <content>
+		      <p class="Quote" style="margin-left:1.5in">The circumstances of the person complaining, eg whether the action or inaction of the public sector organisation has caused knock on effects or hardship</p>
+		    </content>
+		  </paragraph>
+		  <paragraph>
+		    <num style="font-family:Symbol;margin-left:1.5in;text-indent:-0.25in">&#8226;</num>
+		    <content>
+		      <p class="Quote" style="margin-left:1.5in">Whether the damage is likely to persist for some time</p>
+		    </content>
+		  </paragraph>
+		  <paragraph>
+		    <num style="font-family:Symbol;margin-left:1.5in;text-indent:-0.25in">&#8226;</num>
+		    <content>
+		      <p class="Quote" style="margin-left:1.5in">Whether any financial remedy would be taxable when paid to the person complaining</p>
+		    </content>
+		  </paragraph>
+		  <paragraph>
+		    <num style="font-family:Symbol;margin-left:1.5in;text-indent:-0.25in">&#8226;</num>
+		    <content>
+		      <p class="Quote" style="margin-left:1.5in">Any advice from the PHSO.&#8221;</p>
+		    </content>
+		  </paragraph>
+		</embeddedStructure></block>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_41">
+	    <num>41.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">It is plain from that list of factors that the Treasury&#8217;s document does not expressly exclude payments for loss of earnings or profits.  Potentially, compensation of that nature would be taxable.  Earnings lost through the pursuit of a complaint are mentioned.  It is equally plain that the document does not lay down any general principle, let alone any requirement, that a loss of profits caused by an error should always be compensated for.</p>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_42">
+	    <num>42.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in"> The document states that where an organisation decides to develop a compensation scheme, it should consult the Treasury beforehand.  Not surprisingly, the Treasury is concerned about cases which might &#8220;set a potentially expensive precedent or cause repercussions for other public sector organisations&#8221; (paragraph A4.14.15 to A4.14.16).  So far as PINS&#8217; document is concerned, there is no material before the court on whether the Treasury was consulted and, if so, the outcome.</p>
+	    </content>
+	  </paragraph>
+	</level>
+	<level eId="lvl_9">
+	  <heading class="ParaHeading"><span style="font-style:italic">Interpretation of PINS&#8217; ex gratia scheme</span></heading>
+	  <paragraph eId="para_43">
+	    <num>43.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">Mr Turney relies upon two passages in PINS&#8217; scheme which repeat a statement made in HM Treasury&#8217;s document, namely that the aim is to return or restore the complainant to the position they would have been in had the agency acted correctly.  I deal with the application of that statement to the circumstances of the present case in the next section of this judgment.  By itself the language used does not say anything about the nature of the compensation that may be provided and, in particular, whether it includes or excludes compensation for loss of earnings or loss of profits.  That is not surprising because the Treasury document merely says that the &#8220;restoration objective&#8221; is something which an agency &#8220;should consider&#8221; &#8220;as far as reasonably possible.&#8221;  It does not contain an absolute commitment to &#8220;restoration&#8221; in all circumstances. It expects that an agency will &#8220;design&#8221; a scheme having regard to the more detailed guidance and examples which follow.  Paragraph A4.14.12 of &#8220;Managing Public Money&#8221; warns that schemes &#8220;must be well designed since costs can escalate if a problem turns out to be more extensive than initially expected&#8221;.  Box A4.14B expects an agency to &#8220;set clear scheme rules with supporting guidance, to implement the policy intention&#8221; and &#8220;to make the remedies fair and proportionate&#8221;. In my judgment satisfying one aspect of the &#8220;restoration&#8221; objective is an obvious pre-requisite for an ex gratia compensation scheme. A citizen cannot legitimately expect that public funds be used to put him in a <span style="font-style:italic">better</span> position than if the error had not been committed.  But reading PINS&#8217; scheme as a whole, it is plain that the restoration objective is not the sole criterion by which claims for ex gratia payments are to be determined.</p>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_44">
+	    <num>44.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">The introduction to PINS document states that ex gratia financial compensation may be paid for &#8220;reasonable costs suffered&#8221; as a result of an error or failure where appropriate and &#8220;compelling reasons&#8221; exist.  This provision is said to be &#8220;included&#8221; in the &#8220;range of remedies&#8221; which PINS should offer, but read in the context of the Treasury&#8217;s document (paragraph A4.14.15), that range includes an apology, an explanation, remedial action and an undertaking to improve procedures or systems.  Thus far, PINS scheme does not hold out the possibility of awarding compensation for loss of profits or earnings.</p>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_45">
+	    <num>45.</num>
+	    <intro>
+	      <p class="ParaLevel1" style="margin-left:0.5in">The section headed &#8220;Determination of Claims&#8221;, also refers to the restoration objective, but then immediately explains that claims will be dealt with by determining three things; </p>
+	    </intro>
+	    <subparagraph>
+	      <num style="margin-left:0.98in;text-indent:-0.49in">i)</num>
+	      <content>
+		<p class="ParaLevel2" style="margin-left:0.98in"> the &#8220;wasted costs&#8221; that the claimant has &#8220;demonstrably incurred&#8221;;</p>
+	      </content>
+	    </subparagraph>
+	    <subparagraph>
+	      <num style="margin-left:0.98in;text-indent:-0.49in">ii)</num>
+	      <content>
+		<p class="ParaLevel2" style="margin-left:0.98in">where appropriate a rate of interest to be applied to that sum;</p>
+	      </content>
+	    </subparagraph>
+	    <subparagraph>
+	      <num style="margin-left:0.98in;text-indent:-0.49in">iii)</num>
+	      <content>
+		<p class="ParaLevel2" style="margin-left:0.98in;text-indent:0.01in">if appropriate, an additional &#8220;goodwill&#8221; payment to acknowledge any substantial injustice, inconvenience, hardships or distress caused as a result of the error.</p>
+	      </content>
+	    </subparagraph>
+	    <subparagraph>
+	      <content>
+		<p class="ParaNoNumber" style="margin-left:0.5in">The expression &#8220;wasted costs&#8221; is clear.  It covers expenditure which has been thrown away or made useless by the error or failure and additional expenditure incurred in order to overcome the effect of the error or failure (but avoiding double counting).  The reference to &#8220;goodwill&#8221; has nothing to do with the term used in accounting or corporate finance referring to a value of a business as a going concern.  The phrase &#8220;a goodwill payment&#8221; indicates a payment referable to a helpful, friendly, kindly or benevolent attitude (Oxford English Dictionary). Accordingly, the section of the document dealing with the determination of the claim does not indicate that payments will be made for loss of earnings or profits.  Instead, the scheme is said to cover costs (or expenditure) which have been incurred.</p>
+	      </content>
+	    </subparagraph>
+	  </paragraph>
+	  <paragraph eId="para_46">
+	    <num>46.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">The same approach is set out in the section which defines what is covered by the scheme, namely &#8220;additional expenses incurred&#8221; as a result of the error. The document goes on to give &#8220;the most common examples&#8221;, but they are all examples within that type of loss.  None of the examples relate to a loss of profits or earnings.</p>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_47">
+	    <num>47.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">The sections of the document dealing with who may make a claim for payment or how &#8220;appropriateness&#8221; may be established, are consistent with the interpretation set out above.  They contain no suggestion that the scheme has any wider ambit. </p>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_48">
+	    <num>48.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">Mr Turney relies upon the indication in PINS&#8217; scheme that &#8220;compensation&#8221; will be paid for &#8220;costs suffered&#8221;.  The word &#8220;compensation&#8221; is neutral.  By itself it does not indicate the nature of any compensation which may be paid.  The Claimant then suggests that the phrase &#8220;costs suffered&#8221; can reasonably be said to refer to a citizen asking himself &#8220;what has this error cost me?&#8221; which could cover a loss, such as a loss of profit.  Even taking that phrase by itself, I think that Mr Turney seeks to invest the language with more meaning than it can properly have for a scheme which provides for ex gratia payments.  In any event, when the document is read objectively and as a whole, it is plain that the scheme does not cover losses which go beyond expenditure incurred as a result of an error or failing.  It does not include a loss of profits or earnings, whether in the past or the future. The document contains no indication that the scheme provides compensation for an adverse effect on the profitability of the development of a site resulting from a mistake in the decision-making process.</p>
+	    </content>
+	  </paragraph>
+	</level>
+	<level eId="lvl_10">
+	  <heading class="ParaHeading"><span style="font-style:italic">The restoration objective.</span></heading>
+	  <paragraph eId="para_49">
+	    <num>49.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">It is helpful to consider how the &#8220;restoration&#8221; objective would apply in the Claimant&#8217;s case and similar cases in any event.  The aim would be to put the Claimant in the position in which he would have been if the error had not occurred.  Here, the sole error made by the Inspector was to misunderstand or misstate the estimated output of the wind turbine. He made an error about the information before him which he then took into account in his decision on whether or not to grant permission.  So in order to correct <span style="font-style:italic">that error</span>, the Claimant was entitled to a determination of its appeal which used the correct output figure.  The first determination of the planning appeal was not quashed on the grounds of irrationality, such that the only lawful outcome of the appeal would have been a grant of planning permission.  Since most planning appeals involve the application of judgment to a number of issues, on each of which different decision-makers might rationally come to different views, and might strike the overall planning balance in different ways (see <span style="text-decoration-line:underline;text-decoration-style:solid">Newsmith Stainless Steels Ltd v Secretary of State for the Environment, Transport and the Regions <ref href="#" uk:canonical="[2017] PTSR 1126" uk:isNeutral="false" uk:origin="TNA" uk:type="case" uk:year="2017">[2017] PTSR 1126</ref></span> paragraph 6-7), it is difficult to see how it could be claimed that an error in the making of a planning decision deprived a complainant of an <span style="font-style:italic">entitlement</span> to a grant of planning permission if that error had not been committed.  That begs the question whether planning permission would necessarily have been granted on the information and evidence placed before the decision-maker.</p>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_50">
+	    <num>50.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">In some cases of statutory review it is possible to say that although there was  a legal error in the decision letter, it can be seen from the untainted parts of the decision-maker&#8217;s reasoning that it is inevitable that the decision would have been the same if that error had not been committed (<span style="text-decoration-line:underline;text-decoration-style:solid">Simplex GE (Holdings) Limited v Secretary of State for the Environment (1989) 57 P &amp; CR 306; R(Smith) v North East Derbyshire PCT <ref href="#" uk:canonical="[2006] 1 WLR 3315" uk:isNeutral="false" uk:origin="TNA" uk:type="case" uk:year="2006">[2006] 1 WLR 3315</ref>; Goodman Logistics Development (UK) Limited v Secretary of State [2017] J.P.L. 1116.)</span>  In such cases the decision will not be quashed.  Where, however, the <span style="text-decoration-line:underline;text-decoration-style:solid">Simplex</span> test is not satisfied, a public law error resulting in the quashing of the decision will lead to the appeal being re-determined.  When that happens the appeal may or may not be successful.  </p>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_51">
+	    <num>51.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">The Claimant argues that in the present case there is no need to speculate about the outcome because it is known.  That argument is, with respect, fallacious. In some cases an appeal might be successful on a redetermination because of a subsequent change in circumstances (for example, a new planning policy or new evidence) which favours a grant of permission.  There is no procedure in practice for determining what would have happened if the appeal had been re-determined on the same evidence as had been presented originally.</p>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_52">
+	    <num>52.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">In the present case the Claimant is able to point to the absence of any change of circumstance between the dates when the two appeal decisions were issued.  But the Claimant&#8217;s argument nevertheless remains fallacious. The present case illustrates the point very well.  Even if the first Inspector had not committed the error on  output, there is no logical reason to think that he would have reached any different conclusions as regards the adverse effects of the proposal upon heritage assets and residential amenity.  The only issue is whether he might have decided to strike the overall planning balance differently and grant permission, on the basis that the benefits of the proposal (correctly assessed) outweighed that combined harm.  But, it is quite possible that he would have come to the same overall conclusion and dismissed the appeal.  It is also possible that other Inspectors might have reached similar conclusions on harm resulting from the proposed development and how the overall balance should be struck. </p>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_53">
+	    <num>53.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">The fact that the second Inspector decided the case differently does not demonstrate the contrary.  He reached the conclusion that the proposal would not cause any harm to heritage assets and would not have a detrimental impact upon residential amenity.  These were planning considerations upon which different decision-makers could quite legitimately reach different conclusions and which would therefore affect the way in which they might strike the overall balance, even with the correct output figure properly reflected in the mix.</p>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_54">
+	    <num>54.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">Even if, as a matter of interpretation, and contrary to my view, a loss of earnings or profits could fall within the ex gratia scheme, the claim advanced by the Claimant in this case would fail the &#8220;restoration objective&#8221; in any event as the Defendant&#8217;s decision letter pointed out (see paragraph 31 above).</p>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_55">
+	    <num>55.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">The Claimant&#8217;s claim for compensation depends upon an assumption that in the absence of the error about the project&#8217;s output, planning permission would have been granted before October 2015.  That assumption cannot be justified.  The claim could not have been put any higher than the loss of &#8220;a chance&#8221; of obtaining a successful decision.  But the claim has never been put forward on that basis.  In any event, such a claim would not fall within the ambit of the scheme, because it would still be related to a loss of profits.</p>
+	    </content>
+	  </paragraph>
+	</level>
+	<level eId="lvl_11">
+	  <heading class="ParaHeading"><span style="font-style:italic">Delay in the redetermination of the planning appeal</span></heading>
+	  <paragraph eId="para_56">
+	    <num>56.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">In oral submissions, Mr Turney on behalf of the Claimant sought to take an alternative approach.  The Claimant points out that although PINS acknowledged on 4 March 2015 that the output error had been committed, it took over 3 months for the Defendant to accept that the first appeal decision should be quashed.  Once the consent order was made on 7 July 2015 it then took over 5 months for the second appeal decision to be issued, albeit that the parties did not rely upon any additional evidence and no public inquiry or hearing needed to be held.  The Claimant says that it ought to have been possible for the second appeal decision to have been issued in good time for the Claimant to rely upon the pre-accreditation procedure, before it was temporarily brought to an end at the beginning of October 2015.</p>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_57">
+	    <num>57.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">It is not clear whether delay in reaching a decision is a failing which necessarily falls within the scope of the ex gratia scheme.  It would need to be established that PINS was &#8220;at fault.&#8221; But the Claimant did not put forward the delay argument to PINS as the basis of its claim for an ex gratia payment. (It should also be noted that the Claimant did not place any reliance upon anything contained in pre-action protocol letters). Furthermore, even if there was &#8220;fault&#8221; in this respect, this alternative argument still faces two insuperable hurdles.  First, the claim was for loss of profits falling outside the scope of the scheme, and not for additional expenditure attributable to the delay.  Second, the argument still assumes that if the redetermination had taken place by say August 2015, the appeal would have been allowed and planning permission granted.  For the reasons I have given, that assumption is fallacious. </p>
+	    </content>
+	  </paragraph>
+	</level>
+	<level eId="lvl_12">
+	  <heading class="ParaHeading"><span style="font-style:italic">Failure to consider making an exception to the ex gratia scheme</span></heading>
+	  <paragraph eId="para_58">
+	    <num>58.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">In paragraph 40 of the Claimant&#8217;s skeleton it is submitted that the Defendant was bound to apply the ex gratia scheme flexibly and to consider whether these should be a departure from that policy so as to allow a claim for loss of profits in this case.  Of course, this argument only arises if the Claimant is incorrect in its interpretation of the scheme and its ambit. But there is no evidence to indicate that PINS has unlawfully applied its ex gratia scheme in a blanket fashion or has been unwilling to consider a submission that there is a sufficient justification for compensation too be provided on an exceptional basis outside the scheme. The Claimant did not suggest otherwise.</p>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_59">
+	    <num>59.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">Mr. Turney accepted that the Claimant did not ask for his claim for loss of profits to be considered on an exceptional basis or put forward any reasons or circumstances as to why it should be accepted exceptionally.  Moreover, nothing has been said in this challenge as to why the Claimant&#8217;s position ought to have been treated as an exceptional case.  It would have been important for the Claimant to identify any exceptional circumstances being relied upon, so that PINS could decide whether to treat them as truly exceptional and not undermine the future application of its policy, the legality of which has not been challenged in the claim form.  In view of the Claimant&#8217;s acceptance that it did not put forward an &#8220;exceptional circumstances&#8221; case, there was no obligation on PINS to address that subject in its decision letter (see e.g. <span style="text-decoration-line:underline;text-decoration-style:solid">R (Plant) v Lambeth LBC <ref href="#" uk:canonical="[2017] PTSR 453" uk:isNeutral="false" uk:origin="TNA" uk:type="case" uk:year="2017">[2017] PTSR 453</ref></span> at paragraphs 62-63).</p>
+	    </content>
+	  </paragraph>
+	</level>
+	<level eId="lvl_13">
+	  <heading class="ParaLevel1"><span style="font-style:italic">Conclusions</span></heading>
+	  <paragraph eId="para_60">
+	    <num>60.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">In his oral submissions, but not in his skeleton, Mr Turney suggested that PINS&#8217; ex gratia scheme should be read compatibly with the requirements of A1P1, and so on this alternative basis the Claimant was entitled to compensation for loss of profits. However, this argument was presented by reference to the specific circumstances of this case, rather than any wider consideration of the range of circumstances which may need to be addressed. It was not developed in any depth. Accordingly, it is best dealt with under ground 4, to which I turn next. Each of the primary arguments relied upon by the Claimant under ground 1 fails.</p>
+	    </content>
+	  </paragraph>
+	</level>
+	<level eId="lvl_14">
+	  <heading class="ParaHeading"><span style="font-weight:bold;text-decoration-line:underline;text-decoration-style:solid">Article 1 of the First Protocol to the ECHR and Ground 4</span></heading>
+	  <paragraph eId="para_61">
+	    <num>61.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">A1P1 provides: -</p>
+	      <block name="embeddedStructure"><embeddedStructure>
+		  <level>
+		    <content>
+		      <p class="Quote" style="margin-left:1in">&#8220;Every natural or legal person is entitled to the peaceful enjoyment of his possessions.  No one shall be deprived of his possessions except in the public interest and subject to the conditions provided for by law and by the general principles of international law.</p>
+		    </content>
+		  </level>
+		  <level>
+		    <content>
+		      <p class="Quote" style="margin-left:1in">The preceding provisions shall not, however, in any way impair the right of a State to enforce such laws as it deems necessary to control the use of property in accordance with the general interest or to secure the payment of taxes or other contributions or penalties.&#8221;</p>
+		    </content>
+		  </level>
+		</embeddedStructure></block>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_62">
+	    <num>62.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">In <span style="text-decoration-line:underline;text-decoration-style:solid">Sporrong and Lonnroth v Sweden <ref href="#" uk:canonical="(1982) 5 EHRR 35" uk:isNeutral="false" uk:origin="TNA" uk:type="case" uk:year="1982">(1982) 5 EHRR 35</ref></span> it was held that A1P1 contains three distinct rules.  The first sentence refers to the general principle that a person is entitled to the peaceful enjoyment of property.  The second sentence sets out the principle that a person shall not be deprived of his possessions save in the public interest and subject to relevant legal conditions. &#8220;Deprivation&#8221; refers to either a formal or a <span style="font-style:italic">de facto</span> expropriation of property.  The latter involves an examination of the realities of the situation, rather than its mere appearance, to see whether the rights in question (e.g. rights to dispose of and use property) have ceased to have any substance.  The third sentence recognises that a State is entitled to control the use of property in accordance with the public interest, by enforcing such laws as they deem necessary for that purpose (see <span style="text-decoration-line:underline;text-decoration-style:solid">Sporrong</span> at paragraphs 61 to 63).  </p>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_63">
+	    <num>63.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in"><span style="text-decoration-line:underline;text-decoration-style:solid">Sporrong</span> illustrates how the three rules may be applied. The case was concerned with &#8220;expropriation permits&#8221; which authorised a local authority to expropriate properties in the future and had the effect in the meantime of prohibiting construction work by the landowner.  The permits remained in force for 23 years in one case and 8 years in the other. During that time no domestic remedy was available to the landowner to mitigate the effect of blight, to reduce the duration of the permits or to obtain compensation.  The court held that this regime did not breach the second rule in A1P1 as no actual or <span style="font-style:italic">de facto</span> expropriation had taken place (paragraphs 62 to 63).  Because the permits were not designed to control the use of the property affected but were simply an &#8220;initial step&#8221; in a procedure leading to deprivation of possessions, the third rule was not engaged (paragraph 65).  But the court did find that because the blighting effect of the permits rendered the landowners&#8217; rights of property both precarious and defeasible, and substantially restricted their right to use their possessions, the first rule in A1P1 was engaged (paragraphs 59-60).  Ultimately, the court decided that the rule was violated because, given the absence of remedies to seek a reduction in the duration of the permits or compensation, a fair balance had not been struck between the general interest and the protection of the owner&#8217;s property rights (paragraphs 69 to 74).</p>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_64">
+	    <num>64.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">In paragraph 50 of his skeleton, Mr. Turney had sought to rely on the third rule in A1P1, referring to <span style="text-decoration-line:underline;text-decoration-style:solid">Pine Valley Developments Limited v Ireland <ref href="#" uk:canonical="(1992) 14 EHRR 319" uk:isNeutral="false" uk:origin="TNA" uk:type="case" uk:year="1992">(1992) 14 EHRR 319</ref></span>. But that decision is not authority for the proposition that a mere decision to refuse planning permission may amount to an interference with the use of a possession falling short of a deprivation. Mr Turney abandoned that argument during his oral submissions.  The <span style="text-decoration-line:underline;text-decoration-style:solid">Pine Valley</span> case was only concerned with the <span style="font-style:italic">invalidation</span> of a planning permission which the landowner had previously been granted (paragraphs 51 to 54).  The case was therefore dealt with under the third rule in A1P1 (paragraph 56). The court held that the annulment of the permission was justified and not disproportionate in achieving a proper planning purpose, the preservation of a green belt. On that basis A1P1 had not been breached (paragraphs 57 to 59).</p>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_65">
+	    <num>65.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">Decisions taken by Inspectors or by the Secretary of State under <ref href="http://www.legislation.gov.uk/id/ukpga/1990/8/section/77" uk:canonical="" uk:origin="TNA" uk:type="legislation">sections 77</ref> and 78 of <ref href="http://www.legislation.gov.uk/id/ukpga/1990/8" uk:canonical="1990 c. 8" uk:origin="TNA" uk:type="legislation">TCPA 1990</ref> also relate to the use of land in the public interest. No authority has been cited to show that merely deciding to refuse an application for planning permission involves an <span style="font-style:italic">interference</span> with property or a possession or otherwise engages A1P1. It should also be recalled that the purchase notice code exists to deal with cases where land is incapable of reasonably beneficial use and planning permission cannot be obtained (Chapter I of Part VI of <ref href="http://www.legislation.gov.uk/id/ukpga/1990/8" uk:canonical="1990 c. 8" uk:origin="TNA" uk:type="legislation">TCPA 1990</ref>).</p>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_66">
+	    <num>66.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">In his oral submissions, Mr Turney made it plain that no reliance is placed upon the second rule, because no actual or <span style="font-style:italic">de facto</span> expropriation has occurred in this case. However, he put forward the Claimant&#8217;s complaint on a new basis, by relying upon the first rule in A1P1.</p>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_67">
+	    <num>67.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">The nature of the Claimant&#8217;s interest in the development site has been described in paragraph 19 above.  Assuming that there was a legally binding agreement granting the Claimant an option for a lease of the site, Mr Turney submits that the Claimant had a &#8220;possession&#8221; which was capable of being protected by the first rule in A1P1 (see <span style="text-decoration-line:underline;text-decoration-style:solid">Stretch v United Kingdom (2004) EHRR 12)</span>. However, Mr Turney rightly does not argue that the error made in the first appeal decision had the effect of interfering with the enjoyment of the option as such. Instead, relying on the decision in <span style="text-decoration-line:underline;text-decoration-style:solid">Breyer Group plc v Department of Energy and Climate Change <ref href="#" uk:canonical="[2015] 1 WLR 4559" uk:isNeutral="false" uk:origin="TNA" uk:type="case" uk:year="2015">[2015] 1 WLR 4559</ref></span>, he submits that A1P1 was breached because the error interfered with the goodwill of the Claimant&#8217;s business, which should be treated as having a marketable value and hence constituted a &#8220;possession&#8221;.<span style="font-weight:bold"/>He says that his argument is reinforced by the existence of the lease option and an offer for connection to the grid obtained by the Claimant. Ms Tafur submitted that, properly understood, the decision in <span style="text-decoration-line:underline;text-decoration-style:solid">Breyer</span> demonstrated that the Claimant&#8217;s argument falls outside the ambit of A1P1.</p>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_68">
+	    <num>68.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">I accept Mr Turney&#8217;s submission that this issue depends on the &#8220;practical effect&#8221; of the error made in the first appeal decision on the Claimant&#8217;s freedom to use and enjoy his &#8220;possessions&#8221;, even if those rights remained intact (see <span style="text-decoration-line:underline;text-decoration-style:solid">Sporrong</span> at paragraph 60 and <span style="text-decoration-line:underline;text-decoration-style:solid">Breyer</span> at paragraphs 61, 67 and 72),</p>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_69">
+	    <num>69.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">The decision in <span style="text-decoration-line:underline;text-decoration-style:solid">Breyer</span> contains a very full analysis of the circumstances in which goodwill either may, or may not, count as a &#8220;possession&#8221; attracting the protection of A1P1.  It began with <span style="text-decoration-line:underline;text-decoration-style:solid">Van Marle v The Netherlands <ref href="#" uk:canonical="(1986) 8 EHRR 83" uk:isNeutral="false" uk:origin="TNA" uk:type="case" uk:year="1986">(1986) 8 EHRR 83</ref></span>, an authority relied upon by Mr Turney. Each of the applicants had practised as accountants from between 1947 and 1950.  In 1972 the Dutch Parliament introduced legislation to regulate the profession of accountants which required the applicants to obtain a registration as a &#8220;certified accountant&#8221; by (inter alia) satisfying various competency requirements.  The Court held that the appeal process against refusal of registration had not provided a fair hearing by an independent tribunal and was therefore in breach of Article 6.  The Court also held that the drop in the income and value of each of the applicants&#8217; businesses was an interference with an asset in the nature of a private right, or possession, and therefore in breach of A1P1.  It is clear from paragraph 41 of the decision that this conclusion was based upon the pre-existing client base which each of the applicants had built up through having practised as an accountant over a number of years.</p>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_70">
+	    <num>70.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">At paragraph 32 of <span style="text-decoration-line:underline;text-decoration-style:solid">Breyer</span>, Lord Dyson MR referred to the very helpful analysis by Kenneth Parker QC (then sitting as a deputy judge) in <span style="text-decoration-line:underline;text-decoration-style:solid">R (Nicholds) v Security Industry Authority <ref href="#" uk:canonical="[2007] 1 WLR 2067" uk:isNeutral="false" uk:origin="TNA" uk:type="case" uk:year="2007">[2007] 1 WLR 2067</ref></span>, where he held that although the goodwill of a business may constitute a &#8220;possession&#8221; under A1P1, an expectation of future income does not.  A future loss of income could not fall within A1P1 unless an enforceable claim to that income already exists.  The judge pointed out that in this context &#8220;goodwill is being used rather in the economic sense of the capitalised value of a business or part of a business as a <span style="font-style:italic">going</span> concern.......&#8221; (emphasis added).</p>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_71">
+	    <num>71.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">At paragraph 43 Lord Dyson MR stated that the well-established distinction between goodwill and future income is fundamental to the Strasbourg jurisprudence and continued: -</p>
+	      <block name="embeddedStructure"><embeddedStructure>
+		  <level>
+		    <content>
+		      <p class="Quote" style="margin-left:1in">&#8220;The important distinction is between the present day value of future income (which is not treated by the European court as part of goodwill and a possession) and the present day value of a business which reflects the capacity to earn profits in the future (which may be part of goodwill and a possession).  The capacity to earn profits in the future is derived from the reputation that the business enjoys as a result of its past efforts.&#8221;</p>
+		    </content>
+		  </level>
+		</embeddedStructure></block>
+	      <p class="ParaNoNumber" style="margin-left:0.5in">The Court of Appeal then decided that contracts which had already been concluded might be referable to &#8220;past efforts&#8221; and hence the goodwill of the business, but contracts yet to be concluded could not (paragraphs 48-49).</p>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_72">
+	    <num>72.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">In the present case the loss which the Claimant put forward to PINS plainly fell outside the scope of A1P1 as defined in <span style="text-decoration-line:underline;text-decoration-style:solid">Breyer</span>.  Merely capitalising and expressing an anticipated future income stream as a net present value does not demonstrate a loss of goodwill.  The claimed loss related to a future business on the Honeypot Lane site which had not yet produced any profit.  The fact that the Claimant had previously started to operate a wind turbine project on another site in Wales is nothing<span style="font-weight:bold"/>to the point.  Not surprisingly, the Claimant did not suggest to PINS, or to the Court, that any of the economic performance on the Welsh site was in any way relevant to the future income stream on the second site.  The business on the Welsh site was not analogous to a pre-existing customer base related to the Honeypot Lane site. For these reasons alone ground 4 must fail.</p>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_73">
+	    <num>73.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">In any event, even where a claim for an ex gratia payment relates to a loss of goodwill arising from &#8220;past efforts&#8221; and therefore a possession which could fall within A1P1, it does not follow that the making of an error in a decision letter which results in planning permission being refused could amount to an &#8220;interference&#8221; with such a possession.  There could not be any material effect upon, let alone an interference with, a possession unless, at the very least, it could be shown that, absent the error, the landowner would have been <span style="font-style:italic">entitled </span>to the planning permission sought.  For the reasons I have given under ground 1, it will usually be impossible to do that.  This flaw in the Claimant&#8217;s argument cannot be overcome by its attempt to treat a &#8220;failure&#8221; by PINS to provide compensation for the losses claimed as an &#8220;interference&#8221; with the Claimant&#8217;s possessions.  That begs the very question whether any such interference has taken place in breach of A1P1 in the first place, so as to give rise to a requirement under that provision to pay compensation.</p>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_74">
+	    <num>74.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">There are fundamental problems with the Claimant&#8217;s argument. It has to be accepted that the State is entitled to control the use and development of land in the public interest. Accordingly, a mere refusal of planning permission does not amount to an interference with the peaceful enjoyment of possessions under the first rule in A1P1. Furthermore, simply making a mistake in the exercise of planning control, even one which is required to be corrected, does not alter that analysis, <span style="font-style:italic">a fortiori</span> where the correction of that mistake either may, or may not, result in the same outcome. It is well-established in our law of tort that local planning authorities are generally not liable in damages for financial loss resulting from alleged negligence in the determination of planning applications (<span style="text-decoration-line:underline;text-decoration-style:solid">Dunlop v Woollahra Municipal Council <ref href="#" uk:canonical="[1982] AC 158" uk:isNeutral="false" uk:origin="TNA" uk:type="case" uk:year="1982">[1982] AC 158</ref></span>; <span style="text-decoration-line:underline;text-decoration-style:solid">Strable v Dartford Borough Council [1984] JPL 329</span>; <span style="text-decoration-line:underline;text-decoration-style:solid">Kane v New Forest District Council <ref href="#" uk:canonical="[2002] 1 WLR 312" uk:isNeutral="false" uk:origin="TNA" uk:type="case" uk:year="2002">[2002] 1 WLR 312</ref></span> at paragraph 22). It is difficult to see how, within the statutory framework of the <ref href="http://www.legislation.gov.uk/id/ukpga/1990/8" uk:canonical="1990 c. 8" uk:origin="TNA" uk:type="legislation">TCPA 1990</ref>, any duty of care could arise when an Inspector or the Secretary of State discharges an appellate function, for example by determining a developer&#8217;s appeal against a decision of a local planning authority. No duty of care recognised by the law of negligence is owed (<span style="text-decoration-line:underline;text-decoration-style:solid">Caparo Industries plc v Dickman <ref href="#" uk:canonical="[1990] AC 605" uk:isNeutral="false" uk:origin="TNA" uk:type="case" uk:year="1990">[1990] AC 605</ref></span>). Against that background it would be most surprising if A1P1 could be used to create an entitlement to compensation for errors made in the determination of planning appeals. No authority was cited to support that notion.</p>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_75">
+	    <num>75.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">For these reasons, I reject ground 4. As I have pointed out, the Claimant&#8217;s arguments were very much focused on the circumstances of its case. Nothing has been put forward to make it necessary for the court to read additional language into PINS&#8217; ex gratia scheme in order to achieve compatibility with A1P1, whether in this case or more generally.</p>
+	    </content>
+	  </paragraph>
+	</level>
+	<level eId="lvl_15">
+	  <heading class="ParaHeading"><span style="font-weight:bold;text-decoration-line:underline;text-decoration-style:solid">Ground 2</span></heading>
+	  <paragraph eId="para_76">
+	    <num>76.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">This ground is concerned with a failure by the Defendant in the decision letter dated 4 April 2017 to deal with that part of PINS&#8217; scheme which provides for a goodwill payment to deal with substantial injustice, hardship or distress.  In his Acknowledgement of Service, the Defendant accepted that this ground was made out and initially he proposed to submit to judgment.  However, he sought to deal with the matter in a further decision letter dated 11 October 2017.  It is accepted by Mr. Turney that the point raised in his skeleton argument at paragraph 41d has now been addressed, but he submits that the latest decision letter still fails to deal with the matters raised in paragraph 41a to c.  </p>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_77">
+	    <num>77.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">Mr. Turney accepted during the hearing that in relation to paragraph 41a, hardship caused by the Defendant&#8217;s failure to re-determine the planning appeal in a timely manner (i.e. not until 14 December 2015) was not raised as a separate point to be considered as part of the application for an ex gratia payment. The Claimant now says that he has suffered hardship through the delay in the redetermination of the planning appeal because in the meantime the Feed-in Tariff scheme was amended and his development project became less profitable. In my judgment, the reference to a &#8220;goodwill payment&#8221; for hardship or injustice is not intended to provide a back-door route to enable a claim which falls outside the ex gratia scheme, namely a loss of profits, to be pursued, or some variation of that claim. In the decision letter dated 11 October 2017 PINS effectively made that point (see page 12).</p>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_78">
+	    <num>78.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">Paragraph 41b of the Claimant&#8217;s skeleton makes a similar point to paragraph 41a: the Claimant&#8217;s provision for his retirement income has been substantially reduced because of the error made by the first Inspector. That again is a reference to the reduction in the profitability of the development. It only needs to be treated as a claim for a goodwill payment if the Claimant&#8217;s argument under ground 1 fails. The hardship stems from the fact that the ex gratia scheme does not compensate for this type of loss. As I have explained above, the decision letter dated 11 October 2017 has adequately dealt with this aspect and no public law error can be shown.</p>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_79">
+	    <num>79.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">Paragraph 44c of the Claimant&#8217;s skeleton says that a goodwill payment should have been made to cover the loss of consultancy work suffered by the Claimant through having to spend time dealing with the consequences of the error made by the first Inspector. Mr Turney accepted that this point is the same as the one raised under ground 3, where I think it is more appropriately dealt with.</p>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_80">
+	    <num>80.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">Accordingly, as matters now stand, ground 2 must be rejected. It cannot justify quashing either of the decisions issued by PINS, whether that dated 4 April 2017 or the further letter dated 11 October 2017.</p>
+	    </content>
+	  </paragraph>
+	</level>
+	<level eId="lvl_16">
+	  <heading class="ParaLevel1"><span style="font-weight:bold;text-decoration-line:underline;text-decoration-style:solid">Ground 3</span></heading>
+	  <paragraph eId="para_81">
+	    <num>81.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">There are three aspects to ground 3, as set out in paragraph 44 of the Claimant&#8217;s skeleton.</p>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_82">
+	    <num>82.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">Paragraph 44a, relates to the costs incurred by the claimant in resisting the attempt by the MoD to obtain permission to apply under <ref href="http://www.legislation.gov.uk/id/ukpga/1990/8/section/288" uk:canonical="" uk:origin="TNA" uk:type="legislation">section 288</ref> of <ref href="http://www.legislation.gov.uk/id/ukpga/1990/8" uk:canonical="1990 c. 8" uk:origin="TNA" uk:type="legislation">TCPA 1990</ref> to quash the second appeal decision (see paragraph 16 above). Because permission was refused on paper and the MoD did not renew its application for permission, Mr Turney accepted that the only costs incurred by his client in those proceedings related to his Acknowledgment of Service.</p>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_83">
+	    <num>83.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">Mr Turney submitted that these costs were &#8220;costs or expenses incurred due to an appeal being redetermined following a successful challenge in the High Court&#8221; and therefore within the scope of the express language of the ex gratia scheme. He said that these costs were dealt with as item 8 in the decision letter dated 4 April 2017.</p>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_84">
+	    <num>84.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">The decision letter stated that the costs were &#8220;not within the scope of the ex gratia scheme as costs to be awarded in litigation are<span style="font-weight:bold"/>dealt [with] separately by the Court and settled by the parties.&#8221; Mr Turney submitted that that explanation was flawed because according to <span style="text-decoration-line:underline;text-decoration-style:solid">Bolton MDC v Secretary for the Environment <ref href="#" uk:canonical="[1995] 1 WLR 1176" uk:isNeutral="false" uk:origin="TNA" uk:type="case" uk:year="1995">[1995] 1 WLR 1176</ref></span> there was no justification for awarding a second set of costs to the claimant in addition to the set of costs to which the decision-maker, the Secretary of State for Communities and Local Government, was entitled. However, that principle does not apply to the costs of preparing, filing and serving of an Acknowledgment of Service (see <span style="text-decoration-line:underline;text-decoration-style:solid">Luton Borough Council v Central Bedfordshire Council [2015] 2 P &amp; CR 19</span> 80-81 upholding <span style="text-decoration-line:underline;text-decoration-style:solid"><ref href="https://caselaw.nationalarchives.gov.uk/admin/ch/2014/4325" uk:canonical="[2014] EWHC 4325 (Admin)" uk:isNeutral="true" uk:origin="TNA" uk:type="case" uk:year="2014">[2014] EWHC 4325 (Admin)</ref></span> at paragraphs 221 to 226). So the basis upon which the Claimant seeks to impugn the reasoning given by PINS is misconceived.</p>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_85">
+	    <num>85.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">I would also add that the passage in the ex gratia scheme upon which the Claimant seeks to rely is only concerned with costs incurred in the re-determination of <span style="font-style:italic">the appeal</span>, that is the appeal to the Secretary of State. The scheme does not cover costs which may be incurred in other proceedings, whether they involve a public law challenge to that redetermination decision or some private law dispute (e.g. a contractual dispute) arising because of that decision.   </p>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_86">
+	    <num>86.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">Paragraph 44b concerns the fees incurred in connection with the valuation report prepared by Fisher German LLP (including a wind resource assessment).  These fees were dealt with as items 12, 13, 15 and 18 in the decision letter dated 4 April 2017. Mr Turney rightly accepted that this part of ground 3 stands or falls with ground 1. Since I have rejected ground 1, I must also reject this particular challenge.</p>
+	    </content>
+	  </paragraph>
+	  <paragraph eId="para_87">
+	    <num>87.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">Paragraph 44c is concerned with the Claimant&#8217;s loss of consultancy fees through needing to spend time on the redetermination of his planning appeal. The sum claimed was &#163;3,210. Mr Turney submitted that PINS failed to deal with this item in its decision letters. I accept Miss Tafur&#8217;s response that this item was in fact dealt with at page 8 of the decision letter dated 4 April 2017, where it was rejected for lack of supporting evidence to substantiate the claim. </p>
+	    </content>
+	  </paragraph>
+	</level>
+	<level eId="lvl_17">
+	  <heading class="ParaHeading"><span style="font-weight:bold;text-decoration-line:underline;text-decoration-style:solid">Conclusion</span></heading>
+	  <paragraph eId="para_88">
+	    <num>88.</num>
+	    <content>
+	      <p class="ParaLevel1" style="margin-left:0.5in">For all these reasons, I refuse the application for judicial review. </p>
+	    </content>
+	  </paragraph>
+	</level>
+      </decision>
+    </judgmentBody>
+  </judgment>
+</akomaNtoso>

@@ -1,0 +1,139 @@
+<Pblock DocumentURI="http://www.legislation.gov.uk/ukpga/2022/44/crossheading/reducing-the-price-of-electricity" IdURI="http://www.legislation.gov.uk/id/ukpga/2022/44/crossheading/reducing-the-price-of-electricity" NumberOfProvisions="3" id="crossheading-reducing-the-price-of-electricity" RestrictExtent="E+W+S+N.I." RestrictStartDate="2022-12-25">
+<Title>Reducing the price of electricity</Title>
+<P1group RestrictExtent="E+W+S+N.I." RestrictStartDate="2022-12-25">
+<Title>Contracts for difference</Title>
+<P1 DocumentURI="http://www.legislation.gov.uk/ukpga/2022/44/section/18" IdURI="http://www.legislation.gov.uk/id/ukpga/2022/44/section/18" id="section-18">
+<Pnumber>
+<CommentaryRef Ref="key-26af3e27c5e03b60a76b122f2d3e60d9"/>
+18
+</Pnumber>
+<P1para>
+<P2 DocumentURI="http://www.legislation.gov.uk/ukpga/2022/44/section/18/1" IdURI="http://www.legislation.gov.uk/id/ukpga/2022/44/section/18/1" id="section-18-1">
+<Pnumber>1</Pnumber>
+<P2para>
+<Text>The Energy Act 2013 is amended as follows.</Text>
+</P2para>
+</P2>
+<P2 DocumentURI="http://www.legislation.gov.uk/ukpga/2022/44/section/18/2" IdURI="http://www.legislation.gov.uk/id/ukpga/2022/44/section/18/2" id="section-18-2">
+<Pnumber>2</Pnumber>
+<P2para>
+<Text>In section 6 (power to make regulations about contracts for difference for the purpose of encouraging low carbon electricity generation)—</Text>
+<P3 DocumentURI="http://www.legislation.gov.uk/ukpga/2022/44/section/18/2/a" IdURI="http://www.legislation.gov.uk/id/ukpga/2022/44/section/18/2/a" id="section-18-2-a">
+<Pnumber>a</Pnumber>
+<P3para>
+<Text>after subsection (1) insert—</Text>
+<BlockAmendment Context="main" Format="double" TargetClass="primary" TargetSubClass="unknown">
+<P2>
+<Pnumber>1A</Pnumber>
+<P2para>
+<Text>The reference in subsection (1) to encouraging low carbon electricity generation includes encouraging the continuation of, or an increase in, low carbon electricity generation by existing generating stations.</Text>
+</P2para>
+</P2>
+</BlockAmendment>
+<AppendText>, and</AppendText>
+</P3para>
+</P3>
+<P3 DocumentURI="http://www.legislation.gov.uk/ukpga/2022/44/section/18/2/b" IdURI="http://www.legislation.gov.uk/id/ukpga/2022/44/section/18/2/b" id="section-18-2-b">
+<Pnumber>b</Pnumber>
+<P3para>
+<Text>in subsection (8), after paragraph (a) insert—</Text>
+<BlockAmendment Context="main" Format="double" TargetClass="primary" TargetSubClass="unknown">
+<P3>
+<Pnumber>aa</Pnumber>
+<P3para>
+<Text>the first regulations made after the passing of the Energy Prices Act 2022 which make provision falling within each of the sections mentioned in paragraph (a);</Text>
+</P3para>
+</P3>
+</BlockAmendment>
+<AppendText>.</AppendText>
+</P3para>
+</P3>
+</P2para>
+</P2>
+<P2 DocumentURI="http://www.legislation.gov.uk/ukpga/2022/44/section/18/3" IdURI="http://www.legislation.gov.uk/id/ukpga/2022/44/section/18/3" id="section-18-3">
+<Pnumber>3</Pnumber>
+<P2para>
+<Text>In section 7 (designation of a CFD counterparty), in subsection (5), omit the words from “, but only” to the end.</Text>
+</P2para>
+</P2>
+<P2 DocumentURI="http://www.legislation.gov.uk/ukpga/2022/44/section/18/4" IdURI="http://www.legislation.gov.uk/id/ukpga/2022/44/section/18/4" id="section-18-4">
+<Pnumber>4</Pnumber>
+<P2para>
+<Text>In section 17 (payments to electricity suppliers), after subsection (2) insert—</Text>
+<BlockAmendment Context="main" Format="double" TargetClass="primary" TargetSubClass="unknown">
+<P2>
+<Pnumber>2A</Pnumber>
+<P2para>
+<Text>Regulations may make provision imposing on an electricity supplier who receives a payment from a CFD counterparty a requirement to secure that customers of the electricity supplier receive, by a time specified in the regulations, such benefit from the payment as may be specified in or determined in accordance with the regulations.</Text>
+</P2para>
+</P2>
+</BlockAmendment>
+</P2para>
+</P2>
+<P2 DocumentURI="http://www.legislation.gov.uk/ukpga/2022/44/section/18/5" IdURI="http://www.legislation.gov.uk/id/ukpga/2022/44/section/18/5" id="section-18-5">
+<Pnumber>5</Pnumber>
+<P2para>
+<Text>In section 19 (information and advice)—</Text>
+<P3 DocumentURI="http://www.legislation.gov.uk/ukpga/2022/44/section/18/5/a" IdURI="http://www.legislation.gov.uk/id/ukpga/2022/44/section/18/5/a" id="section-18-5-a">
+<Pnumber>a</Pnumber>
+<P3para>
+<Text>in subsection (2)—</Text>
+<P4 DocumentURI="http://www.legislation.gov.uk/ukpga/2022/44/section/18/5/a/i" IdURI="http://www.legislation.gov.uk/id/ukpga/2022/44/section/18/5/a/i" id="section-18-5-a-i">
+<Pnumber>i</Pnumber>
+<P4para>
+<Text>
+in paragraph (c), after “the Northern Ireland system operator” insert
+<InlineAmendment>“, an electricity supplier”</InlineAmendment>
+,
+</Text>
+</P4para>
+</P4>
+<P4 DocumentURI="http://www.legislation.gov.uk/ukpga/2022/44/section/18/5/a/ii" IdURI="http://www.legislation.gov.uk/id/ukpga/2022/44/section/18/5/a/ii" id="section-18-5-a-ii">
+<Pnumber>ii</Pnumber>
+<P4para>
+<Text>after paragraph (c) insert—</Text>
+<BlockAmendment Context="main" Format="double" TargetClass="primary" TargetSubClass="unknown">
+<P3>
+<Pnumber>ca</Pnumber>
+<P3para>
+<Text>for the Authority to require information to be provided to it by a CFD counterparty or electricity suppliers;</Text>
+</P3para>
+</P3>
+<P3>
+<Pnumber>cb</Pnumber>
+<P3para>
+<Text>for the Northern Ireland Authority for Utility Regulation to require information to be provided to it by a CFD counterparty or electricity suppliers;</Text>
+</P3para>
+</P3>
+</BlockAmendment>
+<AppendText>, and</AppendText>
+</P4para>
+</P4>
+<P4 DocumentURI="http://www.legislation.gov.uk/ukpga/2022/44/section/18/5/a/iii" IdURI="http://www.legislation.gov.uk/id/ukpga/2022/44/section/18/5/a/iii" id="section-18-5-a-iii">
+<Pnumber>iii</Pnumber>
+<P4para>
+<Text>
+in paragraph (e), after “to it by” insert
+<InlineAmendment>“the Authority, the Northern Ireland Authority for Utility Regulation,”</InlineAmendment>
+, and
+</Text>
+</P4para>
+</P4>
+</P3para>
+</P3>
+<P3 DocumentURI="http://www.legislation.gov.uk/ukpga/2022/44/section/18/5/b" IdURI="http://www.legislation.gov.uk/id/ukpga/2022/44/section/18/5/b" id="section-18-5-b">
+<Pnumber>b</Pnumber>
+<P3para>
+<Text>
+in subsection (4), at the beginning insert
+<InlineAmendment>“Except as provided by regulations,”</InlineAmendment>
+.
+</Text>
+</P3para>
+</P3>
+</P2para>
+</P2>
+</P1para>
+</P1>
+</P1group>
+</Pblock>

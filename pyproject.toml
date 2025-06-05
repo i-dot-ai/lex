@@ -1,0 +1,60 @@
+[project]
+name = "lex"
+version = "0.1.0"
+description = "OpenAPI and MCP Server for UK Legislation"
+readme = "README.md"
+authors = [
+    { name = "Liam Wilkinson", email = "liam.wilkinson@cabinetoffice.gov.uk" },
+    { name = "Oliver Normand", email = "oliver.normand@cabinetoffice.gov.uk" }
+]
+requires-python = ">=3.11"
+dependencies = [
+    "aiohttp>=3.11.18",
+    "aws-lambda-powertools>=3.11.0",
+    "bs4>=0.0.2",
+    "diskcache>=5.6.3",
+    "elasticsearch==8.17.1",
+    "fastapi>=0.115.12",
+    "fastapi-mcp>=0.3.3",
+    "lxml>=5.4.0",
+    "mcp-proxy>=0.5.1",
+    "pydantic>=2.11.3",
+    "python-dotenv>=1.1.0",
+    "requests>=2.32.3",
+    "requests-cache>=1.2.1",
+    "requests-ratelimiter>=0.7.0",
+    "tenacity>=9.1.2",
+    "uvicorn>=0.34.2",
+    "xmltodict>=0.14.2",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "ipykernel>=6.29.5",
+    "pytest>=8.3.5",
+    "pytest-cov>=6.1.1",
+    "pytest-mock>=3.14.0",
+    "pytest-xdist>=3.6.1",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = [
+  "E",   # pycodestyle
+  "F",   # pyflakes
+  "W",   # pycodestyle warnings
+  "I",   # isort
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
