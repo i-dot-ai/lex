@@ -1,6 +1,9 @@
 -include .env
 export
 
+# Get current year dynamically
+CURRENT_YEAR := $(shell date +%Y)
+
 install:
 	uv sync
 .PHONY: install
@@ -10,7 +13,7 @@ pre-commit-setup:
 .PHONY: pre-commit-setup
 
 
-test:	
+test:
 	uv run pytest lex/tests --cov=lex --cov-report=term-missing
 .PHONY: test
 
@@ -18,35 +21,65 @@ run:
 	uv run src/backend/main.py
 .PHONY: run
 
-# Pipeline data ingestion commands with memory optimization
-ingest-caselaw:
+# Pipeline data ingestion commands - SAMPLE (limited data for testing)
+ingest-caselaw-sample:
 	docker compose exec pipeline uv run src/lex/main.py -m caselaw --non-interactive --limit 50 --batch-size 20
-.PHONY: pipeline-ingest-caselaw
+.PHONY: ingest-caselaw-sample
 
-ingest-caselaw-section:
-	docker compose exec pipeline uv run src/lex/main.py -m caselaw-section --non-interactive --limit 50 
-.PHONY: pipeline-ingest-caselaw-sections
+ingest-caselaw-section-sample:
+	docker compose exec pipeline uv run src/lex/main.py -m caselaw-section --non-interactive --limit 50
+.PHONY: ingest-caselaw-section-sample
 
-ingest-legislation:
-	docker compose exec pipeline uv run src/lex/main.py -m legislation --non-interactive --types ukpga --years 2020-2025 --limit 50
-.PHONY: pipeline-ingest-legislation
+ingest-legislation-sample:
+	docker compose exec pipeline uv run src/lex/main.py -m legislation --non-interactive --types ukpga --years 2020-$(CURRENT_YEAR) --limit 50
+.PHONY: ingest-legislation-sample
 
-ingest-legislation-section:
-	docker compose exec pipeline uv run src/lex/main.py -m legislation-section --non-interactive --types ukpga --years 2020-2025 --limit 50
-.PHONY: pipeline-ingest-legislation-sections
+ingest-legislation-section-sample:
+	docker compose exec pipeline uv run src/lex/main.py -m legislation-section --non-interactive --types ukpga --years 2020-$(CURRENT_YEAR) --limit 50
+.PHONY: ingest-legislation-section-sample
 
-ingest-explanatory-note:
-	docker compose exec pipeline uv run src/lex/main.py -m explanatory-note --non-interactive --types ukpga --years 2020-2025 --limit 50
-.PHONY: pipeline-ingest-explanatory-notes
+ingest-explanatory-note-sample:
+	docker compose exec pipeline uv run src/lex/main.py -m explanatory-note --non-interactive --types ukpga --years 2020-$(CURRENT_YEAR) --limit 50
+.PHONY: ingest-explanatory-note-sample
 
-ingest-amendment:
-	docker compose exec pipeline uv run src/lex/main.py -m amendment --non-interactive --years 2020-2025 --limit 250
-.PHONY: pipeline-ingest-amendments
+ingest-amendment-sample:
+	docker compose exec pipeline uv run src/lex/main.py -m amendment --non-interactive --years 2020-$(CURRENT_YEAR) --limit 250
+.PHONY: ingest-amendment-sample
 
-# Ingest all data in the pipeline
-ingest-all: pipeline-ingest-legislation pipeline-ingest-legislation-section pipeline-ingest-explanatory-note pipeline-ingest-amendment pipeline-ingest-caselaw pipeline-ingest-caselaw-section
-	@echo "All data types have been ingested."
-.PHONY: pipeline-ingest-all
+# Ingest all sample data
+ingest-all-sample: ingest-legislation-sample ingest-legislation-section-sample ingest-explanatory-note-sample ingest-amendment-sample ingest-caselaw-sample ingest-caselaw-section-sample
+	@echo "All sample data types have been ingested."
+.PHONY: ingest-all-sample
+
+# Pipeline data ingestion commands - FULL (all types, legislation from 1963, caselaw from 2001)
+ingest-caselaw-full:
+	docker compose exec pipeline uv run src/lex/main.py -m caselaw --non-interactive --batch-size 50
+.PHONY: ingest-caselaw-full
+
+ingest-caselaw-section-full:
+	docker compose exec pipeline uv run src/lex/main.py -m caselaw-section --non-interactive --batch-size 50
+.PHONY: ingest-caselaw-section-full
+
+ingest-legislation-full:
+	docker compose exec pipeline uv run src/lex/main.py -m legislation --non-interactive --years 1963-$(CURRENT_YEAR) --batch-size 50
+.PHONY: ingest-legislation-full
+
+ingest-legislation-section-full:
+	docker compose exec pipeline uv run src/lex/main.py -m legislation-section --non-interactive --years 1963-$(CURRENT_YEAR) --batch-size 50
+.PHONY: ingest-legislation-section-full
+
+ingest-explanatory-note-full:
+	docker compose exec pipeline uv run src/lex/main.py -m explanatory-note --non-interactive --years 1963-$(CURRENT_YEAR) --batch-size 50
+.PHONY: ingest-explanatory-note-full
+
+ingest-amendment-full:
+	docker compose exec pipeline uv run src/lex/main.py -m amendment --non-interactive --years 1963-$(CURRENT_YEAR) --batch-size 50
+.PHONY: ingest-amendment-full
+
+# Ingest all full data
+ingest-all-full: ingest-legislation-full ingest-legislation-section-full ingest-explanatory-note-full ingest-amendment-full ingest-caselaw-full ingest-caselaw-section-full
+	@echo "All full data types have been ingested."
+.PHONY: ingest-all-full
 
 # Start Docker environment
 docker-up:
@@ -62,7 +95,7 @@ docker-up:
 		echo "Waiting for Elasticsearch to start... ($$i/6)"; \
 		sleep 5; \
 	done
-	@echo "Ready to ingest data. Run 'make pipeline-ingest-all' to ingest all data."
+	@echo "Ready to ingest data. Run 'make ingest-all-sample' for sample data or 'make ingest-all-full' for full data."
 .PHONY: docker-up
 
 # Stop Docker environment
