@@ -2,7 +2,9 @@
 import argparse
 import logging
 import os
+import time
 from collections import namedtuple
+from datetime import datetime
 
 from dotenv import load_dotenv
 
@@ -149,6 +151,7 @@ def process_documents(args):
     """
     Core pipeline logic to process and upload documents
     """
+    start_time = time.time()
     index, documents_iterator, mappings = index_mapping[args.model]
 
     # Update the index if provided
@@ -172,12 +175,33 @@ def process_documents(args):
 
     batch = []
     doc_count = 0
+    last_progress_update = time.time()
+    progress_interval = 300  # Log progress every 5 minutes
+    
+    # Track statistics
+    success_count = 0
+    error_count = 0
 
     for doc in documents:
         batch.append(doc)
         doc_count += 1
+        
+        # Simple progress logging every N documents and every M minutes
+        current_time = time.time()
+        if doc_count % 1000 == 0 or (current_time - last_progress_update) > progress_interval:
+            elapsed = current_time - start_time
+            rate = doc_count / elapsed if elapsed > 0 else 0
+            logger.info(
+                f"Progress update: {doc_count} documents processed "
+                f"({rate:.1f} docs/second, {elapsed/60:.1f} minutes elapsed)"
+            )
+            last_progress_update = current_time
+        
         if len(batch) >= batch_size:
-            upload_documents(index_name=index, documents=batch)
+            upload_result = upload_documents(index_name=index, documents=batch)
+            # Assume upload_documents returns success count or we count batch size as success
+            success_count += len(batch)
+            
             logger.info(f"Uploaded batch of {len(batch)} documents (total: {doc_count})")
             batch = []  # Clear batch after upload
 
@@ -188,8 +212,17 @@ def process_documents(args):
 
     # Upload any remaining documents
     if batch:
-        upload_documents(index_name=index, documents=batch)
+        upload_result = upload_documents(index_name=index, documents=batch)
+        success_count += len(batch)
         logger.info(f"Uploaded final batch of {len(batch)} documents (total: {doc_count})")
+    
+    # Final summary
+    elapsed_time = time.time() - start_time
+    logger.info(
+        f"Pipeline processing complete for {args.model}: "
+        f"{doc_count} documents processed in {elapsed_time/60:.1f} minutes "
+        f"({doc_count/elapsed_time:.1f} docs/second average)"
+    )
 
 
 def main():
@@ -284,9 +317,55 @@ def main():
 
     # Run the pipeline with error handling
     try:
-        logger.info(f"Starting pipeline with model: {args.model}")
+        # Log comprehensive pipeline start information
+        start_timestamp = datetime.now().isoformat()
+        
+        # Build parameter summary
+        params = {
+            "model": args.model,
+            "timestamp": start_timestamp,
+            "batch_size": getattr(args, "batch_size", 50),
+            "non_interactive": getattr(args, "non_interactive", False),
+            "index": getattr(args, "index", index_mapping[args.model].index)
+        }
+        
+        # Add model-specific parameters
+        if hasattr(args, "years") and args.years:
+            params["years"] = f"{min(args.years)}-{max(args.years)}" if args.years else "all"
+            params["year_count"] = len(args.years)
+        
+        if hasattr(args, "types") and args.types:
+            params["types"] = [str(t.value) if hasattr(t, 'value') else str(t) for t in args.types]
+            params["type_count"] = len(args.types)
+        
+        if hasattr(args, "limit"):
+            params["limit"] = args.limit if args.limit else "unlimited"
+        
+        logger.info(
+            f"Pipeline starting: {args.model} processing",
+            extra={"pipeline_params": params}
+        )
+        
+        # Also log as formatted string for readability
+        param_str = ", ".join([f"{k}={v}" for k, v in params.items()])
+        logger.info(f"Pipeline parameters: {param_str}")
+        
         process_documents(args)
-        logger.info("Pipeline completed successfully")
+        
+        end_timestamp = datetime.now().isoformat()
+        duration = (datetime.fromisoformat(end_timestamp) - datetime.fromisoformat(start_timestamp)).total_seconds()
+        
+        logger.info(
+            f"Pipeline completed successfully",
+            extra={
+                "model": args.model,
+                "start_time": start_timestamp,
+                "end_time": end_timestamp,
+                "duration_seconds": duration,
+                "duration_minutes": duration / 60
+            }
+        )
+        
     except Exception as e:
         logger.error(f"Pipeline failed: {str(e)}", exc_info=True)
         raise  # Re-raise the exception to maintain the original exit code

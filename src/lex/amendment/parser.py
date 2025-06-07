@@ -1,8 +1,11 @@
+import logging
 from bs4 import BeautifulSoup
 
 from lex.core.parser import LexParser
 
 from .models import Amendment
+
+logger = logging.getLogger(__name__)
 
 
 class AmendmentParser(LexParser):
@@ -25,7 +28,23 @@ class AmendmentParser(LexParser):
 
         rows = [self._row_to_amendment(row) for row in rows]
 
-        return [row for row in rows if row is not None]
+        amendments = [row for row in rows if row is not None]
+        
+        if amendments:
+            # Log successful parsing with structured data
+            logger.info(
+                f"Parsed {len(amendments)} amendments",
+                extra={
+                    "doc_type": "amendment",
+                    "processing_status": "success",
+                    "amendment_count": len(amendments),
+                    # Sample first amendment for context
+                    "sample_changed": amendments[0].changed_legislation if amendments else None,
+                    "sample_affecting": amendments[0].affecting_legislation if amendments else None
+                }
+            )
+        
+        return amendments
 
     def _row_to_amendment(self, row: BeautifulSoup) -> Amendment:
         """Convert a table row to an Amendment object."""

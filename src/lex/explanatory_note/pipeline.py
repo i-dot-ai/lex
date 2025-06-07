@@ -31,8 +31,33 @@ def pipe_explanatory_notes(
 
     scraper_and_parser = ExplanatoryNoteScraperAndParser()
 
-    explanatory_notes = scraper_and_parser.scrape_and_parse_content(
-        years=years, types=types, limit=limit
-    )
-
-    yield from generate_documents(explanatory_notes, ExplanatoryNote)
+    try:
+        explanatory_notes = scraper_and_parser.scrape_and_parse_content(
+            years=years, types=types, limit=limit
+        )
+        
+        # Convert generator to list to count items
+        notes_list = list(explanatory_notes)
+        
+        if notes_list:
+            logger.info(
+                f"Processing {len(notes_list)} explanatory notes",
+                extra={
+                    "doc_type": "explanatory_note",
+                    "processing_status": "success",
+                    "note_count": len(notes_list)
+                }
+            )
+        
+        yield from generate_documents(notes_list, ExplanatoryNote)
+        
+    except Exception as e:
+        logger.error(
+            f"Error processing explanatory notes: {e}",
+            exc_info=True,
+            extra={
+                "doc_type": "explanatory_note",
+                "processing_status": "error",
+                "error_type": type(e).__name__
+            }
+        )

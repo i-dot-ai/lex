@@ -30,9 +30,47 @@ def pipe_legislation(
             legislation = parser.parse_content(soup)
             yield from generate_documents([legislation], Legislation)
         except LexParsingError as e:
-            logger.error(e)
+            # Extract metadata from error message if possible
+            error_msg = str(e)
+            doc_id = None
+            doc_year = None
+            doc_type = None
+            
+            # Try to extract ID from error message
+            import re
+            id_match = re.search(r'(http://www\.legislation\.gov\.uk/id/[^/]+/\d{4}/\d+)', error_msg)
+            if id_match:
+                doc_id = id_match.group(1)
+                # Extract year and type from ID
+                parts = doc_id.split('/')
+                if len(parts) >= 6:
+                    doc_type = parts[4]
+                    doc_year = int(parts[5])
+            
+            # Determine if it's a PDF fallback
+            is_pdf_fallback = "likely a pdf" in error_msg.lower() or "no body found" in error_msg.lower()
+            
+            logger.error(
+                error_msg,
+                extra={
+                    "doc_id": doc_id,
+                    "doc_type": doc_type,
+                    "doc_year": doc_year,
+                    "processing_status": "pdf_fallback" if is_pdf_fallback else "parse_error",
+                    "has_xml": False,
+                    "error_type": "LexParsingError",
+                    "is_pdf_fallback": is_pdf_fallback
+                }
+            )
         except Exception as e:
-            logger.error(f"Error parsing legislation: {e}", exc_info=True)
+            logger.error(
+                f"Error parsing legislation: {e}",
+                exc_info=True,
+                extra={
+                    "processing_status": "error",
+                    "error_type": type(e).__name__
+                }
+            )
 
 
 def pipe_legislation_sections(
@@ -54,6 +92,44 @@ def pipe_legislation_sections(
             legislation_sections = parser.parse_content(soup)
             yield from generate_documents(legislation_sections, LegislationSection)
         except LexParsingError as e:
-            logger.error(e)
+            # Extract metadata from error message if possible
+            error_msg = str(e)
+            doc_id = None
+            doc_year = None
+            doc_type = None
+            
+            # Try to extract ID from error message
+            import re
+            id_match = re.search(r'(http://www\.legislation\.gov\.uk/id/[^/]+/\d{4}/\d+)', error_msg)
+            if id_match:
+                doc_id = id_match.group(1)
+                # Extract year and type from ID
+                parts = doc_id.split('/')
+                if len(parts) >= 6:
+                    doc_type = parts[4]
+                    doc_year = int(parts[5])
+            
+            # Determine if it's a PDF fallback
+            is_pdf_fallback = "likely a pdf" in error_msg.lower() or "no body found" in error_msg.lower()
+            
+            logger.error(
+                error_msg,
+                extra={
+                    "doc_id": doc_id,
+                    "doc_type": doc_type,
+                    "doc_year": doc_year,
+                    "processing_status": "pdf_fallback" if is_pdf_fallback else "parse_error",
+                    "has_xml": False,
+                    "error_type": "LexParsingError",
+                    "is_pdf_fallback": is_pdf_fallback
+                }
+            )
         except Exception as e:
-            logger.error(f"Error parsing legislation sections: {e}", exc_info=True)
+            logger.error(
+                f"Error parsing legislation sections: {e}",
+                exc_info=True,
+                extra={
+                    "processing_status": "error",
+                    "error_type": type(e).__name__
+                }
+            )

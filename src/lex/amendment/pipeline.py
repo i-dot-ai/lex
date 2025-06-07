@@ -18,7 +18,22 @@ def pipe_amendments(years: list[int], limit: int, **kwargs) -> Iterator[Amendmen
     for soup in scraper.load_content(years, limit):
         try:
             amendments = parser.parse_content(soup)
-            logger.info(f"Parsed amendments: {len(amendments)}")
+            logger.info(
+                f"Parsed amendments: {len(amendments)}",
+                extra={
+                    "doc_type": "amendment",
+                    "processing_status": "success",
+                    "amendment_count": len(amendments)
+                }
+            )
             yield from generate_documents(amendments, Amendment)
         except Exception as e:
-            logger.error(f"Error parsing amendments: {e}", exc_info=True)
+            logger.error(
+                f"Error parsing amendments: {e}",
+                exc_info=True,
+                extra={
+                    "doc_type": "amendment",
+                    "processing_status": "error",
+                    "error_type": type(e).__name__
+                }
+            )

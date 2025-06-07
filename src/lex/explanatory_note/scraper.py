@@ -306,7 +306,13 @@ class ExplanatoryNoteScraperAndParser:
         is_old_page = self._is_old_explanatory_notes_page(explanatory_notes_contents_soup)
         if is_old_page is None:
             logger.info(
-                f"Could not determine the style of the explanatory notes page for {legislation_id}."
+                f"Could not determine the style of the explanatory notes page for {legislation_id}.",
+                extra={
+                    "doc_type": "explanatory_note",
+                    "legislation_id": legislation_id,
+                    "processing_status": "style_unknown",
+                    "note_style": "unknown"
+                }
             )
             return []
 
@@ -326,5 +332,14 @@ class ExplanatoryNoteScraperAndParser:
                 "https://www.legislation.gov.uk/", "http://www.legislation.gov.uk/id/"
             )
 
-        logger.info(f"Scraped and parsed {len(sections)} sections for {legislation_id}")
+        logger.info(
+            f"Scraped and parsed {len(sections)} sections for {legislation_id}",
+            extra={
+                "doc_type": "explanatory_note",
+                "legislation_id": legislation_id,
+                "processing_status": "success",
+                "note_style": "old" if is_old_page else "new",
+                "section_count": len(sections)
+            }
+        )
         return sections

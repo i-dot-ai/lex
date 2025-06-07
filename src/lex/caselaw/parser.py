@@ -422,7 +422,20 @@ class CaselawSectionParser(LexParser):
         """Parse the content of a BeautifulSoup object into a CaselawSection."""
         caselaw_parser = CaselawAndCaselawSectionsParser()
         metadata, sections = caselaw_parser.parse_content(soup)
-        logger.info(f"Parsed caselaw sections: {metadata.id}")
+        logger.info(
+            f"Parsed caselaw sections: {metadata.id}",
+            extra={
+                "doc_id": metadata.id,
+                "doc_type": "caselaw",
+                "court": metadata.court.value if metadata.court else None,
+                "division": metadata.division,
+                "doc_year": metadata.year,
+                "doc_number": metadata.number,
+                "processing_status": "success",
+                "section_count": len(sections),
+                "cite_as": metadata.cite_as
+            }
+        )
         return sections
 
 
@@ -433,5 +446,18 @@ class CaselawParser(LexParser):
         """Parse the content of a BeautifulSoup object into a Caselaw."""
         caselaw_parser = CaselawAndCaselawSectionsParser()
         metadata, sections = caselaw_parser.parse_content(soup)
-        logger.info(f"Parsed caselaw: {metadata.id}")
+        logger.info(
+            f"Parsed caselaw: {metadata.id}",
+            extra={
+                "doc_id": metadata.id,
+                "doc_type": "caselaw",
+                "court": metadata.court.value if metadata.court else None,
+                "division": metadata.division,
+                "doc_year": metadata.year,
+                "doc_number": metadata.number,
+                "processing_status": "success",
+                "cite_as": metadata.cite_as,
+                "has_sections": len(sections) > 0
+            }
+        )
         return metadata

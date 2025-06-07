@@ -18,7 +18,18 @@ class LegislationParser(LexParser):
 
         legislation_with_content = self.parser.parse(soup)
 
-        logger.info(f"Parsed legislation: {legislation_with_content.id}")
+        logger.info(
+            f"Parsed legislation: {legislation_with_content.id}",
+            extra={
+                "doc_id": legislation_with_content.id,
+                "doc_type": legislation_with_content.type.value if legislation_with_content.type else None,
+                "doc_year": legislation_with_content.year,
+                "doc_number": legislation_with_content.number,
+                "processing_status": "success",
+                "has_xml": True,
+                "title": legislation_with_content.title[:100] if legislation_with_content.title else None
+            }
+        )
 
         legislation = Legislation(
             **legislation_with_content.model_dump(exclude={"sections", "schedules", "commentaries"})
