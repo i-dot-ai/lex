@@ -17,6 +17,7 @@ from lex.caselaw.models import Court
 from lex.caselaw.pipeline import pipe_caselaw, pipe_caselaw_sections
 from lex.core import create_index_if_none, upload_documents
 from lex.core.clients import get_elasticsearch_client
+from lex.core.exceptions import RateLimitException
 from lex.core.utils import create_inference_endpoint_if_none, set_logging_level
 from lex.explanatory_note.mappings import explanatory_note_mappings
 from lex.explanatory_note.pipeline import pipe_explanatory_notes
@@ -181,41 +182,94 @@ def process_documents(args):
     # Track statistics
     success_count = 0
     error_count = 0
+    consecutive_rate_limits = 0
+    max_consecutive_rate_limits = 3
 
-    for doc in documents:
-        batch.append(doc)
-        doc_count += 1
+    try:
+        for doc in documents:
+            try:
+                batch.append(doc)
+                doc_count += 1
+                consecutive_rate_limits = 0  # Reset on success
+                
+                # Simple progress logging every N documents and every M minutes
+                current_time = time.time()
+                if doc_count % 1000 == 0 or (current_time - last_progress_update) > progress_interval:
+                    elapsed = current_time - start_time
+                    rate = doc_count / elapsed if elapsed > 0 else 0
+                    logger.info(
+                        f"Progress update: {doc_count} documents processed "
+                        f"({rate:.1f} docs/second, {elapsed/60:.1f} minutes elapsed)"
+                    )
+                    last_progress_update = current_time
+                
+                if len(batch) >= batch_size:
+                    upload_result = upload_documents(index_name=index, documents=batch)
+                    # Assume upload_documents returns success count or we count batch size as success
+                    success_count += len(batch)
+                    
+                    logger.info(f"Uploaded batch of {len(batch)} documents (total: {doc_count})")
+                    batch = []  # Clear batch after upload
+
+                    # Force garbage collection to free memory
+                    import gc
+                    gc.collect()
+                    
+            except RateLimitException as e:
+                consecutive_rate_limits += 1
+                
+                # Save any pending batch before potentially exiting
+                if batch:
+                    logger.info(f"Saving batch of {len(batch)} documents before handling rate limit")
+                    upload_documents(index_name=index, documents=batch)
+                    success_count += len(batch)
+                    batch = []
+                
+                if consecutive_rate_limits >= max_consecutive_rate_limits:
+                    logger.error(
+                        f"Hit rate limit {consecutive_rate_limits} times consecutively. "
+                        f"Stopping pipeline gracefully. Progress saved at {doc_count} documents.",
+                        extra={
+                            "doc_count": doc_count,
+                            "success_count": success_count,
+                            "model": args.model,
+                            "rate_limit_count": consecutive_rate_limits
+                        }
+                    )
+                    # Exit gracefully - checkpoint already saved by scraper
+                    break
+                else:
+                    # Wait and continue
+                    wait_time = min(60 * consecutive_rate_limits, 300)  # Max 5 min
+                    logger.info(
+                        f"Rate limited (attempt {consecutive_rate_limits}/{max_consecutive_rate_limits}). "
+                        f"Waiting {wait_time}s before continuing...",
+                        extra={
+                            "wait_time": wait_time,
+                            "consecutive_attempts": consecutive_rate_limits,
+                            "retry_after": getattr(e, 'retry_after', None)
+                        }
+                    )
+                    time.sleep(wait_time)
+                    
+    except Exception as e:
+        # Handle any other exceptions
+        logger.error(f"Pipeline error: {e}", exc_info=True)
+        # Try to save any pending batch
+        if batch:
+            try:
+                upload_documents(index_name=index, documents=batch)
+                success_count += len(batch)
+            except:
+                pass
+        raise
         
-        # Simple progress logging every N documents and every M minutes
-        current_time = time.time()
-        if doc_count % 1000 == 0 or (current_time - last_progress_update) > progress_interval:
-            elapsed = current_time - start_time
-            rate = doc_count / elapsed if elapsed > 0 else 0
-            logger.info(
-                f"Progress update: {doc_count} documents processed "
-                f"({rate:.1f} docs/second, {elapsed/60:.1f} minutes elapsed)"
-            )
-            last_progress_update = current_time
-        
-        if len(batch) >= batch_size:
+    finally:
+        # Upload any remaining documents
+        if batch:
             upload_result = upload_documents(index_name=index, documents=batch)
-            # Assume upload_documents returns success count or we count batch size as success
             success_count += len(batch)
-            
-            logger.info(f"Uploaded batch of {len(batch)} documents (total: {doc_count})")
-            batch = []  # Clear batch after upload
-
-            # Force garbage collection to free memory
-            import gc
-
-            gc.collect()
-
-    # Upload any remaining documents
-    if batch:
-        upload_result = upload_documents(index_name=index, documents=batch)
-        success_count += len(batch)
-        logger.info(f"Uploaded final batch of {len(batch)} documents (total: {doc_count})")
-    
+            logger.info(f"Uploaded final batch of {len(batch)} documents (total: {doc_count})")
     # Final summary
     elapsed_time = time.time() - start_time
     logger.info(
@@ -288,12 +342,49 @@ def main():
         action="store_true",
         help="[Legislation] Load documents from file instead of scraping",
     )
+    
+    # Checkpoint management arguments
+    parser.add_argument(
+        "--resume",
+        action="store_true",
+        help="Resume from last checkpoint if available (default: true)",
+    )
+    
+    parser.add_argument(
+        "--no-checkpoint",
+        action="store_true",
+        help="Disable checkpoint functionality",
+    )
+    
+    parser.add_argument(
+        "--clear-checkpoint",
+        action="store_true",
+        help="Clear existing checkpoint and start fresh",
+    )
+    
+    parser.add_argument(
+        "--list-checkpoints",
+        action="store_true",
+        help="List all available checkpoints and exit",
+    )
 
     # Set environment variables for local run
     os.environ["ENVIRONMENT"] = "local"
 
     # Parse arguments
     args = parser.parse_args()
+    
+    # Handle checkpoint listing
+    if args.list_checkpoints:
+        from lex.core.checkpoint import PipelineCheckpoint
+        checkpoints = PipelineCheckpoint.list_checkpoints()
+        if checkpoints:
+            print("Available checkpoints:")
+            for cp in sorted(checkpoints):
+                print(f"  - {cp}")
+        else:
+            print("No checkpoints found.")
+        return
 
     # Parse years to handle ranges and individual years
     if hasattr(args, "years") and args.years is not None:

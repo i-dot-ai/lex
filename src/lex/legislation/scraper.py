@@ -3,6 +3,8 @@ from typing import Iterator
 
 from bs4 import BeautifulSoup
 
+from lex.core.checkpoint import PipelineCheckpoint
+from lex.core.exceptions import RateLimitException
 from lex.core.http import HttpClient
 from lex.core.scraper import LexScraper
 from lex.legislation.models import LegislationType
@@ -21,13 +23,109 @@ class LegislationScraper(LexScraper):
         years: list[int],
         limit: int | None = None,
         types: list[LegislationType] = list(LegislationType),
+        use_checkpoint: bool = True,
+        clear_checkpoint: bool = False,
     ) -> Iterator[BeautifulSoup]:
-        "Scrapes legislation content from the internet."
+        """Scrapes legislation content from the internet with checkpoint support.
+        
+        Args:
+            years: List of years to scrape
+            limit: Maximum number of documents to process
+            types: List of legislation types to process
+            use_checkpoint: Whether to use checkpoint for resuming
+            clear_checkpoint: Whether to clear existing checkpoint
+        """
+        # Create checkpoint ID based on parameters
+        type_str = '_'.join(sorted(t.value for t in types))
+        checkpoint_id = f"legislation_{min(years)}_{max(years)}_{type_str}"
+        
+        checkpoint = None
+        processed_urls = set()
+        url_count = 0
+        
+        if use_checkpoint:
+            checkpoint = PipelineCheckpoint(checkpoint_id)
+            
+            if clear_checkpoint:
+                checkpoint.clear()
+                logger.info(f"Cleared checkpoint: {checkpoint_id}")
+            else:
+                state = checkpoint.get_state()
+                processed_urls = state['processed_urls']
+                if processed_urls:
+                    logger.info(
+                        f"Resuming from checkpoint. Already processed: {len(processed_urls)} URLs",
+                        extra={
+                            "checkpoint_id": checkpoint_id,
+                            "processed_count": len(processed_urls),
+                            "checkpoint_path": str(checkpoint.cache_dir)
+                        }
+                    )
 
-        legislation_urls = self.load_urls(years, types, limit)
-
-        for url in legislation_urls:
-            yield self._load_legislation_from_url(url)
+        try:
+            for url in self.load_urls(years, types, limit):
+                url_count += 1
+                
+                # Skip if already processed
+                if url in processed_urls:
+                    logger.debug(f"Skipping already processed: {url}")
+                    continue
+                
+                try:
+                    soup = self._load_legislation_from_url(url)
+                    
+                    # Mark as processed if using checkpoint
+                    if checkpoint:
+                        checkpoint.mark_processed(url)
+                        
+                        # Save position periodically
+                        if url_count % 100 == 0:
+                            checkpoint.save_position(url_count)
+                            checkpoint.update_metadata({
+                                'years': f"{min(years)}-{max(years)}",
+                                'types': type_str,
+                                'total_urls': url_count
+                            })
+                    
+                    yield soup
+                    
+                except RateLimitException as e:
+                    # Save checkpoint before potential exit
+                    if checkpoint:
+                        checkpoint.save_position(url_count)
+                        checkpoint.update_metadata({
+                            'last_rate_limit': url,
+                            'rate_limit_error': str(e)
+                        })
+                    
+                    logger.warning(
+                        f"Rate limit hit at position {url_count}",
+                        extra={
+                            "checkpoint_id": checkpoint_id if checkpoint else None,
+                            "position": url_count,
+                            "url": url,
+                            "processed_count": len(processed_urls) + url_count
+                        }
+                    )
+                    raise  # Re-raise to let pipeline handle
+                    
+                except Exception as e:
+                    # Other errors - mark as failed but continue
+                    error_msg = f"Failed to process {url}: {e}"
+                    logger.error(error_msg, exc_info=True)
+                    
+                    if checkpoint:
+                        checkpoint.mark_failed(url, str(e))
+                    continue
+                    
+        finally:
+            # Log final summary if using checkpoint
+            if checkpoint and checkpoint.exists():
+                summary = checkpoint.get_summary()
+                logger.info(
+                    f"Checkpoint summary for {checkpoint_id}",
+                    extra=summary
+                )
 
     def load_urls(
         self,

@@ -25,7 +25,17 @@ def pipe_legislation(
         loader_or_scraper = scraper
         logging.info("Parsing legislation from web")
 
-    for soup in loader_or_scraper.load_content(years, limit, types):
+    # Pass checkpoint parameters if loading from web
+    if loader_or_scraper == scraper:
+        content_iterator = loader_or_scraper.load_content(
+            years, limit, types,
+            use_checkpoint=not kwargs.get("no_checkpoint", False),
+            clear_checkpoint=kwargs.get("clear_checkpoint", False)
+        )
+    else:
+        content_iterator = loader_or_scraper.load_content(years, limit, types)
+    
+    for soup in content_iterator:
         try:
             legislation = parser.parse_content(soup)
             yield from generate_documents([legislation], Legislation)
@@ -87,7 +97,17 @@ def pipe_legislation_sections(
         loader_or_scraper = scraper
         logging.info("Parsing legislation sections from web")
 
-    for soup in loader_or_scraper.load_content(years, limit, types):
+    # Pass checkpoint parameters if loading from web
+    if loader_or_scraper == scraper:
+        content_iterator = loader_or_scraper.load_content(
+            years, limit, types,
+            use_checkpoint=not kwargs.get("no_checkpoint", False),
+            clear_checkpoint=kwargs.get("clear_checkpoint", False)
+        )
+    else:
+        content_iterator = loader_or_scraper.load_content(years, limit, types)
+    
+    for soup in content_iterator:
         try:
             legislation_sections = parser.parse_content(soup)
             yield from generate_documents(legislation_sections, LegislationSection)
