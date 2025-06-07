@@ -36,13 +36,27 @@ def pipe_legislation(
         content_iterator = loader_or_scraper.load_content(years, limit, types)
     
     for soup in content_iterator:
+        # Extract document identifier for logging
+        doc_id = None
         try:
+            # Try to find document identifier in the XML
+            id_elem = soup.find("dc:identifier")
+            if id_elem:
+                doc_id = id_elem.text
+            else:
+                # Fallback to IdURI attribute
+                legislation_elem = soup.find("Legislation")
+                if legislation_elem and "IdURI" in legislation_elem.attrs:
+                    doc_id = legislation_elem["IdURI"]
+            
+            if doc_id:
+                logger.debug(f"Parsing document: {doc_id}")
+            
             legislation = parser.parse_content(soup)
             yield from generate_documents([legislation], Legislation)
         except LexParsingError as e:
             # Extract metadata from error message if possible
             error_msg = str(e)
-            doc_id = None
             doc_year = None
             doc_type = None
             
@@ -77,6 +91,7 @@ def pipe_legislation(
                 f"Error parsing legislation: {e}",
                 exc_info=True,
                 extra={
+                    "doc_id": doc_id,
                     "processing_status": "error",
                     "error_type": type(e).__name__
                 }
@@ -108,13 +123,27 @@ def pipe_legislation_sections(
         content_iterator = loader_or_scraper.load_content(years, limit, types)
     
     for soup in content_iterator:
+        # Extract document identifier for logging
+        doc_id = None
         try:
+            # Try to find document identifier in the XML
+            id_elem = soup.find("dc:identifier")
+            if id_elem:
+                doc_id = id_elem.text
+            else:
+                # Fallback to IdURI attribute
+                legislation_elem = soup.find("Legislation")
+                if legislation_elem and "IdURI" in legislation_elem.attrs:
+                    doc_id = legislation_elem["IdURI"]
+            
+            if doc_id:
+                logger.debug(f"Parsing document sections: {doc_id}")
+                
             legislation_sections = parser.parse_content(soup)
             yield from generate_documents(legislation_sections, LegislationSection)
         except LexParsingError as e:
             # Extract metadata from error message if possible
             error_msg = str(e)
-            doc_id = None
             doc_year = None
             doc_type = None
             
@@ -149,6 +178,7 @@ def pipe_legislation_sections(
                 f"Error parsing legislation sections: {e}",
                 exc_info=True,
                 extra={
+                    "doc_id": doc_id,
                     "processing_status": "error",
                     "error_type": type(e).__name__
                 }

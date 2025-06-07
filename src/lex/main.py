@@ -272,10 +272,29 @@ def process_documents(args):
             logger.info(f"Uploaded final batch of {len(batch)} documents (total: {doc_count})")
     # Final summary
     elapsed_time = time.time() - start_time
+    
+    # Create detailed summary
+    summary_extra = {
+        "model": args.model,
+        "total_documents": doc_count,
+        "successful_uploads": success_count,
+        "duration_seconds": elapsed_time,
+        "duration_minutes": elapsed_time / 60,
+        "avg_docs_per_second": doc_count / elapsed_time if elapsed_time > 0 else 0,
+        "final_status": "completed" if consecutive_rate_limits < max_consecutive_rate_limits else "rate_limited"
+    }
+    
+    # Add additional context if available
+    if hasattr(args, "years") and args.years:
+        summary_extra["year_range"] = f"{min(args.years)}-{max(args.years)}"
+    if hasattr(args, "types") and args.types:
+        summary_extra["document_types"] = len(args.types)
+    
     logger.info(
         f"Pipeline processing complete for {args.model}: "
         f"{doc_count} documents processed in {elapsed_time/60:.1f} minutes "
-        f"({doc_count/elapsed_time:.1f} docs/second average)"
+        f"({doc_count/elapsed_time:.1f} docs/second average)",
+        extra=summary_extra
     )
 
 
