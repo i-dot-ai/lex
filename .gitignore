@@ -196,3 +196,10 @@ cython_debug/
 
 # Analysis output files
 analysis/*.json
+
+# Cache and checkpoint directories
+data/cache/
+data/checkpoints/
+
+CLAUDE.md
+.claude/settings.local.json
