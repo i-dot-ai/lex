@@ -200,17 +200,24 @@ class HttpClient:
         cache_key = self._get_cache_key(method, url, **kwargs)
 
         # Check cache
-        cached_response = self._cache.get(cache_key)
-        if cached_response is not None:
-            logger.debug(f"Cache hit for {url}")
-            return cached_response
+        try:
+            cached_response = self._cache.get(cache_key)
+            if cached_response is not None:
+                logger.debug(f"Cache hit for {url}")
+                return cached_response
+        except Exception as e:
+            logger.warning(f"Cache read error for {url}: {e}. Continuing without cache.")
+            # Continue without cache on read errors
 
         # Cache miss - make request
         response = self._make_request_with_circuit_breaker(method, url, **kwargs)
 
         # Store in cache
-        self._cache.set(cache_key, response, expire=self.cache_ttl)
-        logger.debug(f"Cached response for {url}")
+        try:
+            self._cache.set(cache_key, response, expire=self.cache_ttl)
+            logger.debug(f"Cached response for {url}")
+        except Exception as e:
+            logger.warning(f"Cache write error for {url}: {e}. Response returned without caching.")
 
         return response
 
@@ -221,8 +228,40 @@ class HttpClient:
     def clear_cache(self) -> None:
         """Clear the entire cache."""
         if self.enable_cache:
-            self._cache.clear()
-            logger.debug("Cache cleared")
+            try:
+                self._cache.clear()
+                logger.debug("Cache cleared")
+            except Exception as e:
+                logger.error(f"Failed to clear cache: {e}. Attempting to recreate cache.")
+                self._recreate_cache()
+    
+    def _recreate_cache(self) -> None:
+        """Recreate the cache directory if corrupted."""
+        if self.enable_cache and hasattr(self, '_cache'):
+            try:
+                # Close existing cache
+                self._cache.close()
+            except:
+                pass
+            
+            # Get cache directory
+            cache_dir = self._cache.directory
+            
+            # Remove corrupted cache files
+            import shutil
+            try:
+                shutil.rmtree(cache_dir)
+                logger.info(f"Removed corrupted cache directory: {cache_dir}")
+            except Exception as e:
+                logger.error(f"Failed to remove cache directory: {e}")
+            
+            # Recreate cache
+            os.makedirs(cache_dir, exist_ok=True)
+            self._cache = Cache(
+                directory=cache_dir,
+                size_limit=self.cache_size_limit,
+            )
+            logger.info("Cache recreated successfully")
 
     def get_cache_info(self) -> Dict[str, Any]:
         """
