@@ -21,6 +21,16 @@ def get_elasticsearch_client() -> Elasticsearch:
     Returns:
         Elasticsearch: Configured Elasticsearch client or None if connection fails
     """
+    # Common configuration for better resilience
+    common_config = {
+        "request_timeout": 60,  # Increased from 30s
+        "max_retries": 5,  # Retry on connection failures
+        "retry_on_timeout": True,  # Retry on timeout
+        "retry_on_status": [502, 503, 504],  # Retry on server errors
+        # Connection pool settings for better resilience
+        "http_compress": True,  # Compress requests to reduce bandwidth
+        "connections_per_node": 10,  # Connection pool size
+    }
 
     # Check if we're using Elastic Cloud
     if ELASTIC_MODE == "cloud" and ELASTIC_CLOUD_ID:
@@ -29,25 +39,38 @@ def get_elasticsearch_client() -> Elasticsearch:
             client = Elasticsearch(
                 cloud_id=ELASTIC_CLOUD_ID,
                 api_key=ELASTIC_API_KEY,
-                request_timeout=30,
+                **common_config
             )
         # Cloud configuration with username/password
         elif ELASTIC_USERNAME and ELASTIC_PASSWORD:
             client = Elasticsearch(
                 cloud_id=ELASTIC_CLOUD_ID,
                 basic_auth=(ELASTIC_USERNAME, ELASTIC_PASSWORD),
-                request_timeout=30,
+                **common_config
             )
         else:
             logger.error("Missing Elastic Cloud credentials (API key or username/password)")
             return None
     else:
         # Local configuration
-        client = Elasticsearch(ELASTIC_HOST, request_timeout=30)
+        client = Elasticsearch(
+            ELASTIC_HOST, 
+            **common_config,
+            # Additional settings for local deployments
+            sniff_on_start=False,  # Don't sniff on start to avoid connection issues
+            sniff_on_connection_fail=False,  # Don't sniff on failure
+        )
 
     try:
-        client.info()
-        logger.info("Connected to Elasticsearch")
+        # Test connection with a timeout
+        info = client.info(request_timeout=10)
+        logger.info(
+            f"Connected to Elasticsearch cluster: {info.get('cluster_name', 'unknown')}",
+            extra={
+                "cluster_name": info.get('cluster_name'),
+                "version": info.get('version', {}).get('number'),
+            }
+        )
         return client
     except Exception as e:
         logger.error(f"Error connecting to Elasticsearch: {e}")
@@ -59,8 +82,18 @@ def get_async_elasticsearch_client() -> AsyncElasticsearch:
     Returns an AsyncElasticsearch client based on the configured settings.
 
     Returns:
-        Elasticsearch: Configured Elasticsearch client or None if connection fails
+        AsyncElasticsearch: Configured AsyncElasticsearch client or None if connection fails
     """
+    # Common configuration for better resilience
+    common_config = {
+        "request_timeout": 60,  # Increased from 30s
+        "max_retries": 5,  # Retry on connection failures
+        "retry_on_timeout": True,  # Retry on timeout
+        "retry_on_status": [502, 503, 504],  # Retry on server errors
+        # Connection pool settings
+        "http_compress": True,  # Compress requests
+        "connections_per_node": 10,  # Connection pool size
+    }
 
     # Check if we're using Elastic Cloud
     if ELASTIC_MODE == "cloud" and ELASTIC_CLOUD_ID:
@@ -69,21 +102,27 @@ def get_async_elasticsearch_client() -> AsyncElasticsearch:
             client = AsyncElasticsearch(
                 cloud_id=ELASTIC_CLOUD_ID,
                 api_key=ELASTIC_API_KEY,
-                request_timeout=30,
+                **common_config
             )
         # Cloud configuration with username/password
         elif ELASTIC_USERNAME and ELASTIC_PASSWORD:
             client = AsyncElasticsearch(
                 cloud_id=ELASTIC_CLOUD_ID,
                 basic_auth=(ELASTIC_USERNAME, ELASTIC_PASSWORD),
-                request_timeout=30,
+                **common_config
             )
         else:
             logger.error("Missing Elastic Cloud credentials (API key or username/password)")
             return None
     else:
         # Local configuration
-        client = AsyncElasticsearch(ELASTIC_HOST, request_timeout=30)
+        client = AsyncElasticsearch(
+            ELASTIC_HOST,
+            **common_config,
+            # Additional settings for local deployments
+            sniff_on_start=False,  # Don't sniff on start
+            sniff_on_connection_fail=False,  # Don't sniff on failure
+        )
 
     return client
 
