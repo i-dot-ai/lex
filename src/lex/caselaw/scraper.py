@@ -8,7 +8,28 @@ from lex.core.http import HttpClient
 from lex.core.scraper import LexScraper
 
 logger = logging.getLogger(__name__)
-http_client = HttpClient(timeout=10, enable_cache=True, cache_size_limit=1000000, cache_ttl=3600)
+# Create a more resilient HTTP client for caselaw scraping
+from lex.core.rate_limiter import AdaptiveRateLimiter
+
+# Create custom rate limiter with longer backoffs
+rate_limiter = AdaptiveRateLimiter(
+    min_delay=0.0,
+    max_delay=300.0,  # Max 5 minutes between requests
+    success_reduction_factor=0.98,  # Slower reduction
+    failure_increase_factor=3.0  # More aggressive backoff
+)
+
+http_client = HttpClient(
+    max_retries=20,  # Increased from default 5
+    initial_delay=2.0,  # Start with 2 seconds
+    max_delay=600.0,  # Max 10 minutes between retries
+    timeout=30,  # Increased timeout
+    enable_cache=True,
+    cache_size_limit=1000000,
+    cache_ttl=3600
+)
+# Replace the default rate limiter with our custom one
+http_client.rate_limiter = rate_limiter
 
 
 class CaselawScraper(LexScraper):

@@ -65,6 +65,7 @@ class HttpClient:
             requests.exceptions.HTTPError,
             requests.exceptions.ConnectionError,
             requests.exceptions.Timeout,
+            RateLimitException,  # Important: retry on rate limits
         )
 
         # Create the retry decorator with configured parameters

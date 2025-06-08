@@ -191,7 +191,8 @@ def process_documents(args):
     success_count = 0
     error_count = 0
     consecutive_rate_limits = 0
-    max_consecutive_rate_limits = 3
+    # Allow many more rate limit retries for overnight runs
+    max_consecutive_rate_limits = 50  # Increased from 3
 
     try:
         for doc in documents:
@@ -247,15 +248,21 @@ def process_documents(args):
                     # Exit gracefully - checkpoint already saved by scraper
                     break
                 else:
-                    # Wait and continue
-                    wait_time = min(60 * consecutive_rate_limits, 300)  # Max 5 min
+                    # Use retry_after if available, otherwise exponential backoff
+                    retry_after = getattr(e, 'retry_after', None)
+                    if retry_after:
+                        wait_time = int(retry_after) + 10  # Add 10s buffer
+                    else:
+                        # Exponential backoff: 30s, 60s, 120s, 240s, 480s (max 8 min)
+                        wait_time = min(30 * (2 ** (consecutive_rate_limits - 1)), 480)
+                    
                     logger.info(
                         f"Rate limited (attempt {consecutive_rate_limits}/{max_consecutive_rate_limits}). "
                         f"Waiting {wait_time}s before continuing...",
                         extra={
                             "wait_time": wait_time,
                             "consecutive_attempts": consecutive_rate_limits,
-                            "retry_after": getattr(e, 'retry_after', None)
+                            "retry_after": retry_after
                         }
                     )
                     time.sleep(wait_time)

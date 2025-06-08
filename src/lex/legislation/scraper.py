@@ -10,7 +10,26 @@ from lex.core.http import HttpClient
 from lex.core.scraper import LexScraper
 from lex.legislation.models import LegislationType
 
-http_client = HttpClient()
+# Create a more resilient HTTP client for legislation scraping
+# This needs to handle rate limits gracefully for overnight runs
+from lex.core.rate_limiter import AdaptiveRateLimiter
+
+# Create custom rate limiter with longer backoffs
+rate_limiter = AdaptiveRateLimiter(
+    min_delay=0.0,
+    max_delay=300.0,  # Max 5 minutes between requests
+    success_reduction_factor=0.98,  # Slower reduction
+    failure_increase_factor=3.0  # More aggressive backoff
+)
+
+http_client = HttpClient(
+    max_retries=20,  # Increased from default 5
+    initial_delay=2.0,  # Start with 2 seconds
+    max_delay=600.0,  # Max 10 minutes between retries (increased from 60s)
+    timeout=30,  # Increased timeout for slow responses
+)
+# Replace the default rate limiter with our custom one
+http_client.rate_limiter = rate_limiter
 
 logger = logging.getLogger(__name__)
 
