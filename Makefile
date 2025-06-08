@@ -23,11 +23,11 @@ run:
 
 # Pipeline data ingestion commands - SAMPLE (limited data for testing)
 ingest-caselaw-sample:
-	docker compose exec pipeline uv run src/lex/main.py -m caselaw --non-interactive --limit 50 --batch-size 20
+	docker compose exec pipeline uv run src/lex/main.py -m caselaw --non-interactive --years 2020-$(CURRENT_YEAR) --limit 50 --batch-size 20
 .PHONY: ingest-caselaw-sample
 
 ingest-caselaw-section-sample:
-	docker compose exec pipeline uv run src/lex/main.py -m caselaw-section --non-interactive --limit 50
+	docker compose exec pipeline uv run src/lex/main.py -m caselaw-section --non-interactive --years 2020-$(CURRENT_YEAR) --limit 50
 .PHONY: ingest-caselaw-section-sample
 
 ingest-legislation-sample:
@@ -53,11 +53,11 @@ ingest-all-sample: ingest-legislation-sample ingest-legislation-section-sample i
 
 # Pipeline data ingestion commands - FULL (all types, legislation from 1963, caselaw from 2001)
 ingest-caselaw-full:
-	docker compose exec pipeline uv run src/lex/main.py -m caselaw --non-interactive --batch-size 50
+	docker compose exec pipeline uv run src/lex/main.py -m caselaw --non-interactive --years 2001-$(CURRENT_YEAR) --batch-size 50
 .PHONY: ingest-caselaw-full
 
 ingest-caselaw-section-full:
-	docker compose exec pipeline uv run src/lex/main.py -m caselaw-section --non-interactive --batch-size 50
+	docker compose exec pipeline uv run src/lex/main.py -m caselaw-section --non-interactive --years 2001-$(CURRENT_YEAR) --batch-size 50
 .PHONY: ingest-caselaw-section-full
 
 ingest-legislation-full:

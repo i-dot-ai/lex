@@ -168,7 +168,15 @@ def process_documents(args):
     create_inference_endpoint_if_none(inference_id=INFERENCE_ID)
 
     # Process documents in batches to reduce memory usage
-    documents = documents_iterator(**vars(args))
+    # Add checkpoint-specific parameters if applicable
+    pipeline_args = vars(args)
+    if args.model in ["caselaw", "caselaw-section"]:
+        pipeline_args.update({
+            "use_checkpoint": not args.no_checkpoint,
+            "clear_checkpoint": args.clear_checkpoint,
+        })
+    
+    documents = documents_iterator(**pipeline_args)
 
     # Get batch size from arguments or use default
     batch_size = args.batch_size if hasattr(args, "batch_size") else 50

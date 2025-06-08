@@ -23,8 +23,8 @@ class CaselawScraper(LexScraper):
         limit: int = 50,
         results_per_page: int = 50,
         types: list[Court] | None = None,
-    ) -> Iterator[BeautifulSoup]:
-        """Scrapes National Archives content, returning a list of BeautifulSoup objects."""
+    ) -> Iterator[tuple[BeautifulSoup, str]]:
+        """Scrapes National Archives content, returning tuples of (BeautifulSoup, case_url)."""
 
         case_urls = self._get_cases_urls(
             page_offset=0, results_per_page=results_per_page, limit=limit, years=years, types=types
@@ -33,11 +33,14 @@ class CaselawScraper(LexScraper):
         for case_url in case_urls:
             try:
                 logger.debug(f"Requesting case from {case_url}")
-                case_url = case_url + "/data.xml"
-                res = http_client.get(case_url)
+                xml_url = case_url + "/data.xml"
+                res = http_client.get(xml_url)
 
                 # Use lxml parser which is more memory efficient
-                yield BeautifulSoup(res.text, "xml")
+                soup = BeautifulSoup(res.text, "xml")
+                
+                # Yield both soup and the original case URL
+                yield (soup, case_url)
 
             except Exception as e:
                 logger.error(f"Error with case {case_url}: {str(e)}", exc_info=True)
@@ -104,7 +107,7 @@ class CaselawScraper(LexScraper):
             page_offset=page_offset, results_per_page=results_per_page, years=years, types=types
         )
 
-        logger.info(f"Requesting {limit} cases from {request_url}")
+        logger.info(f"Requesting {'all' if limit is None else limit} cases from {request_url}")
 
         page_counter = 0
         return_counter = 0
@@ -128,8 +131,12 @@ class CaselawScraper(LexScraper):
                 break
 
     def _get_cases_from_contents_soup(self, soup: BeautifulSoup) -> Iterator[str]:
-        list_elements = soup.find("ul", class_="judgment-listing__list").find_all("li")
-        links = [element.find("a")["href"] for element in list_elements]
+        judgment_list = soup.find("ul", class_="judgment-listing__list")
+        if not judgment_list:
+            return []
+        
+        list_elements = judgment_list.find_all("li")
+        links = [element.find("a")["href"] for element in list_elements if element.find("a")]
         links = [self.BASE_URL + element.split("?")[0] for element in links]
         return links
 
