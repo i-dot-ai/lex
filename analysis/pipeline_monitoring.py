@@ -10,13 +10,17 @@ import json
 class PipelineMonitor(BaseAnalyzer):
     """Monitor pipeline execution, progress, and logging quality."""
     
-    def check_pipeline_status(self, hours_back=24):
+    def check_pipeline_status(self, hours_back=None):
         """Check current pipeline status and recent execution patterns."""
         
         print("=" * 80)
         print("PIPELINE STATUS CHECK")
         print("=" * 80)
-        print(f"Analyzing last {hours_back} hours of pipeline activity\n")
+        
+        if hours_back:
+            print(f"Analyzing last {hours_back} hours of pipeline activity\n")
+        else:
+            print("Analyzing all-time pipeline activity\n")
         
         # Check for pipeline completion messages
         completion_query = {
@@ -24,19 +28,22 @@ class PipelineMonitor(BaseAnalyzer):
                 "bool": {
                     "must": [
                         {"match_phrase": {"message": "Pipeline processing complete"}}
-                    ],
-                    "filter": {
-                        "range": {
-                            "timestamp": {
-                                "gte": f"now-{hours_back}h"
-                            }
-                        }
-                    }
+                    ]
                 }
             },
             "size": 10,
             "sort": [{"timestamp": {"order": "desc"}}]
         }
+        
+        # Add time filter if specified
+        if hours_back:
+            completion_query["query"]["bool"]["filter"] = {
+                "range": {
+                    "timestamp": {
+                        "gte": f"now-{hours_back}h"
+                    }
+                }
+            }
         
         completions = self.search_logs(completion_query)
         
@@ -72,19 +79,22 @@ class PipelineMonitor(BaseAnalyzer):
                 "bool": {
                     "must": [
                         {"match_phrase": {"message": "Pipeline starting"}}
-                    ],
-                    "filter": {
-                        "range": {
-                            "timestamp": {
-                                "gte": f"now-{hours_back}h"
-                            }
-                        }
-                    }
+                    ]
                 }
             },
             "size": 10,
             "sort": [{"timestamp": {"order": "desc"}}]
         }
+        
+        # Add time filter if specified
+        if hours_back:
+            start_query["query"]["bool"]["filter"] = {
+                "range": {
+                    "timestamp": {
+                        "gte": f"now-{hours_back}h"
+                    }
+                }
+            }
         
         starts = self.search_logs(start_query)
         
@@ -107,18 +117,21 @@ class PipelineMonitor(BaseAnalyzer):
                     "must": [
                         {"match": {"level": "ERROR"}},
                         {"match_phrase": {"message": "Pipeline"}}
-                    ],
-                    "filter": {
-                        "range": {
-                            "timestamp": {
-                                "gte": f"now-{hours_back}h"
-                            }
-                        }
-                    }
+                    ]
                 }
             },
             "size": 20
         }
+        
+        # Add time filter if specified
+        if hours_back:
+            error_query["query"]["bool"]["filter"] = {
+                "range": {
+                    "timestamp": {
+                        "gte": f"now-{hours_back}h"
+                    }
+                }
+            }
         
         errors = self.search_logs(error_query)
         
@@ -183,7 +196,7 @@ class PipelineMonitor(BaseAnalyzer):
             if count > 0:
                 print(f"  {field:<20} {count:>4} ({percentage:>5.1f}%)")
     
-    def check_progress_tracking(self, hours_back=24):
+    def check_progress_tracking(self, hours_back=None):
         """Check pipeline progress tracking and throughput."""
         
         print("\n\n" + "="*80)
@@ -196,19 +209,22 @@ class PipelineMonitor(BaseAnalyzer):
                 "bool": {
                     "must": [
                         {"match_phrase": {"message": "Progress update"}}
-                    ],
-                    "filter": {
-                        "range": {
-                            "timestamp": {
-                                "gte": f"now-{hours_back}h"
-                            }
-                        }
-                    }
+                    ]
                 }
             },
             "size": 100,
             "sort": [{"timestamp": {"order": "asc"}}]
         }
+        
+        # Add time filter if specified
+        if hours_back:
+            progress_query["query"]["bool"]["filter"] = {
+                "range": {
+                    "timestamp": {
+                        "gte": f"now-{hours_back}h"
+                    }
+                }
+            }
         
         progress_logs = self.search_logs(progress_query)
         
@@ -245,18 +261,21 @@ class PipelineMonitor(BaseAnalyzer):
                 "bool": {
                     "must": [
                         {"match_phrase": {"message": "Uploaded batch"}}
-                    ],
-                    "filter": {
-                        "range": {
-                            "timestamp": {
-                                "gte": f"now-{hours_back}h"
-                            }
-                        }
-                    }
+                    ]
                 }
             },
             "size": 1000
         }
+        
+        # Add time filter if specified
+        if hours_back:
+            batch_query["query"]["bool"]["filter"] = {
+                "range": {
+                    "timestamp": {
+                        "gte": f"now-{hours_back}h"
+                    }
+                }
+            }
         
         batches = self.search_logs(batch_query)
         
@@ -275,18 +294,21 @@ class PipelineMonitor(BaseAnalyzer):
                 print(f"  Min size: {min(batch_sizes)}")
                 print(f"  Max size: {max(batch_sizes)}")
     
-    def generate_summary_report(self, hours_back=24):
+    def generate_summary_report(self, hours_back=None):
         """Generate a comprehensive summary report."""
         
         print("\n\n" + "="*80)
         print("PIPELINE MONITORING SUMMARY")
         print("="*80)
         print(f"Report generated: {datetime.now().isoformat()}")
-        print(f"Analysis window: Last {hours_back} hours")
+        if hours_back:
+            print(f"Analysis window: Last {hours_back} hours")
+        else:
+            print("Analysis window: All-time data")
         
         # Run all checks
         self.check_pipeline_status(hours_back)
-        self.check_structured_logging(hours_back=1)
+        self.check_structured_logging(hours_back=1)  # Keep recent for structured logging
         self.check_progress_tracking(hours_back)
         
         print("\n" + "="*80)
@@ -300,11 +322,11 @@ if __name__ == "__main__":
     monitor = PipelineMonitor()
     if monitor.test_connection():
         # Check if hours parameter provided
-        hours = 24
+        hours = None  # Default to all-time
         if len(sys.argv) > 1:
             try:
                 hours = int(sys.argv[1])
             except ValueError:
-                print(f"Invalid hours parameter: {sys.argv[1]}, using default 24 hours")
+                print(f"Invalid hours parameter: {sys.argv[1]}, using all-time data")
         
         monitor.generate_summary_report(hours_back=hours)

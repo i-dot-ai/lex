@@ -5,6 +5,7 @@ from datetime import datetime
 from typing import Dict, List, Any
 from elasticsearch import Elasticsearch
 from dotenv import load_dotenv
+from common_utils import extract_year_from_message, extract_legislation_type
 
 load_dotenv()
 
@@ -82,36 +83,8 @@ class BaseAnalyzer:
     
     def extract_year_from_message(self, message: str) -> int:
         """Extract year from log message if possible."""
-        # Look for patterns like /1963/ or year=1963
-        import re
-        
-        # Try to find 4-digit year in message
-        year_patterns = [
-            r'/(\d{4})/',  # URL pattern
-            r'year[=:]\s*(\d{4})',  # year=YYYY or year: YYYY
-            r'\b(19\d{2}|20\d{2})\b'  # Any 4-digit year from 1900s or 2000s
-        ]
-        
-        for pattern in year_patterns:
-            match = re.search(pattern, message, re.IGNORECASE)
-            if match:
-                return int(match.group(1))
-        
-        return None
+        return extract_year_from_message(message)
     
     def extract_type_from_message(self, message: str) -> str:
         """Extract legislation type from log message if possible."""
-        # Known legislation types
-        types = [
-            "ukpga", "asp", "asc", "anaw", "wsi", "uksi", "ssi", "ukcm", 
-            "nisr", "nia", "eudn", "eudr", "eur", "ukla", "ukppa", "apni",
-            "gbla", "aosp", "aep", "apgb", "mwa", "aip", "mnia", "nisro",
-            "nisi", "uksro", "ukmo", "ukci"
-        ]
-        
-        message_lower = message.lower()
-        for leg_type in types:
-            if f"/{leg_type}/" in message_lower or f"type={leg_type}" in message_lower:
-                return leg_type
-        
-        return None
+        return extract_legislation_type(message)
