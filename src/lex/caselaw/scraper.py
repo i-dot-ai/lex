@@ -108,7 +108,7 @@ class CaselawScraper(LexScraper):
 
         page_counter = 0
         return_counter = 0
-        while return_counter < limit:
+        while limit is None or return_counter < limit:
             logger.debug(f"Requesting page {page_counter + 1} from {request_url}")
             try:
                 res = http_client.get(request_url)
@@ -116,7 +116,7 @@ class CaselawScraper(LexScraper):
                 cases = self._get_cases_from_contents_soup(soup)
                 for case in cases:
                     return_counter += 1
-                    if return_counter > limit:
+                    if limit is not None and return_counter >= limit:
                         break
                     yield case
                 page_counter += 1
