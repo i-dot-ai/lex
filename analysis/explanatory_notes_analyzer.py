@@ -3,7 +3,7 @@
 from typing import Dict, List, Tuple
 from collections import defaultdict
 from datetime import datetime
-from base_analyzer import BaseAnalyzer
+from base_analyzer import BaseAnalyzer, get_output_path
 import json
 
 
@@ -246,11 +246,12 @@ class ExplanatoryNotesAnalyzer(BaseAnalyzer):
             "coverage_trends": trends
         }
         
-        with open("analysis/explanatory_notes_report.json", "w") as f:
+        output_path = get_output_path("explanatory_notes_report.json")
+        with open(output_path, "w") as f:
             json.dump(results, f, indent=2)
         
         print("\n" + "=" * 80)
-        print("Detailed results saved to: analysis/explanatory_notes_report.json")
+        print(f"Detailed results saved to: {output_path}")
 
 
 if __name__ == "__main__":

@@ -1,131 +1,104 @@
 # Lex Pipeline Analysis Tools
 
-This directory contains Python scripts for analyzing the logs from the Lex pipeline to understand XML completeness, error patterns, and processing performance.
+This directory contains analysis scripts for monitoring and analyzing the Lex pipeline's performance, errors, and data quality.
 
-## Overview
-
-The pipeline logs various events during document processing, including:
-- Successful XML parsing
-- PDF fallbacks (when XML is incomplete)
-- Error conditions
-- Processing metrics
-
-These analysis tools help identify:
-- Which years have better XML digitization
-- Which document types are most likely to be PDFs
-- Common error patterns
-- Processing performance bottlenecks
-
-## Scripts
-
-### 1. `xml_completeness_analyzer.py`
-Analyzes XML parsing success rates vs PDF fallbacks:
-- Success rates by year (1963-present)
-- Success rates by legislation type
-- Heatmap of completeness (type × year)
-
-### 2. `error_type_analyzer.py`
-Categorizes and analyzes errors:
-- Error distribution by category
-- Top error patterns
-- Error rates by document type
-- Error frequency over time
-
-### 3. `processing_performance_analyzer.py`
-Analyzes processing speed and efficiency:
-- Document throughput (docs/hour)
-- Batch size patterns
-- Memory usage indicators
-- Processing volume by document type
-
-### 4. `explanatory_notes_analyzer.py`
-Analyzes explanatory notes coverage:
-- Coverage rates by year
-- Coverage rates by legislation type
-- Coverage trends over time
-
-### 5. `run_all_analyses.py`
-Master script that runs all analyses sequentially.
-
-## Usage
-
-### Prerequisites
-1. Ensure Elasticsearch is running at `localhost:9200`
-2. Ensure the pipeline has been running and generating logs to the `logs-pipeline` index
-3. Install required dependencies (if not already installed):
-   ```bash
-   uv sync
-   ```
-
-### Running Individual Analyses
+## Quick Start - Run All Analyses
 
 ```bash
-# From the lex directory
-uv run python analysis/xml_completeness_analyzer.py
-uv run python analysis/error_type_analyzer.py
-uv run python analysis/processing_performance_analyzer.py
-uv run python analysis/explanatory_notes_analyzer.py
+# Run all analyses (includes UKSI analyses)
+python run_all_analyses.py
 ```
 
-### Running All Analyses
+## Core Scripts
+
+### Base Infrastructure
+- **`base_analyzer.py`** - Base class providing Elasticsearch connection and common query methods
+
+### Pipeline Monitoring
+- **`pipeline_monitoring.py`** - Comprehensive pipeline status, progress tracking, and logging quality analysis
+  - Monitors pipeline completions and active runs
+  - Checks structured logging implementation
+  - Tracks throughput and batch processing metrics
+  - Usage: `python pipeline_monitoring.py [hours]` (default: 24 hours)
+
+### Error Analysis
+- **`error_type_analyzer.py`** - Categorizes and analyzes all error types including non-PDF errors
+  - Tracks PDF fallbacks, HTTP errors, parsing errors, validation errors
+  - Provides error distribution by type and document type
+  - Includes CommentaryCitation and other validation error analysis
+  
+- **`extract_failed_xml_urls.py`** - Extracts URLs for failed documents and validation errors
+  - Generates lists of documents needing re-processing
+  - Includes validation error document extraction
+  - Outputs: failed XML URLs, validation errors, PDF fallbacks, success samples
+
+### Data Quality Analysis
+- **`xml_completeness_analyzer.py`** - Analyzes XML parsing success rates and PDF fallback patterns
+  - Shows XML availability by year and legislation type using all-time aggregated data
+  - Identifies patterns in digitization
+  - Provides accurate statistics through Elasticsearch aggregations
+
+- **`explanatory_notes_analyzer.py`** - Analyzes explanatory notes coverage
+  - Shows availability by year and legislation type
+  - Identifies gaps in coverage
+
+### Performance Analysis
+- **`processing_performance_analyzer.py`** - Analyzes pipeline throughput and performance metrics
+  - Tracks processing speed over time
+  - Monitors batch sizes and upload patterns
+  - Identifies performance bottlenecks
+
+### UKSI-Specific Analysis
+- **`uksi_comprehensive_analysis.py`** - Detailed analysis of UK Statutory Instruments digitization
+  - Shows accurate digitization rates when run with `--all-time` flag
+  - Provides year-by-year breakdown
+  - Usage: `python uksi_comprehensive_analysis.py [--all-time]`
+
+### Orchestration
+- **`run_all_analyses.py`** - Runs all analysis scripts in sequence including UKSI analyses
+  - Usage: `python run_all_analyses.py`
+  - Generates comprehensive report suite for all document types
+
+## Output Files
+
+All scripts generate JSON reports in the `analysis/` directory:
+
+- `error_type_report.json` - Error categorization and statistics
+- `xml_completeness_report.json` - XML availability analysis
+- `performance_report.json` - Processing performance metrics
+- `explanatory_notes_report.json` - Explanatory notes coverage
+- `failed_xml_urls.json` - URLs of documents with XML parsing errors
+- `validation_error_documents.json` - Documents with validation errors
+- `pdf_fallback_urls.json` - Documents only available as PDFs
+- `successful_xml_urls_sample.json` - Sample of successfully parsed documents
+- `xml_error_analysis.json` - Detailed error pattern analysis
+- `uksi_comprehensive_analysis.json` - Detailed UKSI digitization statistics
+
+## Running Individual Scripts
 
 ```bash
-# From the lex directory
-uv run python analysis/run_all_analyses.py
+# Monitor pipeline status (default: last 24 hours)
+python pipeline_monitoring.py
+python pipeline_monitoring.py 48  # Last 48 hours
+
+# Analyze error types
+python error_type_analyzer.py
+
+# Extract failed document URLs
+python extract_failed_xml_urls.py
+
+# Analyze XML completeness
+python xml_completeness_analyzer.py
+
+# Analyze processing performance
+python processing_performance_analyzer.py
+
+# Analyze explanatory notes coverage
+python explanatory_notes_analyzer.py
 ```
 
-## Output
+## Requirements
 
-Each script generates:
-1. **Console output**: Human-readable summary with key statistics
-2. **JSON report**: Detailed data saved to `analysis/*_report.json`
-
-### Report Files
-- `xml_completeness_report.json`: XML parsing success rates
-- `error_type_report.json`: Error categorization and patterns
-- `performance_report.json`: Processing throughput metrics
-- `explanatory_notes_report.json`: Explanatory notes coverage
-
-## Key Findings (Typical)
-
-Based on the analysis design, you can expect to find:
-
-1. **XML Completeness**:
-   - Older legislation (1960s-1990s) often has lower XML availability
-   - Modern legislation (2000s+) typically has better XML coverage
-   - Secondary legislation (SIs) may have different patterns than primary
-
-2. **Explanatory Notes**:
-   - Very limited before 1990s
-   - Improving coverage from 2000s onwards
-   - Best coverage for primary legislation (Acts)
-
-3. **Error Patterns**:
-   - PDF fallbacks are the most common "error"
-   - HTTP errors from rate limiting
-   - Parsing errors from malformed XML
-
-4. **Performance**:
-   - Batch processing helps manage memory
-   - Throughput varies by document complexity
-   - Peak processing times correlate with batch uploads
-
-## Customization
-
-To add new analyses:
-1. Create a new analyzer class inheriting from `BaseAnalyzer`
-2. Implement analysis methods
-3. Add a `print_report()` method
-4. Add to `run_all_analyses.py`
-
-## Troubleshooting
-
-If connection fails:
-- Check Elasticsearch is running: `curl localhost:9200`
-- Check authentication settings in `.env`
-- Verify the `logs-pipeline` index exists
-
-If no data appears:
-- Ensure the pipeline has been running
-- Check log level is set appropriately
-- Verify logs are being sent to Elasticsearch
+- Access to Elasticsearch instance with pipeline logs
+- Python packages: elasticsearch, python-dotenv
+- Environment variables configured for Elasticsearch connection

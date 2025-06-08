@@ -9,6 +9,15 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
+def get_output_path(filename: str) -> str:
+    """Get the correct output path for a file, handling both root and analysis directory execution."""
+    # Check if we're already in the analysis directory
+    if os.path.basename(os.getcwd()) == 'analysis':
+        return filename
+    else:
+        return os.path.join('analysis', filename)
+
+
 class BaseAnalyzer:
     """Base class for log analysis with Elasticsearch connection."""
     
@@ -52,10 +61,13 @@ class BaseAnalyzer:
     
     def search_logs(self, query: Dict[str, Any], size: int = 10000) -> List[Dict]:
         """Execute a search query and return results."""
+        # Add size to query if not already present
+        if "size" not in query:
+            query["size"] = size
+        
         response = self.es.search(
             index=self.index_name,
-            body=query,
-            size=size
+            body=query
         )
         return [hit["_source"] for hit in response["hits"]["hits"]]
     

@@ -196,6 +196,9 @@ cython_debug/
 
 # Analysis output files
 analysis/*.json
+analysis/**/*.json
+# Prevent nested analysis directories
+analysis/analysis/
 
 # Cache and checkpoint directories
 data/cache/

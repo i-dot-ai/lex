@@ -3,7 +3,7 @@
 from typing import Dict, List, Tuple
 from collections import defaultdict
 from datetime import datetime, timedelta
-from base_analyzer import BaseAnalyzer
+from base_analyzer import BaseAnalyzer, get_output_path
 import json
 import re
 
@@ -276,11 +276,12 @@ class ProcessingPerformanceAnalyzer(BaseAnalyzer):
             "documents_by_type": by_type
         }
         
-        with open("analysis/performance_report.json", "w") as f:
+        output_path = get_output_path("performance_report.json")
+        with open(output_path, "w") as f:
             json.dump(results, f, indent=2, default=str)
         
         print("\n" + "=" * 80)
-        print("Detailed results saved to: analysis/performance_report.json")
+        print(f"Detailed results saved to: {output_path}")
 
 
 if __name__ == "__main__":

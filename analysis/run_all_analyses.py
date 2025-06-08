@@ -1,70 +1,104 @@
-"""Run all analysis scripts and generate a comprehensive report."""
+"""Run all analysis scripts and generate comprehensive reports."""
 
+import subprocess
 import sys
-import os
 from datetime import datetime
+import os
 
-# Add the analysis directory to Python path
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from xml_completeness_analyzer import XMLCompletenessAnalyzer
-from error_type_analyzer import ErrorTypeAnalyzer
-from processing_performance_analyzer import ProcessingPerformanceAnalyzer
-from explanatory_notes_analyzer import ExplanatoryNotesAnalyzer
-from extract_failed_xml_urls import FailedXMLURLExtractor
+def run_script(script_name: str, args: list = None) -> bool:
+    """Run a Python script and return success status."""
+    print(f"\n{'='*60}")
+    print(f"Running {script_name}...")
+    print(f"{'='*60}")
+    
+    cmd = [sys.executable, script_name]
+    if args:
+        cmd.extend(args)
+    
+    try:
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        print(result.stdout)
+        if result.stderr:
+            print("STDERR:", result.stderr)
+        return True
+    except subprocess.CalledProcessError as e:
+        print(f"ERROR running {script_name}:")
+        print(e.stdout)
+        print("STDERR:", e.stderr)
+        return False
 
 
 def main():
-    """Run all analyses and generate reports."""
-    print("=" * 80)
-    print("LEX PIPELINE COMPREHENSIVE ANALYSIS")
-    print(f"Analysis started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    print("=" * 80)
+    """Run all analysis scripts in sequence."""
+    print(f"Starting comprehensive analysis at {datetime.now()}")
     
-    # Test connection first
-    print("\nTesting Elasticsearch connection...")
-    test_analyzer = XMLCompletenessAnalyzer()
-    if not test_analyzer.test_connection():
-        print("Failed to connect to Elasticsearch. Exiting.")
-        return
+    # Don't create analysis directory if we're already in it
+    if os.path.basename(os.getcwd()) != 'analysis':
+        os.makedirs("analysis", exist_ok=True)
     
-    print("\nConnection successful. Starting analyses...\n")
-    
-    # Run each analysis
-    analyses = [
-        ("XML Completeness Analysis", XMLCompletenessAnalyzer),
-        ("Error Type Analysis", ErrorTypeAnalyzer),
-        ("Processing Performance Analysis", ProcessingPerformanceAnalyzer),
-        ("Explanatory Notes Coverage Analysis", ExplanatoryNotesAnalyzer),
-        ("Failed XML URL Extraction", FailedXMLURLExtractor)
+    # List of scripts to run in order
+    scripts = [
+        ("pipeline_monitoring.py", ["24"]),  # Last 24 hours
+        ("error_type_analyzer.py", []),
+        ("xml_completeness_analyzer.py", []), 
+        ("processing_performance_analyzer.py", []),
+        ("explanatory_notes_analyzer.py", []),
+        ("extract_failed_xml_urls.py", []),
+        ("uksi_comprehensive_analysis.py", ["--all-time"])
     ]
     
-    for name, analyzer_class in analyses:
-        print(f"\n{'='*80}")
-        print(f"Running {name}...")
-        print(f"{'='*80}")
-        
-        try:
-            analyzer = analyzer_class()
-            analyzer.print_report()
-        except Exception as e:
-            print(f"Error running {name}: {str(e)}")
-            import traceback
-            traceback.print_exc()
+    results = {}
     
-    print("\n" + "=" * 80)
-    print("ALL ANALYSES COMPLETE")
-    print(f"Analysis completed at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    print("=" * 80)
+    for script_info in scripts:
+        if isinstance(script_info, tuple):
+            script, args = script_info
+        else:
+            script, args = script_info, []
+        results[script] = run_script(script, args)
     
-    print("\nGenerated reports:")
-    print("  - analysis/xml_completeness_report.json")
-    print("  - analysis/error_type_report.json")
-    print("  - analysis/performance_report.json")
-    print("  - analysis/explanatory_notes_report.json")
-    print("  - analysis/failed_xml_urls.json")
-    print("  - analysis/pdf_fallback_urls.json")
-    print("  - analysis/xml_error_analysis.json")
+    # Summary
+    print(f"\n{'='*60}")
+    print("ANALYSIS COMPLETE")
+    print(f"{'='*60}")
+    print(f"Completed at {datetime.now()}")
+    print("\nResults:")
+    for script, success in results.items():
+        status = "✓ SUCCESS" if success else "✗ FAILED"
+        print(f"  {script:<40} {status}")
+    
+    # List generated files
+    print("\nGenerated files:")
+    output_files = [
+        "error_type_report.json",
+        "xml_completeness_report.json",
+        "performance_report.json",
+        "explanatory_notes_report.json",
+        "failed_xml_urls.json",
+        "validation_error_documents.json",
+        "pdf_fallback_urls.json",
+        "successful_xml_urls_sample.json",
+        "xml_error_analysis.json",
+        "uksi_comprehensive_analysis.json"
+    ]
+    
+    for file in output_files:
+        # Handle both running from root and from analysis directory
+        if os.path.basename(os.getcwd()) == 'analysis':
+            path = file
+        else:
+            path = f"analysis/{file}"
+            
+        if os.path.exists(path):
+            size = os.path.getsize(path) / 1024  # KB
+            print(f"  {file:<40} {size:>8.1f} KB")
+        else:
+            print(f"  {file:<40} NOT FOUND")
 
 
 if __name__ == "__main__":

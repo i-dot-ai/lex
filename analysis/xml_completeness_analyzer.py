@@ -3,7 +3,7 @@
 from typing import Dict, List, Tuple
 from collections import defaultdict
 from datetime import datetime
-from base_analyzer import BaseAnalyzer
+from base_analyzer import BaseAnalyzer, get_output_path
 import json
 
 
@@ -17,6 +17,77 @@ class XMLCompletenessAnalyzer(BaseAnalyzer):
         self.parse_error_indicator = "Error parsing"
         self.parse_success_indicator = "Parsed legislation:"
         
+    def get_xml_completeness_all_time(self) -> Dict[int, Dict[str, int]]:
+        """Get XML completeness statistics using all-time data for accuracy."""
+        
+        # Aggregate successful parses by year
+        success_query = {
+            "query": {
+                "match": {
+                    "message": self.parse_success_indicator
+                }
+            },
+            "size": 0,
+            "aggs": {
+                "by_year": {
+                    "terms": {
+                        "field": "doc_year",
+                        "size": 100,
+                        "order": {"_key": "asc"}
+                    }
+                }
+            }
+        }
+        
+        # Aggregate PDF failures by year
+        pdf_query = {
+            "query": {
+                "bool": {
+                    "must": [
+                        {"match": {"message": self.parse_error_indicator}},
+                        {"match": {"message": self.pdf_indicator}}
+                    ]
+                }
+            },
+            "size": 0,
+            "aggs": {
+                "by_year": {
+                    "terms": {
+                        "field": "doc_year", 
+                        "size": 100,
+                        "order": {"_key": "asc"}
+                    }
+                }
+            }
+        }
+        
+        # Execute queries
+        success_response = self.es.search(index=self.index_name, body=success_query)
+        pdf_response = self.es.search(index=self.index_name, body=pdf_query)
+        
+        # Process results
+        year_stats = {}
+        
+        # Add successful parses
+        for bucket in success_response.get("aggregations", {}).get("by_year", {}).get("buckets", []):
+            year = bucket["key"]
+            count = bucket["doc_count"]
+            if year not in year_stats:
+                year_stats[year] = {"total": 0, "xml_success": 0, "pdf_fallback": 0, "other_errors": 0}
+            year_stats[year]["xml_success"] = count
+            year_stats[year]["total"] += count
+        
+        # Add PDF failures
+        for bucket in pdf_response.get("aggregations", {}).get("by_year", {}).get("buckets", []):
+            year = bucket["key"]
+            count = bucket["doc_count"]
+            if year not in year_stats:
+                year_stats[year] = {"total": 0, "xml_success": 0, "pdf_fallback": 0, "other_errors": 0}
+            year_stats[year]["pdf_fallback"] = count
+            year_stats[year]["total"] += count
+        
+        return year_stats
+    
     def get_xml_completeness_by_year(self) -> Dict[int, Dict[str, int]]:
         """Get XML completeness statistics grouped by year."""
         
@@ -74,6 +145,75 @@ class XMLCompletenessAnalyzer(BaseAnalyzer):
                 }
         
         return result
+    
+    def get_xml_completeness_by_type_all_time(self) -> Dict[str, Dict[str, int]]:
+        """Get XML completeness by legislation type using all-time data."""
+        
+        # Aggregate successful parses by type
+        success_query = {
+            "query": {
+                "match": {
+                    "message": self.parse_success_indicator
+                }
+            },
+            "size": 0,
+            "aggs": {
+                "by_type": {
+                    "terms": {
+                        "field": "doc_type.keyword",
+                        "size": 100
+                    }
+                }
+            }
+        }
+        
+        # Aggregate PDF failures by type
+        pdf_query = {
+            "query": {
+                "bool": {
+                    "must": [
+                        {"match": {"message": self.parse_error_indicator}},
+                        {"match": {"message": self.pdf_indicator}}
+                    ]
+                }
+            },
+            "size": 0,
+            "aggs": {
+                "by_type": {
+                    "terms": {
+                        "field": "doc_type.keyword",
+                        "size": 100
+                    }
+                }
+            }
+        }
+        
+        # Execute queries
+        success_response = self.es.search(index=self.index_name, body=success_query)
+        pdf_response = self.es.search(index=self.index_name, body=pdf_query)
+        
+        # Process results
+        type_stats = {}
+        
+        # Add successful parses
+        for bucket in success_response.get("aggregations", {}).get("by_type", {}).get("buckets", []):
+            doc_type = bucket["key"]
+            count = bucket["doc_count"]
+            if doc_type not in type_stats:
+                type_stats[doc_type] = {"total": 0, "xml_success": 0, "pdf_fallback": 0, "other_errors": 0}
+            type_stats[doc_type]["xml_success"] = count
+            type_stats[doc_type]["total"] += count
+        
+        # Add PDF failures
+        for bucket in pdf_response.get("aggregations", {}).get("by_type", {}).get("buckets", []):
+            doc_type = bucket["key"]
+            count = bucket["doc_count"]
+            if doc_type not in type_stats:
+                type_stats[doc_type] = {"total": 0, "xml_success": 0, "pdf_fallback": 0, "other_errors": 0}
+            type_stats[doc_type]["pdf_fallback"] = count
+            type_stats[doc_type]["total"] += count
+        
+        return type_stats
     
     def get_xml_completeness_by_type(self) -> Dict[str, Dict[str, int]]:
         """Get XML completeness statistics grouped by legislation type."""
@@ -177,59 +317,75 @@ class XMLCompletenessAnalyzer(BaseAnalyzer):
         return heatmap
     
     def print_report(self):
-        """Print a comprehensive XML completeness report."""
+        """Print a comprehensive XML completeness report using all-time aggregated data."""
         print("=" * 80)
-        print("XML COMPLETENESS ANALYSIS REPORT")
+        print("XML COMPLETENESS ANALYSIS REPORT (ALL-TIME DATA)")
         print("=" * 80)
         
         # Overall statistics
         total_logs = self.get_total_logs()
         print(f"\nTotal log entries analyzed: {total_logs:,}")
         
-        # By Year
+        # By Year using all-time data
         print("\n" + "-" * 60)
         print("XML COMPLETENESS BY YEAR")
         print("-" * 60)
         print(f"{'Year':<6} {'Total':<8} {'XML OK':<8} {'XML %':<8} {'PDF':<8} {'PDF %':<8}")
         print("-" * 60)
         
-        by_year = self.get_xml_completeness_by_year()
+        by_year = self.get_xml_completeness_all_time()
         for year in sorted(by_year.keys()):
             stats = by_year[year]
-            print(f"{year:<6} {stats['total']:<8} {stats['xml_success']:<8} "
-                  f"{stats['xml_success_rate']:<8.1f} {stats['pdf_fallback']:<8} "
-                  f"{stats['pdf_fallback_rate']:<8.1f}")
+            total = stats['total']
+            xml_success = stats['xml_success']
+            pdf_fallback = stats['pdf_fallback']
+            
+            if total > 0:
+                xml_rate = round(100 * xml_success / total, 1)
+                pdf_rate = round(100 * pdf_fallback / total, 1)
+                print(f"{year:<6} {total:<8} {xml_success:<8} "
+                      f"{xml_rate:<8.1f} {pdf_fallback:<8} "
+                      f"{pdf_rate:<8.1f}")
         
-        # By Type
+        # By Type using all-time data
         print("\n" + "-" * 60)
         print("XML COMPLETENESS BY LEGISLATION TYPE")
         print("-" * 60)
         print(f"{'Type':<10} {'Total':<8} {'XML OK':<8} {'XML %':<8} {'PDF':<8} {'PDF %':<8}")
         print("-" * 60)
         
-        by_type = self.get_xml_completeness_by_type()
+        by_type = self.get_xml_completeness_by_type_all_time()
         for leg_type in sorted(by_type.keys()):
             stats = by_type[leg_type]
-            print(f"{leg_type:<10} {stats['total']:<8} {stats['xml_success']:<8} "
-                  f"{stats['xml_success_rate']:<8.1f} {stats['pdf_fallback']:<8} "
-                  f"{stats['pdf_fallback_rate']:<8.1f}")
+            total = stats['total']
+            xml_success = stats['xml_success']
+            pdf_fallback = stats['pdf_fallback']
+            
+            if total > 0:
+                xml_rate = round(100 * xml_success / total, 1)
+                pdf_rate = round(100 * pdf_fallback / total, 1)
+                print(f"{leg_type:<10} {total:<8} {xml_success:<8} "
+                      f"{xml_rate:<8.1f} {pdf_fallback:<8} "
+                      f"{pdf_rate:<8.1f}")
         
         # Save detailed results
         results = {
             "summary": {
                 "total_logs": total_logs,
-                "analysis_timestamp": datetime.now().isoformat()
+                "analysis_timestamp": datetime.now().isoformat(),
+                "data_source": "all-time aggregated data"
             },
             "by_year": by_year,
             "by_type": by_type,
             "heatmap": self.get_xml_completeness_heatmap()
         }
         
-        with open("analysis/xml_completeness_report.json", "w") as f:
+        output_path = get_output_path("xml_completeness_report.json")
+        with open(output_path, "w") as f:
             json.dump(results, f, indent=2)
         
         print("\n" + "=" * 80)
-        print("Detailed results saved to: analysis/xml_completeness_report.json")
+        print(f"Detailed results saved to: {output_path}")
 
 
 if __name__ == "__main__":

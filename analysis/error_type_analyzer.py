@@ -3,7 +3,7 @@
 from typing import Dict, List
 from collections import defaultdict, Counter
 from datetime import datetime
-from base_analyzer import BaseAnalyzer
+from base_analyzer import BaseAnalyzer, get_output_path
 import json
 import re
 
@@ -204,6 +204,81 @@ class ErrorTypeAnalyzer(BaseAnalyzer):
         
         return result
     
+    def analyze_non_pdf_errors(self, hours_back=24):
+        """Analyze errors that are NOT related to PDF/no body issues."""
+        
+        print("\n" + "="*80)
+        print("NON-PDF ERROR ANALYSIS")
+        print("="*80)
+        
+        # Get validation errors (excluding PDF)
+        validation_query = {
+            "query": {
+                "bool": {
+                    "must": [
+                        {"match": {"message": "validation error"}}
+                    ],
+                    "must_not": [
+                        {"match_phrase": {"message": "no body found"}}
+                    ],
+                    "filter": {
+                        "range": {
+                            "timestamp": {
+                                "gte": f"now-{hours_back}h"
+                            }
+                        }
+                    }
+                }
+            },
+            "size": 200
+        }
+        
+        validation_errors = self.search_logs(validation_query)
+        
+        if validation_errors:
+            print(f"\nValidation errors (non-PDF): {len(validation_errors)}")
+            # Group by error pattern
+            patterns = defaultdict(list)
+            for error in validation_errors[:10]:  # Show first 10
+                msg = error.get("message", "")
+                if "CommentaryCitation" in msg:
+                    patterns["CommentaryCitation"].append(error)
+                else:
+                    patterns["Other Validation"].append(error)
+            
+            for pattern, errs in patterns.items():
+                if errs:
+                    print(f"\n  {pattern}: {len(errs)} errors")
+                    for err in errs[:2]:
+                        print(f"    - {err.get('timestamp', 'N/A')}: {err.get('message', '')[:100]}...")
+        
+        # Look for specific error patterns
+        self._analyze_commentary_citation_errors()
+    
+    def _analyze_commentary_citation_errors(self):
+        """Specifically analyze CommentaryCitation validation errors."""
+        
+        query = {
+            "query": {
+                "bool": {
+                    "must": [
+                        {"match": {"message": "CommentaryCitation"}},
+                        {"match": {"message": "validation error"}}
+                    ]
+                }
+            },
+            "size": 50
+        }
+        
+        results = self.search_logs(query)
+        
+        if results:
+            print(f"\n\nCommentaryCitation errors: {len(results)}")
+            for i, result in enumerate(results[:3]):
+                print(f"\n  Example {i+1}:")
+                print(f"    Time: {result.get('timestamp', 'N/A')}")
+                print(f"    Message: {result.get('message', '')[:150]}...")
+    
     def print_report(self):
         """Print a comprehensive error analysis report."""
         print("=" * 80)
@@ -261,11 +336,15 @@ class ErrorTypeAnalyzer(BaseAnalyzer):
             "errors_over_time": self.get_errors_by_time()
         }
         
-        with open("analysis/error_type_report.json", "w") as f:
+        output_file = get_output_path("error_type_report.json")
+        with open(output_file, "w") as f:
             json.dump(results, f, indent=2, default=str)
         
+        # Add non-PDF error analysis
+        self.analyze_non_pdf_errors(hours_back=168)  # Last 7 days
+        
         print("\n" + "=" * 80)
-        print("Detailed results saved to: analysis/error_type_report.json")
+        print(f"Detailed results saved to: {output_file}")
 
 
 if __name__ == "__main__":

@@ -3,7 +3,7 @@
 from typing import Dict, List, Set
 from collections import defaultdict
 from datetime import datetime
-from base_analyzer import BaseAnalyzer
+from base_analyzer import BaseAnalyzer, get_output_path
 import json
 import re
 
@@ -30,6 +30,57 @@ class FailedXMLURLExtractor(BaseAnalyzer):
             return f"https://www.legislation.gov.uk/{leg_type}/{year}/{number}"
         
         return None
+    
+    def get_validation_error_documents(self) -> Dict[str, List[Dict]]:
+        """Extract documents with validation errors (e.g., CommentaryCitation)."""
+        
+        query = {
+            "query": {
+                "bool": {
+                    "must": [
+                        {"match": {"level": "ERROR"}},
+                        {"match": {"message": "validation error"}}
+                    ],
+                    "must_not": [
+                        {"match_phrase": {"message": "no body found"}}
+                    ]
+                }
+            },
+            "size": 10000
+        }
+        
+        logs = self.search_logs(query)
+        
+        validation_errors = defaultdict(list)
+        seen_ids = set()
+        
+        for log in logs:
+            message = log.get("message", "")
+            doc_id = log.get("doc_id", "")
+            
+            # Determine validation error type
+            if "CommentaryCitation" in message:
+                error_type = "CommentaryCitation"
+            elif "validation error" in message:
+                error_type = "Other Validation"
+            else:
+                error_type = "Unknown Validation"
+            
+            # Get document URL
+            url = self.extract_url_from_message(message)
+            if not url and doc_id:
+                url = doc_id
+            
+            if url and url not in seen_ids:
+                seen_ids.add(url)
+                validation_errors[error_type].append({
+                    "url": url,
+                    "timestamp": log.get("timestamp", ""),
+                    "message": message[:200],
+                    "doc_id": doc_id
+                })
+        
+        return dict(validation_errors)
     
     def get_failed_xml_urls(self) -> Dict[str, List[Dict]]:
         """Get all URLs where XML parsing failed (excluding PDF fallbacks)."""
@@ -188,25 +239,45 @@ class FailedXMLURLExtractor(BaseAnalyzer):
         
         # Failed XML URLs (real parsing errors)
         failed_urls = self.get_failed_xml_urls()
-        with open("analysis/failed_xml_urls.json", "w") as f:
+        failed_urls_path = get_output_path("failed_xml_urls.json")
+        with open(failed_urls_path, "w") as f:
             json.dump(failed_urls, f, indent=2)
+        
+        # Validation error documents
+        validation_errors = self.get_validation_error_documents()
+        validation_errors_path = get_output_path("validation_error_documents.json")
+        with open(validation_errors_path, "w") as f:
+            json.dump(validation_errors, f, indent=2)
         
         # PDF fallback URLs
         pdf_urls = self.get_pdf_fallback_urls()
-        with open("analysis/pdf_fallback_urls.json", "w") as f:
+        pdf_urls_path = get_output_path("pdf_fallback_urls.json")
+        with open(pdf_urls_path, "w") as f:
             json.dump(pdf_urls, f, indent=2)
         
         # Sample of successful URLs
         success_sample = self.get_successful_xml_urls_sample()
-        with open("analysis/successful_xml_urls_sample.json", "w") as f:
+        success_sample_path = get_output_path("successful_xml_urls_sample.json")
+        with open(success_sample_path, "w") as f:
             json.dump(success_sample, f, indent=2)
         
         # Error analysis
         analysis = self.analyze_error_patterns()
-        with open("analysis/xml_error_analysis.json", "w") as f:
+        error_analysis_path = get_output_path("xml_error_analysis.json")
+        with open(error_analysis_path, "w") as f:
             json.dump(analysis, f, indent=2)
         
-        return failed_urls, pdf_urls, analysis
+        # Return data and paths for use in print_report
+        return {
+            "data": (failed_urls, pdf_urls, analysis, validation_errors),
+            "paths": {
+                "failed_urls": failed_urls_path,
+                "validation_errors": validation_errors_path,
+                "pdf_urls": pdf_urls_path,
+                "success_sample": success_sample_path,
+                "error_analysis": error_analysis_path
+            }
+        }
     
     def print_report(self):
         """Print a report of failed XML URLs."""
@@ -214,7 +285,9 @@ class FailedXMLURLExtractor(BaseAnalyzer):
         print("FAILED XML URL EXTRACTION REPORT")
         print("=" * 80)
         
-        failed_urls, pdf_urls, analysis = self.save_results()
+        result = self.save_results()
+        failed_urls, pdf_urls, analysis, validation_errors = result["data"]
+        paths = result["paths"]
         
         # Summary statistics
         print(f"\nTotal unique failed XML URLs: {analysis['total_failed_urls']}")
@@ -260,12 +333,30 @@ class FailedXMLURLExtractor(BaseAnalyzer):
                 total = sum(errors.values())
                 print(f"  {leg_type:<10} {total:>3} errors")
         
+        # Validation errors section
+        if validation_errors:
+            print("\n" + "-" * 60)
+            print("VALIDATION ERROR DOCUMENTS")
+            print("-" * 60)
+            
+            total_validation = sum(len(docs) for docs in validation_errors.values())
+            print(f"\nTotal documents with validation errors: {total_validation}")
+            
+            for error_type, docs in validation_errors.items():
+                if docs:
+                    print(f"\n{error_type}: {len(docs)} documents")
+                    for doc in docs[:3]:  # Show first 3
+                        print(f"  → {doc['url']}")
+                    if len(docs) > 3:
+                        print(f"  ... and {len(docs) - 3} more")
+        
         print("\n" + "=" * 80)
         print("Detailed results saved to:")
-        print("  - analysis/failed_xml_urls.json (XML parsing errors)")
-        print("  - analysis/pdf_fallback_urls.json (PDF-only documents)")
-        print("  - analysis/successful_xml_urls_sample.json (Working examples)")
-        print("  - analysis/xml_error_analysis.json (Error pattern analysis)")
+        print(f"  - {paths['failed_urls']} (XML parsing errors)")
+        print(f"  - {paths['validation_errors']} (Validation errors)")
+        print(f"  - {paths['pdf_urls']} (PDF-only documents)")
+        print(f"  - {paths['success_sample']} (Working examples)")
+        print(f"  - {paths['error_analysis']} (Error pattern analysis)")
 
 
 if __name__ == "__main__":
