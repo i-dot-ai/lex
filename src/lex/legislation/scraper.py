@@ -1,6 +1,7 @@
 import logging
 from typing import Iterator
 
+import requests
 from bs4 import BeautifulSoup
 
 from lex.core.checkpoint import PipelineCheckpoint
@@ -191,7 +192,24 @@ class LegislationScraper(LexScraper):
         next_page = url
         while next_page:
             logger.debug(f"Scraping {next_page}")
-            res = http_client.get(next_page)
+            try:
+                res = http_client.get(next_page)
+            except requests.exceptions.HTTPError as e:
+                # Handle server errors gracefully
+                if e.response is not None and e.response.status_code >= 500:
+                    logger.warning(
+                        f"Server error accessing page {next_page}: {e.response.status_code}",
+                        extra={
+                            "url": next_page,
+                            "status_code": e.response.status_code,
+                            "error_type": "server_error"
+                        }
+                    )
+                    break  # Stop pagination on server error
+                else:
+                    # Re-raise other HTTP errors
+                    raise
+                    
             soup = BeautifulSoup(res.text, "html.parser")
 
             hrefs = self._extract_legislation_urls_from_searchpage(soup, legislation_type)
