@@ -89,6 +89,22 @@ class PipelineCheckpoint:
         current_metadata.update(metadata)
         self.cache.set('metadata', current_metadata)
         self.cache.set('updated_at', datetime.now().isoformat())
+    
+    def mark_combination_complete(self, combination_key: str):
+        """Mark a year/type combination as fully processed."""
+        completed = set(self.cache.get('completed_combinations', []))
+        completed.add(combination_key)
+        self.cache.set('completed_combinations', list(completed))
+        self.cache.set('updated_at', datetime.now().isoformat())
+    
+    def get_completed_combinations(self) -> Set[str]:
+        """Get set of completed year/type combinations."""
+        return set(self.cache.get('completed_combinations', []))
+    
+    def is_combination_complete(self, combination_key: str) -> bool:
+        """Check if a year/type combination is complete."""
+        completed = set(self.cache.get('completed_combinations', []))
+        return combination_key in completed
         
     def clear(self):
         """Clear checkpoint data."""

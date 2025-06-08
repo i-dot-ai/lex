@@ -42,6 +42,7 @@ class LegislationScraper(LexScraper):
         
         checkpoint = None
         processed_urls = set()
+        completed_combinations = set()
         url_count = 0
         skipped_count = 0
         
@@ -54,12 +55,14 @@ class LegislationScraper(LexScraper):
             else:
                 state = checkpoint.get_state()
                 processed_urls = state['processed_urls']
+                completed_combinations = checkpoint.get_completed_combinations()
                 if processed_urls:
                     logger.info(
-                        f"Resuming from checkpoint. Already processed: {len(processed_urls)} URLs",
+                        f"Resuming from checkpoint. Already processed: {len(processed_urls)} URLs, {len(completed_combinations)} completed combinations",
                         extra={
                             "checkpoint_id": checkpoint_id,
                             "processed_count": len(processed_urls),
+                            "completed_combinations_count": len(completed_combinations),
                             "checkpoint_path": str(checkpoint.cache_dir)
                         }
                     )
@@ -73,13 +76,43 @@ class LegislationScraper(LexScraper):
             }
         )
 
+        # Track URLs per combination to know when complete
+        combination_urls = {}
+        current_combination = None
+        combination_processed_count = 0
+        
         try:
-            for url in self.load_urls(years, types, limit):
+            for url in self.load_urls(years, types, limit, include_xml=True, completed_combinations=completed_combinations):
                 url_count += 1
+                
+                # Extract combination from URL
+                # URL format: https://www.legislation.gov.uk/{type}/{year}/{number}/data.xml
+                parts = url.split('/')
+                if len(parts) >= 6:
+                    url_type = parts[3]
+                    url_year = parts[4]
+                    new_combination = f"{url_type}_{url_year}"
+                    
+                    # Check if we've moved to a new combination
+                    if new_combination != current_combination:
+                        # Mark previous combination as complete if all URLs were processed
+                        if current_combination and checkpoint:
+                            if current_combination not in combination_urls:
+                                combination_urls[current_combination] = 0
+                            if combination_processed_count == combination_urls[current_combination]:
+                                checkpoint.mark_combination_complete(current_combination)
+                                logger.info(f"Marked combination as complete: {current_combination}")
+                        
+                        current_combination = new_combination
+                        combination_processed_count = 0
+                        if current_combination not in combination_urls:
+                            combination_urls[current_combination] = 0
+                        combination_urls[current_combination] += 1
                 
                 # Skip if already processed
                 if url in processed_urls:
                     skipped_count += 1
+                    combination_processed_count += 1  # Still counts towards combination completion
                     # Log progress periodically while skipping
                     if url_count % 1000 == 0:
                         logger.info(
@@ -88,7 +121,8 @@ class LegislationScraper(LexScraper):
                                 "checkpoint_id": checkpoint_id,
                                 "urls_checked": url_count,
                                 "urls_skipped": skipped_count,
-                                "total_processed": len(processed_urls)
+                                "total_processed": len(processed_urls),
+                                "completed_combinations": len(completed_combinations)
                             }
                         )
                     logger.debug(f"Skipping already processed: {url}")
@@ -100,6 +134,7 @@ class LegislationScraper(LexScraper):
                     # Mark as processed if using checkpoint
                     if checkpoint:
                         checkpoint.mark_processed(url)
+                        combination_processed_count += 1
                         
                         # Save position periodically
                         if url_count % 100 == 0:
@@ -142,9 +177,17 @@ class LegislationScraper(LexScraper):
                     continue
                     
         finally:
+            # Mark final combination as complete if all URLs were processed
+            if current_combination and checkpoint:
+                if combination_processed_count == combination_urls.get(current_combination, 0):
+                    checkpoint.mark_combination_complete(current_combination)
+                    logger.info(f"Marked final combination as complete: {current_combination}")
+            
             # Log final summary if using checkpoint
             if checkpoint and checkpoint.exists():
                 summary = checkpoint.get_summary()
+                completed_count = len(checkpoint.get_completed_combinations())
+                summary['completed_combinations'] = completed_count
                 logger.info(
                     f"Checkpoint summary for {checkpoint_id}",
                     extra=summary
@@ -156,10 +199,21 @@ class LegislationScraper(LexScraper):
         types: list[LegislationType],
         limit: int | None = None,
         include_xml=True,
+        completed_combinations: set = None,
     ) -> Iterator[str]:
         count = 0
+        if completed_combinations is None:
+            completed_combinations = set()
+            
         for year in years:
             for type in types:
+                combination_key = f"{type.value}_{year}"
+                
+                # Skip if this combination is already complete
+                if combination_key in completed_combinations:
+                    logger.debug(f"Skipping completed combination: {combination_key}")
+                    continue
+                    
                 urls = self._get_legislation_urls_from_type_year(type.value, year, include_xml)
                 for url in urls:
                     yield url
