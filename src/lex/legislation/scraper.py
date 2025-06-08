@@ -43,6 +43,7 @@ class LegislationScraper(LexScraper):
         checkpoint = None
         processed_urls = set()
         url_count = 0
+        skipped_count = 0
         
         if use_checkpoint:
             checkpoint = PipelineCheckpoint(checkpoint_id)
@@ -62,6 +63,15 @@ class LegislationScraper(LexScraper):
                             "checkpoint_path": str(checkpoint.cache_dir)
                         }
                     )
+                    
+        logger.info(
+            f"Starting to iterate through URLs (this may take time with large checkpoints)",
+            extra={
+                "checkpoint_id": checkpoint_id if checkpoint else None,
+                "processed_count": len(processed_urls),
+                "url_count_start": url_count
+            }
+        )
 
         try:
             for url in self.load_urls(years, types, limit):
@@ -69,6 +79,18 @@ class LegislationScraper(LexScraper):
                 
                 # Skip if already processed
                 if url in processed_urls:
+                    skipped_count += 1
+                    # Log progress periodically while skipping
+                    if url_count % 1000 == 0:
+                        logger.info(
+                            f"Checkpoint progress: Checked {url_count} URLs, skipped {skipped_count} already processed",
+                            extra={
+                                "checkpoint_id": checkpoint_id,
+                                "urls_checked": url_count,
+                                "urls_skipped": skipped_count,
+                                "total_processed": len(processed_urls)
+                            }
+                        )
                     logger.debug(f"Skipping already processed: {url}")
                     continue
                 
