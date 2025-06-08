@@ -140,6 +140,18 @@ def pipe_legislation_sections(
                 logger.debug(f"Parsing document sections: {doc_id}")
                 
             legislation_sections = parser.parse_content(soup)
+            
+            # Log successful section extraction
+            if legislation_sections:
+                logger.info(
+                    f"Successfully extracted {len(legislation_sections)} provisions from {doc_id}",
+                    extra={
+                        "doc_id": doc_id,
+                        "provision_count": len(legislation_sections),
+                        "processing_status": "provisions_extracted"
+                    }
+                )
+            
             yield from generate_documents(legislation_sections, LegislationSection)
         except LexParsingError as e:
             # Extract metadata from error message if possible

@@ -149,7 +149,26 @@ class LegislationScraper(LexScraper):
     ) -> Iterator[str]:
         url = f"{self.base_url}/{legislation_type}/{year}"
         logger.debug(f"Checking URL: {url}")
-        res = http_client.get(url)
+        
+        try:
+            res = http_client.get(url)
+        except requests.exceptions.HTTPError as e:
+            # Handle server errors gracefully
+            if e.response is not None and e.response.status_code >= 500:
+                logger.warning(
+                    f"Server error accessing {legislation_type} for year {year}: {e.response.status_code}",
+                    extra={
+                        "url": url,
+                        "status_code": e.response.status_code,
+                        "legislation_type": legislation_type,
+                        "year": year,
+                        "error_type": "server_error"
+                    }
+                )
+                return []
+            else:
+                # Re-raise other HTTP errors
+                raise
 
         # Check if page exists with a reasonable status code
         if res.status_code != 200:
