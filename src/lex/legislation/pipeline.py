@@ -30,7 +30,8 @@ def pipe_legislation(
         content_iterator = loader_or_scraper.load_content(
             years, limit, types,
             use_checkpoint=not kwargs.get("no_checkpoint", False),
-            clear_checkpoint=kwargs.get("clear_checkpoint", False)
+            clear_checkpoint=kwargs.get("clear_checkpoint", False),
+            checkpoint_suffix="_documents"  # Different suffix for document pipeline
         )
     else:
         content_iterator = loader_or_scraper.load_content(years, limit, types)
@@ -117,7 +118,8 @@ def pipe_legislation_sections(
         content_iterator = loader_or_scraper.load_content(
             years, limit, types,
             use_checkpoint=not kwargs.get("no_checkpoint", False),
-            clear_checkpoint=kwargs.get("clear_checkpoint", False)
+            clear_checkpoint=kwargs.get("clear_checkpoint", False),
+            checkpoint_suffix="_sections"  # Different suffix for sections pipeline
         )
     else:
         content_iterator = loader_or_scraper.load_content(years, limit, types)

@@ -45,6 +45,7 @@ class LegislationScraper(LexScraper):
         types: list[LegislationType] = list(LegislationType),
         use_checkpoint: bool = True,
         clear_checkpoint: bool = False,
+        checkpoint_suffix: str = "",
     ) -> Iterator[BeautifulSoup]:
         """Scrapes legislation content from the internet with checkpoint support.
         
@@ -54,10 +55,11 @@ class LegislationScraper(LexScraper):
             types: List of legislation types to process
             use_checkpoint: Whether to use checkpoint for resuming
             clear_checkpoint: Whether to clear existing checkpoint
+            checkpoint_suffix: Optional suffix to differentiate checkpoint IDs
         """
         # Create checkpoint ID based on parameters
         type_str = '_'.join(sorted(t.value for t in types))
-        checkpoint_id = f"legislation_{min(years)}_{max(years)}_{type_str}"
+        checkpoint_id = f"legislation_{min(years)}_{max(years)}_{type_str}{checkpoint_suffix}"
         
         checkpoint = None
         processed_urls = set()
