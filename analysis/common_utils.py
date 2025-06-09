@@ -19,7 +19,7 @@ def extract_year_from_message(message: str) -> Optional[int]:
     if year_match:
         year = int(year_match.group(1))
         # Reasonable bounds check
-        if 1900 <= year <= 2100:
+        if 1500 <= year <= 2100:
             return year
     return None
 
