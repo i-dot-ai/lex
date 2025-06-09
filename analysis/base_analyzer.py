@@ -1,6 +1,7 @@
 """Base analyzer class for connecting to Elasticsearch and running queries."""
 
 import os
+import sys
 from datetime import datetime
 from typing import Dict, List, Any
 from elasticsearch import Elasticsearch
@@ -8,6 +9,11 @@ from dotenv import load_dotenv
 from common_utils import extract_year_from_message, extract_legislation_type
 
 load_dotenv()
+
+# Add the parent directory to the Python path to import from src
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from src.lex.core.clients import get_elasticsearch_client
 
 
 def get_output_path(filename: str) -> str:
@@ -25,21 +31,7 @@ class BaseAnalyzer:
     def __init__(self, index_name: str = "logs-pipeline"):
         """Initialize connection to Elasticsearch."""
         self.index_name = index_name
-        self.es = self._get_client()
-
-    def _get_client(self) -> Elasticsearch:
-        """Get Elasticsearch client with proper configuration."""
-        # Use localhost as specified
-        es_host = "http://localhost:9200"
-
-        # Check if we need authentication
-        username = os.getenv("ELASTIC_USERNAME", "")
-        password = os.getenv("ELASTIC_PASSWORD", "")
-
-        if username and password:
-            return Elasticsearch([es_host], basic_auth=(username, password), verify_certs=False)
-        else:
-            return Elasticsearch([es_host])
+        self.es = get_elasticsearch_client()
 
     def test_connection(self) -> bool:
         """Test if Elasticsearch connection is working."""
