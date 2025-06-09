@@ -7,6 +7,13 @@ from base_analyzer import BaseAnalyzer, get_output_path
 from common_utils import extract_year_from_message, extract_legislation_type, extract_document_id
 import json
 import re
+import sys
+import os
+
+# Add the parent directory to the Python path to import from src
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from src.lex.legislation.models import LegislationType
 
 
 class XMLCompletenessComprehensiveAnalyzer(BaseAnalyzer):
@@ -14,6 +21,33 @@ class XMLCompletenessComprehensiveAnalyzer(BaseAnalyzer):
 
     def __init__(self):
         super().__init__()
+        # Get legislation types from enum
+        self.legislation_types = [leg_type.value for leg_type in LegislationType]
+    
+    def _get_type_extraction_script(self, use_doc_id: bool = False) -> str:
+        """Generate Elasticsearch script for extracting legislation types."""
+        types_str = ', '.join([f"'{t}'" for t in self.legislation_types])
+        if use_doc_id:
+            return f"""
+                def text = params._source.doc_id != null ? params._source.doc_id : params._source.message;
+                def types = [{types_str}];
+                for (type in types) {{
+                    if (text.toLowerCase().contains('/' + type + '/')) {{
+                        return type;
+                    }}
+                }}
+                return 'unknown';
+            """
+        else:
+            return f"""
+                def types = [{types_str}];
+                for (type in types) {{
+                    if (params._source.message.toLowerCase().contains('/' + type + '/')) {{
+                        return type;
+                    }}
+                }}
+                return 'unknown';
+            """
 
     def get_xml_completeness_aggregated(self, doc_type: Optional[str] = None) -> Tuple[Dict, Dict]:
         """Get XML completeness using aggregation for accurate statistics."""
@@ -67,18 +101,7 @@ class XMLCompletenessComprehensiveAnalyzer(BaseAnalyzer):
                         "by_type": {
                             "terms": {
                                 "script": {
-                                    "source": """
-                                        def types = ['ukpga', 'uksi', 'ukla', 'ukppa', 'ukcm', 'ukmo', 'ukci', 'uksro',
-                                                    'asp', 'asc', 'anaw', 'aep', 'aip', 'apgb', 'aosp', 'apni',
-                                                    'mwa', 'mnia', 'nia', 'nisi', 'nisr', 'nisro',
-                                                    'ssi', 'wsi', 'gbla', 'eur', 'eudr', 'eudn'];
-                                        for (type in types) {
-                                            if (params._source.message.toLowerCase().contains('/' + type + '/')) {
-                                                return type;
-                                            }
-                                        }
-                                        return 'unknown';
-                                    """
+                                    "source": self._get_type_extraction_script()
                                 },
                                 "size": 50,
                             },
@@ -126,19 +149,7 @@ class XMLCompletenessComprehensiveAnalyzer(BaseAnalyzer):
                         "by_type": {
                             "terms": {
                                 "script": {
-                                    "source": """
-                                        def text = params._source.doc_id != null ? params._source.doc_id : params._source.message;
-                                        def types = ['ukpga', 'uksi', 'ukla', 'ukppa', 'ukcm', 'ukmo', 'ukci', 'uksro',
-                                                    'asp', 'asc', 'anaw', 'aep', 'aip', 'apgb', 'aosp', 'apni',
-                                                    'mwa', 'mnia', 'nia', 'nisi', 'nisr', 'nisro',
-                                                    'ssi', 'wsi', 'gbla', 'eur', 'eudr', 'eudn'];
-                                        for (type in types) {
-                                            if (text.toLowerCase().contains('/' + type + '/')) {
-                                                return type;
-                                            }
-                                        }
-                                        return 'unknown';
-                                    """
+                                    "source": self._get_type_extraction_script(use_doc_id=True)
                                 },
                                 "size": 50,
                             },

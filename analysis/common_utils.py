@@ -1,7 +1,15 @@
 """Common utility functions shared across analyzers."""
 
 import re
+import sys
+import os
 from typing import Optional, Tuple
+
+# Add the parent directory to the Python path to import from src
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from src.lex.legislation.models import LegislationType
+from src.lex.caselaw.models import Court
 
 
 def extract_year_from_message(message: str) -> Optional[int]:
@@ -18,37 +26,8 @@ def extract_year_from_message(message: str) -> Optional[int]:
 
 def extract_legislation_type(message: str) -> Optional[str]:
     """Extract legislation type from a log message."""
-    # Common legislation types
-    types = [
-        "ukpga",
-        "uksi",
-        "ukla",
-        "ukppa",
-        "ukcm",
-        "ukmo",
-        "ukci",
-        "uksro",
-        "asp",
-        "asc",
-        "anaw",
-        "aep",
-        "aip",
-        "apgb",
-        "aosp",
-        "apni",
-        "mwa",
-        "mnia",
-        "nia",
-        "nisi",
-        "nisr",
-        "nisro",
-        "ssi",
-        "wsi",
-        "gbla",
-        "eur",
-        "eudr",
-        "eudn",
-    ]
+    # Use LegislationType enum values
+    types = [leg_type.value for leg_type in LegislationType]
 
     for leg_type in types:
         if f"/{leg_type}/" in message.lower():
@@ -129,8 +108,9 @@ def categorize_document_type(message: str) -> Optional[str]:
     elif "explanatory" in message_lower:
         return "explanatory_note"
 
-    # Try to infer from URL patterns
-    if "caselaw" in message_lower or "/ewhc/" in message_lower or "/ewca/" in message_lower:
+    # Try to infer from URL patterns using Court enum
+    court_patterns = [f"/{court.value}/" for court in Court]
+    if "caselaw" in message_lower or any(pattern in message_lower for pattern in court_patterns):
         return "caselaw"
 
     # Default to legislation if it has a legislation type
