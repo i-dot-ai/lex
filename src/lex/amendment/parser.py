@@ -29,7 +29,7 @@ class AmendmentParser(LexParser):
         rows = [self._row_to_amendment(row) for row in rows]
 
         amendments = [row for row in rows if row is not None]
-        
+
         if amendments:
             # Log successful parsing with structured data
             logger.info(
@@ -40,10 +40,10 @@ class AmendmentParser(LexParser):
                     "amendment_count": len(amendments),
                     # Sample first amendment for context
                     "sample_changed": amendments[0].changed_legislation if amendments else None,
-                    "sample_affecting": amendments[0].affecting_legislation if amendments else None
-                }
+                    "sample_affecting": amendments[0].affecting_legislation if amendments else None,
+                },
             )
-        
+
         return amendments
 
     def _row_to_amendment(self, row: BeautifulSoup) -> Amendment:

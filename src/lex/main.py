@@ -171,11 +171,13 @@ def process_documents(args):
     # Add checkpoint-specific parameters if applicable
     pipeline_args = vars(args)
     if args.model in ["caselaw", "caselaw-section"]:
-        pipeline_args.update({
-            "use_checkpoint": not args.no_checkpoint,
-            "clear_checkpoint": args.clear_checkpoint,
-        })
-    
+        pipeline_args.update(
+            {
+                "use_checkpoint": not args.no_checkpoint,
+                "clear_checkpoint": args.clear_checkpoint,
+            }
+        )
+
     documents = documents_iterator(**pipeline_args)
 
     # Get batch size from arguments or use default
@@ -186,7 +188,7 @@ def process_documents(args):
     doc_count = 0
     last_progress_update = time.time()
     progress_interval = 300  # Log progress every 5 minutes
-    
+
     # Track statistics
     success_count = 0
     error_count = 0
@@ -200,40 +202,46 @@ def process_documents(args):
                 batch.append(doc)
                 doc_count += 1
                 consecutive_rate_limits = 0  # Reset on success
-                
+
                 # Simple progress logging every N documents and every M minutes
                 current_time = time.time()
-                if doc_count % 1000 == 0 or (current_time - last_progress_update) > progress_interval:
+                if (
+                    doc_count % 1000 == 0
+                    or (current_time - last_progress_update) > progress_interval
+                ):
                     elapsed = current_time - start_time
                     rate = doc_count / elapsed if elapsed > 0 else 0
                     logger.info(
                         f"Progress update: {doc_count} documents processed "
-                        f"({rate:.1f} docs/second, {elapsed/60:.1f} minutes elapsed)"
+                        f"({rate:.1f} docs/second, {elapsed / 60:.1f} minutes elapsed)"
                     )
                     last_progress_update = current_time
-                
+
                 if len(batch) >= batch_size:
                     upload_result = upload_documents(index_name=index, documents=batch)
                     # Assume upload_documents returns success count or we count batch size as success
                     success_count += len(batch)
-                    
+
                     logger.info(f"Uploaded batch of {len(batch)} documents (total: {doc_count})")
                     batch = []  # Clear batch after upload
 
                     # Force garbage collection to free memory
                     import gc
+
                     gc.collect()
-                    
+
             except RateLimitException as e:
                 consecutive_rate_limits += 1
-                
+
                 # Save any pending batch before potentially exiting
                 if batch:
-                    logger.info(f"Saving batch of {len(batch)} documents before handling rate limit")
+                    logger.info(
+                        f"Saving batch of {len(batch)} documents before handling rate limit"
+                    )
                     upload_documents(index_name=index, documents=batch)
                     success_count += len(batch)
                     batch = []
-                
+
                 if consecutive_rate_limits >= max_consecutive_rate_limits:
                     logger.error(
                         f"Hit rate limit {consecutive_rate_limits} times consecutively. "
@@ -242,31 +250,31 @@ def process_documents(args):
                             "doc_count": doc_count,
                             "success_count": success_count,
                             "model": args.model,
-                            "rate_limit_count": consecutive_rate_limits
-                        }
+                            "rate_limit_count": consecutive_rate_limits,
+                        },
                     )
                     # Exit gracefully - checkpoint already saved by scraper
                     break
                 else:
                     # Use retry_after if available, otherwise exponential backoff
-                    retry_after = getattr(e, 'retry_after', None)
+                    retry_after = getattr(e, "retry_after", None)
                     if retry_after:
                         wait_time = int(retry_after) + 10  # Add 10s buffer
                     else:
                         # Exponential backoff: 30s, 60s, 120s, 240s, 480s (max 8 min)
                         wait_time = min(30 * (2 ** (consecutive_rate_limits - 1)), 480)
-                    
+
                     logger.info(
                         f"Rate limited (attempt {consecutive_rate_limits}/{max_consecutive_rate_limits}). "
                         f"Waiting {wait_time}s before continuing...",
                         extra={
                             "wait_time": wait_time,
                             "consecutive_attempts": consecutive_rate_limits,
-                            "retry_after": retry_after
-                        }
+                            "retry_after": retry_after,
+                        },
                     )
                     time.sleep(wait_time)
-                    
+
     except Exception as e:
         # Handle any other exceptions
         logger.error(f"Pipeline error: {e}", exc_info=True)
@@ -278,7 +286,7 @@ def process_documents(args):
             except:
                 pass
         raise
-        
+
     finally:
         # Upload any remaining documents
         if batch:
@@ -287,7 +295,7 @@ def process_documents(args):
             logger.info(f"Uploaded final batch of {len(batch)} documents (total: {doc_count})")
     # Final summary
     elapsed_time = time.time() - start_time
-    
+
     # Create detailed summary
     summary_extra = {
         "model": args.model,
@@ -296,20 +304,22 @@ def process_documents(args):
         "duration_seconds": elapsed_time,
         "duration_minutes": elapsed_time / 60,
         "avg_docs_per_second": doc_count / elapsed_time if elapsed_time > 0 else 0,
-        "final_status": "completed" if consecutive_rate_limits < max_consecutive_rate_limits else "rate_limited"
+        "final_status": "completed"
+        if consecutive_rate_limits < max_consecutive_rate_limits
+        else "rate_limited",
     }
-    
+
     # Add additional context if available
     if hasattr(args, "years") and args.years:
         summary_extra["year_range"] = f"{min(args.years)}-{max(args.years)}"
     if hasattr(args, "types") and args.types:
         summary_extra["document_types"] = len(args.types)
-    
+
     logger.info(
         f"Pipeline processing complete for {args.model}: "
-        f"{doc_count} documents processed in {elapsed_time/60:.1f} minutes "
-        f"({doc_count/elapsed_time:.1f} docs/second average)",
-        extra=summary_extra
+        f"{doc_count} documents processed in {elapsed_time / 60:.1f} minutes "
+        f"({doc_count / elapsed_time:.1f} docs/second average)",
+        extra=summary_extra,
     )
 
 
@@ -376,26 +386,26 @@ def main():
         action="store_true",
         help="[Legislation] Load documents from file instead of scraping",
     )
-    
+
     # Checkpoint management arguments
     parser.add_argument(
         "--resume",
         action="store_true",
         help="Resume from last checkpoint if available (default: true)",
     )
-    
+
     parser.add_argument(
         "--no-checkpoint",
         action="store_true",
         help="Disable checkpoint functionality",
     )
-    
+
     parser.add_argument(
         "--clear-checkpoint",
         action="store_true",
         help="Clear existing checkpoint and start fresh",
     )
-    
+
     parser.add_argument(
         "--list-checkpoints",
         action="store_true",
@@ -407,10 +417,11 @@ def main():
 
     # Parse arguments
     args = parser.parse_args()
-    
+
     # Handle checkpoint listing
     if args.list_checkpoints:
         from lex.core.checkpoint import PipelineCheckpoint
+
         checkpoints = PipelineCheckpoint.list_checkpoints()
         if checkpoints:
             print("Available checkpoints:")
@@ -444,42 +455,43 @@ def main():
     try:
         # Log comprehensive pipeline start information
         start_timestamp = datetime.now().isoformat()
-        
+
         # Build parameter summary
         params = {
             "model": args.model,
             "timestamp": start_timestamp,
             "batch_size": getattr(args, "batch_size", 50),
             "non_interactive": getattr(args, "non_interactive", False),
-            "index": getattr(args, "index", index_mapping[args.model].index)
+            "index": getattr(args, "index", index_mapping[args.model].index),
         }
-        
+
         # Add model-specific parameters
         if hasattr(args, "years") and args.years:
             params["years"] = f"{min(args.years)}-{max(args.years)}" if args.years else "all"
             params["year_count"] = len(args.years)
-        
+
         if hasattr(args, "types") and args.types:
-            params["types"] = [str(t.value) if hasattr(t, 'value') else str(t) for t in args.types]
+            params["types"] = [str(t.value) if hasattr(t, "value") else str(t) for t in args.types]
             params["type_count"] = len(args.types)
-        
+
         if hasattr(args, "limit"):
             params["limit"] = args.limit if args.limit else "unlimited"
-        
+
         logger.info(
-            f"Pipeline starting: {args.model} processing",
-            extra={"pipeline_params": params}
+            f"Pipeline starting: {args.model} processing", extra={"pipeline_params": params}
         )
-        
+
         # Also log as formatted string for readability
         param_str = ", ".join([f"{k}={v}" for k, v in params.items()])
         logger.info(f"Pipeline parameters: {param_str}")
-        
+
         process_documents(args)
-        
+
         end_timestamp = datetime.now().isoformat()
-        duration = (datetime.fromisoformat(end_timestamp) - datetime.fromisoformat(start_timestamp)).total_seconds()
-        
+        duration = (
+            datetime.fromisoformat(end_timestamp) - datetime.fromisoformat(start_timestamp)
+        ).total_seconds()
+
         logger.info(
             f"Pipeline completed successfully",
             extra={
@@ -487,10 +499,10 @@ def main():
                 "start_time": start_timestamp,
                 "end_time": end_timestamp,
                 "duration_seconds": duration,
-                "duration_minutes": duration / 60
-            }
+                "duration_minutes": duration / 60,
+            },
         )
-        
+
     except Exception as e:
         logger.error(f"Pipeline failed: {str(e)}", exc_info=True)
         raise  # Re-raise the exception to maintain the original exit code

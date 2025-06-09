@@ -37,16 +37,14 @@ def get_elasticsearch_client() -> Elasticsearch:
         # Cloud configuration with API key if available
         if ELASTIC_API_KEY:
             client = Elasticsearch(
-                cloud_id=ELASTIC_CLOUD_ID,
-                api_key=ELASTIC_API_KEY,
-                **common_config
+                cloud_id=ELASTIC_CLOUD_ID, api_key=ELASTIC_API_KEY, **common_config
             )
         # Cloud configuration with username/password
         elif ELASTIC_USERNAME and ELASTIC_PASSWORD:
             client = Elasticsearch(
                 cloud_id=ELASTIC_CLOUD_ID,
                 basic_auth=(ELASTIC_USERNAME, ELASTIC_PASSWORD),
-                **common_config
+                **common_config,
             )
         else:
             logger.error("Missing Elastic Cloud credentials (API key or username/password)")
@@ -54,7 +52,7 @@ def get_elasticsearch_client() -> Elasticsearch:
     else:
         # Local configuration
         client = Elasticsearch(
-            ELASTIC_HOST, 
+            ELASTIC_HOST,
             **common_config,
             # Additional settings for local deployments
             sniff_on_start=False,  # Don't sniff on start to avoid connection issues
@@ -67,9 +65,9 @@ def get_elasticsearch_client() -> Elasticsearch:
         logger.info(
             f"Connected to Elasticsearch cluster: {info.get('cluster_name', 'unknown')}",
             extra={
-                "cluster_name": info.get('cluster_name'),
-                "version": info.get('version', {}).get('number'),
-            }
+                "cluster_name": info.get("cluster_name"),
+                "version": info.get("version", {}).get("number"),
+            },
         )
         return client
     except Exception as e:
@@ -100,16 +98,14 @@ def get_async_elasticsearch_client() -> AsyncElasticsearch:
         # Cloud configuration with API key if available
         if ELASTIC_API_KEY:
             client = AsyncElasticsearch(
-                cloud_id=ELASTIC_CLOUD_ID,
-                api_key=ELASTIC_API_KEY,
-                **common_config
+                cloud_id=ELASTIC_CLOUD_ID, api_key=ELASTIC_API_KEY, **common_config
             )
         # Cloud configuration with username/password
         elif ELASTIC_USERNAME and ELASTIC_PASSWORD:
             client = AsyncElasticsearch(
                 cloud_id=ELASTIC_CLOUD_ID,
                 basic_auth=(ELASTIC_USERNAME, ELASTIC_PASSWORD),
-                **common_config
+                **common_config,
             )
         else:
             logger.error("Missing Elastic Cloud credentials (API key or username/password)")

@@ -402,8 +402,8 @@ class EUXMLParser(XMLParser):
                     extra={
                         "citation_uri": citation.get("URI"),
                         "commentary_type": commentary_type,
-                        "error_type": "ValidationError"
-                    }
+                        "error_type": "ValidationError",
+                    },
                 )
 
         # Lower level citation
@@ -411,7 +411,9 @@ class EUXMLParser(XMLParser):
         for citation_sub_ref in citation_subref_elements:
             try:
                 citation_sub_ref = CommentaryCitation(
-                    id=citation_sub_ref.get("id", citation_sub_ref.get("URI")),  # Fallback to URI if id is missing
+                    id=citation_sub_ref.get(
+                        "id", citation_sub_ref.get("URI")
+                    ),  # Fallback to URI if id is missing
                     uri=citation_sub_ref.get("URI"),
                     type=commentary_type,
                     context=citation_sub_ref.text,
@@ -423,8 +425,8 @@ class EUXMLParser(XMLParser):
                     extra={
                         "citation_uri": citation_sub_ref.get("URI"),
                         "commentary_type": commentary_type,
-                        "error_type": "ValidationError"
-                    }
+                        "error_type": "ValidationError",
+                    },
                 )
 
         commentary = Commentary(
@@ -655,8 +657,8 @@ class UKXMLParser(XMLParser):
                     extra={
                         "citation_uri": citation.get("URI"),
                         "commentary_type": commentary_type,
-                        "error_type": "ValidationError"
-                    }
+                        "error_type": "ValidationError",
+                    },
                 )
 
         # Lower level citation
@@ -664,7 +666,9 @@ class UKXMLParser(XMLParser):
         for citation_sub_ref in citation_subref_elements:
             try:
                 citation_sub_ref = CommentaryCitation(
-                    id=citation_sub_ref.get("id", citation_sub_ref.get("URI")),  # Fallback to URI if id is missing
+                    id=citation_sub_ref.get(
+                        "id", citation_sub_ref.get("URI")
+                    ),  # Fallback to URI if id is missing
                     uri=citation_sub_ref.get("URI"),
                     type=commentary_type,
                     context=citation_sub_ref.text,
@@ -681,8 +685,8 @@ class UKXMLParser(XMLParser):
                     extra={
                         "citation_uri": citation_sub_ref.get("URI"),
                         "commentary_type": commentary_type,
-                        "error_type": "ValidationError"
-                    }
+                        "error_type": "ValidationError",
+                    },
                 )
 
         commentary = Commentary(

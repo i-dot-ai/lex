@@ -311,8 +311,8 @@ class ExplanatoryNoteScraperAndParser:
                     "doc_type": "explanatory_note",
                     "legislation_id": legislation_id,
                     "processing_status": "style_unknown",
-                    "note_style": "unknown"
-                }
+                    "note_style": "unknown",
+                },
             )
             return []
 
@@ -339,7 +339,7 @@ class ExplanatoryNoteScraperAndParser:
                 "legislation_id": legislation_id,
                 "processing_status": "success",
                 "note_style": "old" if is_old_page else "new",
-                "section_count": len(sections)
-            }
+                "section_count": len(sections),
+            },
         )
         return sections

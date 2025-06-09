@@ -84,14 +84,34 @@ class ElasticsearchLogHandler(logging.Handler):
             # Check for props attribute (legacy support)
             if hasattr(record, "props"):
                 doc.update(record.props)
-            
+
             # Add fields from extra parameter (standard Python logging)
             # Get all custom attributes added via extra parameter
             for key, value in record.__dict__.items():
-                if key not in ['name', 'msg', 'args', 'created', 'filename', 'funcName', 
-                              'levelname', 'levelno', 'lineno', 'module', 'msecs', 'message',
-                              'pathname', 'process', 'processName', 'relativeCreated', 'stack_info',
-                              'thread', 'threadName', 'exc_info', 'exc_text', 'stack_info']:
+                if key not in [
+                    "name",
+                    "msg",
+                    "args",
+                    "created",
+                    "filename",
+                    "funcName",
+                    "levelname",
+                    "levelno",
+                    "lineno",
+                    "module",
+                    "msecs",
+                    "message",
+                    "pathname",
+                    "process",
+                    "processName",
+                    "relativeCreated",
+                    "stack_info",
+                    "thread",
+                    "threadName",
+                    "exc_info",
+                    "exc_text",
+                    "stack_info",
+                ]:
                     doc[key] = value
 
             # Send to Elasticsearch

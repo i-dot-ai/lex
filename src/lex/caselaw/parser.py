@@ -433,8 +433,8 @@ class CaselawSectionParser(LexParser):
                 "doc_number": metadata.number,
                 "processing_status": "success",
                 "section_count": len(sections),
-                "cite_as": metadata.cite_as
-            }
+                "cite_as": metadata.cite_as,
+            },
         )
         return sections
 
@@ -457,7 +457,7 @@ class CaselawParser(LexParser):
                 "doc_number": metadata.number,
                 "processing_status": "success",
                 "cite_as": metadata.cite_as,
-                "has_sections": len(sections) > 0
-            }
+                "has_sections": len(sections) > 0,
+            },
         )
         return metadata

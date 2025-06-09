@@ -23,8 +23,8 @@ def pipe_amendments(years: list[int], limit: int, **kwargs) -> Iterator[Amendmen
                 extra={
                     "doc_type": "amendment",
                     "processing_status": "success",
-                    "amendment_count": len(amendments)
-                }
+                    "amendment_count": len(amendments),
+                },
             )
             yield from generate_documents(amendments, Amendment)
         except Exception as e:
@@ -34,6 +34,6 @@ def pipe_amendments(years: list[int], limit: int, **kwargs) -> Iterator[Amendmen
                 extra={
                     "doc_type": "amendment",
                     "processing_status": "error",
-                    "error_type": type(e).__name__
-                }
+                    "error_type": type(e).__name__,
+                },
             )

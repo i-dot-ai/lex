@@ -98,13 +98,11 @@ class HttpClient:
                 size_limit=cache_size_limit,
             )
             logger.debug(f"Cache initialized at {cache_dir}")
-        
+
         # Initialize rate limiter and circuit breaker
         self.rate_limiter = AdaptiveRateLimiter()
         self.circuit_breaker = CircuitBreaker(
-            failure_threshold=10,
-            recovery_timeout=300,
-            expected_exception=RateLimitException
+            failure_threshold=10, recovery_timeout=300, expected_exception=RateLimitException
         )
 
     def _make_request(self, method: str, url: str, **kwargs: Any) -> requests.Response:
@@ -113,18 +111,18 @@ class HttpClient:
         This is decorated with retry logic.
         """
         response = self.session.request(method=method, url=url, timeout=self.timeout, **kwargs)
-        
+
         # Check for rate limiting
         if response.status_code == 429:
-            retry_after = response.headers.get('Retry-After')
+            retry_after = response.headers.get("Retry-After")
             if retry_after:
                 try:
                     retry_after = int(retry_after)
                 except ValueError:
                     retry_after = None
-                    
+
             self.rate_limiter.record_rate_limit(retry_after)
-            
+
             logger.warning(
                 f"Rate limited: {url}",
                 extra={
@@ -132,29 +130,30 @@ class HttpClient:
                     "url": url,
                     "retry_after": retry_after,
                     "current_delay": self.rate_limiter.get_current_delay(),
-                    "status_code": 429
-                }
+                    "status_code": 429,
+                },
             )
-            
+
             # Convert to RateLimitException so circuit breaker can track it
             raise RateLimitException(f"Rate limited on {url}", retry_after)
-        
+
         response.raise_for_status()
         return response
-    
-    def _make_request_with_circuit_breaker(self, method: str, url: str, **kwargs: Any) -> requests.Response:
+
+    def _make_request_with_circuit_breaker(
+        self, method: str, url: str, **kwargs: Any
+    ) -> requests.Response:
         """Wrap request with circuit breaker and rate limiting."""
         # Apply adaptive delay
         delay = self.rate_limiter.get_current_delay()
         if delay > 0:
             logger.debug(f"Applying rate limit delay: {delay}s")
             time.sleep(delay)
-        
+
         try:
             # Use circuit breaker to protect against cascading failures
             response = self.circuit_breaker.call(
-                self._retry_decorator(self._make_request),
-                method, url, **kwargs
+                self._retry_decorator(self._make_request), method, url, **kwargs
             )
             self.rate_limiter.record_success()
             return response
@@ -235,27 +234,28 @@ class HttpClient:
             except Exception as e:
                 logger.error(f"Failed to clear cache: {e}. Attempting to recreate cache.")
                 self._recreate_cache()
-    
+
     def _recreate_cache(self) -> None:
         """Recreate the cache directory if corrupted."""
-        if self.enable_cache and hasattr(self, '_cache'):
+        if self.enable_cache and hasattr(self, "_cache"):
             try:
                 # Close existing cache
                 self._cache.close()
             except:
                 pass
-            
+
             # Get cache directory
             cache_dir = self._cache.directory
-            
+
             # Remove corrupted cache files
             import shutil
+
             try:
                 shutil.rmtree(cache_dir)
                 logger.info(f"Removed corrupted cache directory: {cache_dir}")
             except Exception as e:
                 logger.error(f"Failed to remove cache directory: {e}")
-            
+
             # Recreate cache
             os.makedirs(cache_dir, exist_ok=True)
             self._cache = Cache(

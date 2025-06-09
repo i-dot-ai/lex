@@ -64,7 +64,7 @@ def upload_documents(
     retry_delay: float = 10.0,
 ):
     """Upload documents to Elasticsearch with connection retry logic.
-    
+
     Args:
         index_name: Name of the Elasticsearch index
         documents: Iterable of Pydantic models to upload
@@ -95,13 +95,9 @@ def upload_documents(
             try:
                 # Use helpers.bulk with its own retry logic for document-level errors
                 success, failed = helpers.bulk(
-                    es_client, 
-                    body, 
-                    max_retries=3,
-                    raise_on_error=False,
-                    raise_on_exception=False
+                    es_client, body, max_retries=3, raise_on_error=False, raise_on_exception=False
                 )
-                
+
                 # Check if there were any failures
                 if failed:
                     logger.warning(
@@ -109,18 +105,18 @@ def upload_documents(
                         extra={
                             "batch_number": i,
                             "failed_count": len(failed),
-                            "first_error": failed[0] if failed else None
-                        }
+                            "first_error": failed[0] if failed else None,
+                        },
                     )
-                
+
                 docs_uploaded += success
                 connection_errors = 0  # Reset on success
                 break  # Success, exit retry loop
-                
+
             except (ConnectionError, ConnectionTimeout, TransportError) as e:
                 connection_errors += 1
-                current_delay = retry_delay * (2 ** retry_attempt)  # Exponential backoff
-                
+                current_delay = retry_delay * (2**retry_attempt)  # Exponential backoff
+
                 logger.warning(
                     f"Elasticsearch connection error (attempt {retry_attempt + 1}/{max_retries}): {e}",
                     extra={
@@ -129,21 +125,21 @@ def upload_documents(
                         "wait_time": current_delay,
                         "batch_number": i,
                         "connection_errors": connection_errors,
-                        "error_type": type(e).__name__
-                    }
+                        "error_type": type(e).__name__,
+                    },
                 )
-                
+
                 if retry_attempt < max_retries - 1:
                     # Wait before retrying
                     logger.info(f"Waiting {current_delay}s before retrying...")
                     time.sleep(current_delay)
-                    
+
                     # Check if ES is healthy before retrying
                     try:
                         health = es_client.cluster.health(timeout="5s")
                         logger.info(
                             f"Elasticsearch cluster status: {health['status']}",
-                            extra={"cluster_health": health}
+                            extra={"cluster_health": health},
                         )
                     except Exception as health_error:
                         logger.error(f"Failed to check cluster health: {health_error}")
@@ -154,12 +150,12 @@ def upload_documents(
                         extra={
                             "batch_number": i,
                             "batch_size": len(batch),
-                            "total_connection_errors": connection_errors
-                        }
+                            "total_connection_errors": connection_errors,
+                        },
                     )
                     if not safe:
                         raise e
-                    
+
             except Exception as e:
                 # Non-connection errors
                 logger.error(
@@ -167,8 +163,8 @@ def upload_documents(
                     extra={
                         "error_type": type(e).__name__,
                         "batch_number": i,
-                        "batch_size": len(batch)
-                    }
+                        "batch_size": len(batch),
+                    },
                 )
                 if not safe:
                     raise e
@@ -178,8 +174,8 @@ def upload_documents(
         extra={
             "total_uploaded": docs_uploaded,
             "index_name": index_name,
-            "total_connection_errors": connection_errors
-        }
+            "total_connection_errors": connection_errors,
+        },
     )
 
 
@@ -194,7 +190,7 @@ def update_documents(
     retry_delay: float = 10.0,
 ):
     """Bulk updates sections in an Elasticsearch index with connection retry logic.
-    
+
     Will only update the fields that are present in the document and leave the rest unchanged.
     """
     documents = (doc.model_dump() for doc in documents)
@@ -219,31 +215,27 @@ def update_documents(
         for retry_attempt in range(max_retries):
             try:
                 success, failed = helpers.bulk(
-                    es_client, 
-                    body, 
-                    max_retries=3,
-                    raise_on_error=False,
-                    raise_on_exception=False
+                    es_client, body, max_retries=3, raise_on_error=False, raise_on_exception=False
                 )
-                
+
                 if failed:
                     logger.warning(
                         f"Failed to update {len(failed)} documents in batch {i}",
                         extra={
                             "batch_number": i,
                             "failed_count": len(failed),
-                            "first_error": failed[0] if failed else None
-                        }
+                            "first_error": failed[0] if failed else None,
+                        },
                     )
-                
+
                 docs_uploaded += success
                 connection_errors = 0  # Reset on success
                 break  # Success, exit retry loop
-                
+
             except (ConnectionError, ConnectionTimeout, TransportError) as e:
                 connection_errors += 1
-                current_delay = retry_delay * (2 ** retry_attempt)  # Exponential backoff
-                
+                current_delay = retry_delay * (2**retry_attempt)  # Exponential backoff
+
                 logger.warning(
                     f"Elasticsearch connection error during update (attempt {retry_attempt + 1}/{max_retries}): {e}",
                     extra={
@@ -252,28 +244,28 @@ def update_documents(
                         "wait_time": current_delay,
                         "batch_number": i,
                         "connection_errors": connection_errors,
-                        "error_type": type(e).__name__
-                    }
+                        "error_type": type(e).__name__,
+                    },
                 )
-                
+
                 if retry_attempt < max_retries - 1:
                     logger.info(f"Waiting {current_delay}s before retrying...")
                     time.sleep(current_delay)
                 else:
                     logger.error(f"Failed to update batch after {max_retries} attempts")
                     # Continue to next batch instead of failing completely
-                    
+
             except Exception as e:
                 logger.error("Error updating documents", exc_info=True)
 
         if i % batches_per_log == 0 and i != 0:
             logger.info(f"Updated {docs_uploaded} documents in index {index_name}")
-    
+
     logger.info(
         f"Update complete: {docs_uploaded} documents updated in index {index_name}",
         extra={
             "total_updated": docs_uploaded,
             "index_name": index_name,
-            "total_connection_errors": connection_errors
-        }
+            "total_connection_errors": connection_errors,
+        },
     )

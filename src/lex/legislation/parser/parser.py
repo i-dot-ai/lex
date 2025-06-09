@@ -22,13 +22,17 @@ class LegislationParser(LexParser):
             f"Parsed legislation: {legislation_with_content.id}",
             extra={
                 "doc_id": legislation_with_content.id,
-                "doc_type": legislation_with_content.type.value if legislation_with_content.type else None,
+                "doc_type": legislation_with_content.type.value
+                if legislation_with_content.type
+                else None,
                 "doc_year": legislation_with_content.year,
                 "doc_number": legislation_with_content.number,
                 "processing_status": "success",
                 "has_xml": True,
-                "title": legislation_with_content.title[:100] if legislation_with_content.title else None
-            }
+                "title": legislation_with_content.title[:100]
+                if legislation_with_content.title
+                else None,
+            },
         )
 
         legislation = Legislation(
@@ -61,8 +65,8 @@ class LegislationSectionParser(LexParser):
                 "section_count": len(legislation.sections),
                 "schedule_count": len(legislation.schedules),
                 "provision_count": len(all_provisions),
-                "title": legislation.title[:100] if legislation.title else None
-            }
+                "title": legislation.title[:100] if legislation.title else None,
+            },
         )
 
         # Warn if no provisions found
@@ -73,8 +77,8 @@ class LegislationSectionParser(LexParser):
                     "doc_id": legislation.id,
                     "doc_type": legislation.type.value if legislation.type else None,
                     "doc_year": legislation.year,
-                    "processing_status": "no_provisions"
-                }
+                    "processing_status": "no_provisions",
+                },
             )
 
         all_provisions = [

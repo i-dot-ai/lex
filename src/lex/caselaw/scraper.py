@@ -16,7 +16,7 @@ rate_limiter = AdaptiveRateLimiter(
     min_delay=0.0,
     max_delay=300.0,  # Max 5 minutes between requests
     success_reduction_factor=0.98,  # Slower reduction
-    failure_increase_factor=3.0  # More aggressive backoff
+    failure_increase_factor=3.0,  # More aggressive backoff
 )
 
 http_client = HttpClient(
@@ -26,7 +26,7 @@ http_client = HttpClient(
     timeout=30,  # Increased timeout
     enable_cache=True,
     cache_size_limit=1000000,
-    cache_ttl=3600
+    cache_ttl=3600,
 )
 # Replace the default rate limiter with our custom one
 http_client.rate_limiter = rate_limiter
@@ -59,7 +59,7 @@ class CaselawScraper(LexScraper):
 
                 # Use lxml parser which is more memory efficient
                 soup = BeautifulSoup(res.text, "xml")
-                
+
                 # Yield both soup and the original case URL
                 yield (soup, case_url)
 
@@ -155,7 +155,7 @@ class CaselawScraper(LexScraper):
         judgment_list = soup.find("ul", class_="judgment-listing__list")
         if not judgment_list:
             return []
-        
+
         list_elements = judgment_list.find_all("li")
         links = [element.find("a")["href"] for element in list_elements if element.find("a")]
         links = [self.BASE_URL + element.split("?")[0] for element in links]
