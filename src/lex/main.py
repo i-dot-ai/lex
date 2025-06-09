@@ -20,7 +20,7 @@ from lex.core.clients import get_elasticsearch_client
 from lex.core.exceptions import RateLimitException
 from lex.core.utils import create_inference_endpoint_if_none, set_logging_level
 from lex.explanatory_note.mappings import explanatory_note_mappings
-from lex.explanatory_note.pipeline import pipe_explanatory_notes
+from lex.explanatory_note.pipeline import pipe_explanatory_note
 from lex.legislation.mappings import legislation_mappings, legislation_section_mappings
 from lex.legislation.models import LegislationType
 from lex.legislation.pipeline import pipe_legislation, pipe_legislation_sections
@@ -80,7 +80,7 @@ index_mapping = {
     ),
     "explanatory-note": IndexMapping(
         EXPLANATORY_NOTE_INDEX,
-        pipe_explanatory_notes,
+        pipe_explanatory_note,
         explanatory_note_mappings,
     ),
     "amendment": IndexMapping(

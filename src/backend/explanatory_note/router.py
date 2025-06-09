@@ -12,8 +12,8 @@ from backend.explanatory_note.models import (
 )
 from backend.explanatory_note.search import (
     get_explanatory_note_by_section,
-    get_explanatory_notes_by_legislation_id,
-    search_explanatory_notes,
+    get_explanatory_note_by_legislation_id,
+    search_explanatory_note,
 )
 from lex.explanatory_note.models import ExplanatoryNote
 
@@ -27,14 +27,14 @@ router = APIRouter(
 @router.post(
     "/section/search",
     response_model=List[ExplanatoryNote],
-    operation_id="search_explanatory_notes",
+    operation_id="search_explanatory_note",
 )
-async def search_explanatory_notes_endpoint(
+async def search_explanatory_note_endpoint(
     search: ExplanatoryNoteSearch,
     es_client: AsyncElasticsearch = Depends(get_es_client),
 ):
     try:
-        result = await search_explanatory_notes(search, es_client)
+        result = await search_explanatory_note(search, es_client)
         return result
     except Exception as e:
         error_detail = {
@@ -48,15 +48,15 @@ async def search_explanatory_notes_endpoint(
 @router.post(
     "/legislation/lookup",
     response_model=List[ExplanatoryNote],
-    operation_id="get_explanatory_notes_by_legislation",
+    operation_id="get_explanatory_note_by_legislation",
     responses={404: {"description": "Explanatory notes not found for the specified legislation"}},
 )
-async def get_explanatory_notes_by_legislation_endpoint(
+async def get_explanatory_note_by_legislation_endpoint(
     lookup: ExplanatoryNoteLookup,
     es_client: AsyncElasticsearch = Depends(get_es_client),
 ):
     try:
-        notes = await get_explanatory_notes_by_legislation_id(
+        notes = await get_explanatory_note_by_legislation_id(
             legislation_id=lookup.legislation_id,
             limit=lookup.limit,
             es_client=es_client,

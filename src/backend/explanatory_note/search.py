@@ -39,7 +39,7 @@ def get_filters(
     return filter
 
 
-async def search_explanatory_notes(
+async def search_explanatory_note(
     input: ExplanatoryNoteSearch,
     es_client: AsyncElasticsearch,
 ) -> list[ExplanatoryNote]:
@@ -88,7 +88,7 @@ async def search_explanatory_notes(
     return notes
 
 
-async def get_explanatory_notes_by_legislation_id(
+async def get_explanatory_note_by_legislation_id(
     legislation_id: str,
     es_client: AsyncElasticsearch,
     limit: int = 1000,

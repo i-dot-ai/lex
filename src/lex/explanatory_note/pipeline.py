@@ -10,7 +10,7 @@ from lex.settings import YEARS
 logger = logging.getLogger(__name__)
 
 
-def pipe_explanatory_notes(
+def pipe_explanatory_note(
     types: list[str] = list(LegislationType),
     years: list[str] = YEARS,
     limit: Optional[int] = None,
@@ -32,16 +32,16 @@ def pipe_explanatory_notes(
     scraper_and_parser = ExplanatoryNoteScraperAndParser()
 
     try:
-        explanatory_notes = scraper_and_parser.scrape_and_parse_content(
+        explanatory_note = scraper_and_parser.scrape_and_parse_content(
             years=years, types=types, limit=limit
         )
 
         # Convert generator to list to count items
-        notes_list = list(explanatory_notes)
+        notes_list = list(explanatory_note)
 
         if notes_list:
             logger.info(
-                f"Processing {len(notes_list)} explanatory notes",
+                f"Processing {len(notes_list)} explanatory note",
                 extra={
                     "doc_type": "explanatory_note",
                     "processing_status": "success",
@@ -53,7 +53,7 @@ def pipe_explanatory_notes(
 
     except Exception as e:
         logger.error(
-            f"Error processing explanatory notes: {e}",
+            f"Error processing explanatory note: {e}",
             exc_info=True,
             extra={
                 "doc_type": "explanatory_note",

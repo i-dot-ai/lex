@@ -7,13 +7,13 @@ from base_analyzer import BaseAnalyzer, get_output_path
 import json
 
 
-class ExplanatoryNotesAnalyzer(BaseAnalyzer):
+class ExplanatoryNoteAnalyzer(BaseAnalyzer):
     """Analyze explanatory notes availability and coverage."""
 
     def __init__(self):
         super().__init__()
 
-    def get_explanatory_notes_coverage_by_year(self) -> Dict[int, Dict[str, int]]:
+    def get_explanatory_note_coverage_by_year(self) -> Dict[int, Dict[str, int]]:
         """Get explanatory notes coverage statistics by year."""
 
         # Query for explanatory notes related logs
@@ -69,7 +69,7 @@ class ExplanatoryNotesAnalyzer(BaseAnalyzer):
 
         return result
 
-    def get_explanatory_notes_coverage_by_type(self) -> Dict[str, Dict[str, int]]:
+    def get_explanatory_note_coverage_by_type(self) -> Dict[str, Dict[str, int]]:
         """Get explanatory notes coverage by legislation type."""
 
         query = {
@@ -127,7 +127,7 @@ class ExplanatoryNotesAnalyzer(BaseAnalyzer):
     def get_coverage_trends(self) -> Dict[str, List[Tuple[int, float]]]:
         """Get coverage trends over years for main legislation types."""
 
-        by_year = self.get_explanatory_notes_coverage_by_year()
+        by_year = self.get_explanatory_note_coverage_by_year()
 
         # Also get coverage by type and year combined
         query = {
@@ -184,7 +184,7 @@ class ExplanatoryNotesAnalyzer(BaseAnalyzer):
         print(f"{'Year':<6} {'Attempts':<10} {'Found':<8} {'Coverage %':<12} {'Not Found':<10}")
         print("-" * 60)
 
-        by_year = self.get_explanatory_notes_coverage_by_year()
+        by_year = self.get_explanatory_note_coverage_by_year()
         total_attempts = 0
         total_found = 0
 
@@ -209,7 +209,7 @@ class ExplanatoryNotesAnalyzer(BaseAnalyzer):
         print(f"{'Type':<10} {'Attempts':<10} {'Found':<8} {'Coverage %':<12} {'Not Found':<10}")
         print("-" * 60)
 
-        by_type = self.get_explanatory_notes_coverage_by_type()
+        by_type = self.get_explanatory_note_coverage_by_type()
         for leg_type in sorted(by_type.keys()):
             stats = by_type[leg_type]
             print(
@@ -244,7 +244,7 @@ class ExplanatoryNotesAnalyzer(BaseAnalyzer):
             "coverage_trends": trends,
         }
 
-        output_path = get_output_path("explanatory_notes_report.json")
+        output_path = get_output_path("explanatory_note_report.json")
         with open(output_path, "w") as f:
             json.dump(results, f, indent=2)
 
@@ -253,6 +253,6 @@ class ExplanatoryNotesAnalyzer(BaseAnalyzer):
 
 
 if __name__ == "__main__":
-    analyzer = ExplanatoryNotesAnalyzer()
+    analyzer = ExplanatoryNoteAnalyzer()
     if analyzer.test_connection():
         analyzer.print_report()
