@@ -1,35 +1,13 @@
 import logging
 from typing import Iterator
 
-import requests
 from bs4 import BeautifulSoup
 
-from lex.core.checkpoint import PipelineCheckpoint
-from lex.core.exceptions import RateLimitException
 from lex.core.http import HttpClient
-
-# Create a more resilient HTTP client for legislation scraping
-# This needs to handle rate limits gracefully for overnight runs
-from lex.core.rate_limiter import AdaptiveRateLimiter
 from lex.core.scraper import LexScraper
 from lex.legislation.models import LegislationType
 
-# Create custom rate limiter with longer backoffs
-rate_limiter = AdaptiveRateLimiter(
-    min_delay=0.0,
-    max_delay=300.0,  # Max 5 minutes between requests
-    success_reduction_factor=0.98,  # Slower reduction
-    failure_increase_factor=3.0,  # More aggressive backoff
-)
-
-http_client = HttpClient(
-    max_retries=20,  # Increased from default 5
-    initial_delay=2.0,  # Start with 2 seconds
-    max_delay=600.0,  # Max 10 minutes between retries (increased from 60s)
-    timeout=30,  # Increased timeout for slow responses
-)
-# Replace the default rate limiter with our custom one
-http_client.rate_limiter = rate_limiter
+http_client = HttpClient()
 
 logger = logging.getLogger(__name__)
 
@@ -43,178 +21,13 @@ class LegislationScraper(LexScraper):
         years: list[int],
         limit: int | None = None,
         types: list[LegislationType] = list(LegislationType),
-        use_checkpoint: bool = True,
-        clear_checkpoint: bool = False,
-        checkpoint_suffix: str = "",
     ) -> Iterator[BeautifulSoup]:
-        """Scrapes legislation content from the internet with checkpoint support.
+        "Scrapes legislation content from the internet."
 
-        Args:
-            years: List of years to scrape
-            limit: Maximum number of documents to process
-            types: List of legislation types to process
-            use_checkpoint: Whether to use checkpoint for resuming
-            clear_checkpoint: Whether to clear existing checkpoint
-            checkpoint_suffix: Optional suffix to differentiate checkpoint IDs
-        """
-        # Create checkpoint ID based on parameters
-        type_str = "_".join(sorted(t.value for t in types))
-        checkpoint_id = f"legislation_{min(years)}_{max(years)}_{type_str}{checkpoint_suffix}"
+        legislation_urls = self.load_urls(years, types, limit)
 
-        checkpoint = None
-        processed_urls = set()
-        completed_combinations = set()
-        url_count = 0
-        skipped_count = 0
-
-        if use_checkpoint:
-            checkpoint = PipelineCheckpoint(checkpoint_id)
-
-            if clear_checkpoint:
-                checkpoint.clear()
-                logger.info(f"Cleared checkpoint: {checkpoint_id}")
-            else:
-                state = checkpoint.get_state()
-                processed_urls = state["processed_urls"]
-                completed_combinations = checkpoint.get_completed_combinations()
-                if processed_urls:
-                    logger.info(
-                        f"Resuming from checkpoint. Already processed: {len(processed_urls)} URLs, {len(completed_combinations)} completed combinations",
-                        extra={
-                            "checkpoint_id": checkpoint_id,
-                            "processed_count": len(processed_urls),
-                            "completed_combinations_count": len(completed_combinations),
-                            "checkpoint_path": str(checkpoint.cache_dir),
-                        },
-                    )
-
-        logger.info(
-            "Starting to iterate through URLs (this may take time with large checkpoints)",
-            extra={
-                "checkpoint_id": checkpoint_id if checkpoint else None,
-                "processed_count": len(processed_urls),
-                "url_count_start": url_count,
-            },
-        )
-
-        # Track URLs per combination to know when complete
-        combination_urls = {}
-        current_combination = None
-        combination_processed_count = 0
-
-        try:
-            for url in self.load_urls(
-                years, types, limit, include_xml=True, completed_combinations=completed_combinations
-            ):
-                url_count += 1
-
-                # Extract combination from URL
-                # URL format: https://www.legislation.gov.uk/{type}/{year}/{number}/data.xml
-                parts = url.split("/")
-                if len(parts) >= 6:
-                    url_type = parts[3]
-                    url_year = parts[4]
-                    new_combination = f"{url_type}_{url_year}"
-
-                    # Check if we've moved to a new combination
-                    if new_combination != current_combination:
-                        # Mark previous combination as complete if all URLs were processed
-                        if current_combination and checkpoint:
-                            if current_combination not in combination_urls:
-                                combination_urls[current_combination] = 0
-                            if combination_processed_count == combination_urls[current_combination]:
-                                checkpoint.mark_combination_complete(current_combination)
-                                logger.info(
-                                    f"Marked combination as complete: {current_combination}"
-                                )
-
-                        current_combination = new_combination
-                        combination_processed_count = 0
-                        if current_combination not in combination_urls:
-                            combination_urls[current_combination] = 0
-                        combination_urls[current_combination] += 1
-
-                # Skip if already processed
-                if url in processed_urls:
-                    skipped_count += 1
-                    combination_processed_count += 1  # Still counts towards combination completion
-                    # Log progress periodically while skipping
-                    if url_count % 1000 == 0:
-                        logger.info(
-                            f"Checkpoint progress: Checked {url_count} URLs, skipped {skipped_count} already processed",
-                            extra={
-                                "checkpoint_id": checkpoint_id,
-                                "urls_checked": url_count,
-                                "urls_skipped": skipped_count,
-                                "total_processed": len(processed_urls),
-                                "completed_combinations": len(completed_combinations),
-                            },
-                        )
-                    logger.debug(f"Skipping already processed: {url}")
-                    continue
-
-                try:
-                    soup = self._load_legislation_from_url(url)
-
-                    # Mark as processed if using checkpoint
-                    if checkpoint:
-                        checkpoint.mark_processed(url)
-                        combination_processed_count += 1
-
-                        # Save position periodically
-                        if url_count % 100 == 0:
-                            checkpoint.save_position(url_count)
-                            checkpoint.update_metadata(
-                                {
-                                    "years": f"{min(years)}-{max(years)}",
-                                    "types": type_str,
-                                    "total_urls": url_count,
-                                }
-                            )
-
-                    yield url, soup
-
-                except RateLimitException as e:
-                    # Save checkpoint before potential exit
-                    if checkpoint:
-                        checkpoint.save_position(url_count)
-                        checkpoint.update_metadata(
-                            {"last_rate_limit": url, "rate_limit_error": str(e)}
-                        )
-
-                    logger.warning(
-                        f"Rate limit hit at position {url_count}",
-                        extra={
-                            "checkpoint_id": checkpoint_id if checkpoint else None,
-                            "position": url_count,
-                            "url": url,
-                            "processed_count": len(processed_urls) + url_count,
-                        },
-                    )
-                    raise  # Re-raise to let pipeline handle
-
-                except Exception as e:
-                    # Other errors - mark as failed but continue
-                    error_msg = f"Failed to process {url}: {e}"
-                    logger.error(error_msg, exc_info=True)
-
-                    if checkpoint:
-                        checkpoint.mark_failed(url, str(e))
-                    continue
-
-        finally:
-            # Mark final combination as complete if all URLs were processed
-            if current_combination and checkpoint:
-                if combination_processed_count == combination_urls.get(current_combination, 0):
-                    checkpoint.mark_combination_complete(current_combination)
-                    logger.info(f"Marked final combination as complete: {current_combination}")
-
-            # Log final summary if using checkpoint
-            if checkpoint and checkpoint.exists():
-                summary = checkpoint.get_summary()
-                completed_count = len(checkpoint.get_completed_combinations())
-                summary["completed_combinations"] = completed_count
-                logger.info(f"Checkpoint summary for {checkpoint_id}", extra=summary)
+        for url in legislation_urls:
+            yield self._load_legislation_from_url(url)
 
     def load_urls(
         self,
@@ -222,21 +35,10 @@ class LegislationScraper(LexScraper):
         types: list[LegislationType],
         limit: int | None = None,
         include_xml=True,
-        completed_combinations: set = None,
     ) -> Iterator[str]:
         count = 0
-        if completed_combinations is None:
-            completed_combinations = set()
-
         for year in years:
             for type in types:
-                combination_key = f"{type.value}_{year}"
-
-                # Skip if this combination is already complete
-                if combination_key in completed_combinations:
-                    logger.debug(f"Skipping completed combination: {combination_key}")
-                    continue
-
                 urls = self._get_legislation_urls_from_type_year(type.value, year, include_xml)
                 for url in urls:
                     yield url
@@ -249,26 +51,7 @@ class LegislationScraper(LexScraper):
     ) -> Iterator[str]:
         url = f"{self.base_url}/{legislation_type}/{year}"
         logger.debug(f"Checking URL: {url}")
-
-        try:
-            res = http_client.get(url)
-        except requests.exceptions.HTTPError as e:
-            # Handle server errors gracefully
-            if e.response is not None and e.response.status_code >= 500:
-                logger.warning(
-                    f"Server error accessing {legislation_type} for year {year}: {e.response.status_code}",
-                    extra={
-                        "url": url,
-                        "status_code": e.response.status_code,
-                        "legislation_type": legislation_type,
-                        "year": year,
-                        "error_type": "server_error",
-                    },
-                )
-                return []
-            else:
-                # Re-raise other HTTP errors
-                raise
+        res = http_client.get(url)
 
         # Check if page exists with a reasonable status code
         if res.status_code != 200:
@@ -291,24 +74,7 @@ class LegislationScraper(LexScraper):
         next_page = url
         while next_page:
             logger.debug(f"Scraping {next_page}")
-            try:
-                res = http_client.get(next_page)
-            except requests.exceptions.HTTPError as e:
-                # Handle server errors gracefully
-                if e.response is not None and e.response.status_code >= 500:
-                    logger.warning(
-                        f"Server error accessing page {next_page}: {e.response.status_code}",
-                        extra={
-                            "url": next_page,
-                            "status_code": e.response.status_code,
-                            "error_type": "server_error",
-                        },
-                    )
-                    break  # Stop pagination on server error
-                else:
-                    # Re-raise other HTTP errors
-                    raise
-
+            res = http_client.get(next_page)
             soup = BeautifulSoup(res.text, "html.parser")
 
             hrefs = self._extract_legislation_urls_from_searchpage(soup, legislation_type)

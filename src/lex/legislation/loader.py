@@ -18,14 +18,14 @@ class LegislationLoader(LexLoader):
         years: list[int],
         limit: int | None = None,
         types: list[LegislationType] = list(LegislationType),
-    ) -> Iterable[BeautifulSoup]:
+    ) -> Iterable[str, BeautifulSoup]:
         """Load the content of the legislation files."""
 
         filenames = self._get_filenames(years, types, limit)
         sorted_filenames = self._sort_filenames(filenames)
 
         for filename in sorted_filenames:
-            yield self._load_xml_file(filename)
+            yield filename,self._load_xml_file(filename)
 
     def _get_filenames(
         self, years: list[int], types: list[LegislationType], limit: int | None = None

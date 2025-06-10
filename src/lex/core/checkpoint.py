@@ -1,16 +1,21 @@
 """Pipeline checkpoint system for resilient processing."""
 
-import json
+import itertools
+import logging
 import os
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Set, Optional, Any
-import logging
+from typing import Any, Dict, Iterator, Sequence, Set
 
 from diskcache import Cache
 
 logger = logging.getLogger(__name__)
 
+def get_checkpoints(*args: Sequence[Any], **kwargs: Any) -> Iterator[tuple[Any, ...]]:
+    """Generate cartesian product of all input arguments and keyword arguments."""
+    args = list(args)
+    args.extend(kwargs.values())
+    return itertools.product(*args)
 
 class PipelineCheckpoint:
     """Manages checkpoint state for pipeline runs using mounted volume."""
