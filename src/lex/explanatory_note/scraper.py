@@ -242,7 +242,7 @@ class ExplanatoryNoteScraperAndParser:
 
     def scrape_and_parse_content(
         self, years: list[int], types: list[LegislationType], limit: Optional[int] = None
-    ) -> Iterator[ExplanatoryNote]:
+    ) -> Iterator[tuple[str, ExplanatoryNote]]:
         legislation_scraper = LegislationScraper()
 
         self.urls = legislation_scraper.load_urls(years, types, limit, include_xml=False)
@@ -342,4 +342,4 @@ class ExplanatoryNoteScraperAndParser:
                 "section_count": len(sections),
             },
         )
-        return sections
+        return list(zip([updated_legislation_id] * len(sections), sections))

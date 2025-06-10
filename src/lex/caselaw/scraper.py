@@ -44,7 +44,7 @@ class CaselawScraper(LexScraper):
         limit: int = 50,
         results_per_page: int = 50,
         types: list[Court] | None = None,
-    ) -> Iterator[tuple[BeautifulSoup, str]]:
+    ) -> Iterator[tuple[str, BeautifulSoup]]:
         """Scrapes National Archives content, returning tuples of (BeautifulSoup, case_url)."""
 
         case_urls = self._get_cases_urls(
@@ -61,7 +61,7 @@ class CaselawScraper(LexScraper):
                 soup = BeautifulSoup(res.text, "xml")
 
                 # Yield both soup and the original case URL
-                yield (soup, case_url)
+                yield case_url, soup
 
             except Exception as e:
                 logger.error(f"Error with case {case_url}: {str(e)}", exc_info=True)

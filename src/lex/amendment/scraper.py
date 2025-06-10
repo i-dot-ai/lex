@@ -1,5 +1,5 @@
 import logging
-from typing import Generator, Optional, Tuple
+from typing import Iterator, Optional, Tuple
 
 from bs4 import BeautifulSoup
 
@@ -29,7 +29,7 @@ class AmendmentScraper(LexScraper):
         year_made_by: Optional[int] = None,
         page: int = 1,
         results_count: int = 100,
-    ) -> Generator[Amendment, None, None]:
+    ) -> Iterator[tuple[str, Amendment]]:
         """
         Get legislation changes as a generator of Amendment objects.
 
@@ -68,7 +68,7 @@ class AmendmentScraper(LexScraper):
                 if not self._page_has_results(soup):
                     break
 
-                yield soup
+                yield url, soup
                 count += results_count
                 page += 1
 

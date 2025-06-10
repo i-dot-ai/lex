@@ -7,12 +7,12 @@ from bs4 import BeautifulSoup
 from lex.core.checkpoint import PipelineCheckpoint
 from lex.core.exceptions import RateLimitException
 from lex.core.http import HttpClient
-from lex.core.scraper import LexScraper
-from lex.legislation.models import LegislationType
 
 # Create a more resilient HTTP client for legislation scraping
 # This needs to handle rate limits gracefully for overnight runs
 from lex.core.rate_limiter import AdaptiveRateLimiter
+from lex.core.scraper import LexScraper
+from lex.legislation.models import LegislationType
 
 # Create custom rate limiter with longer backoffs
 rate_limiter = AdaptiveRateLimiter(
@@ -89,7 +89,7 @@ class LegislationScraper(LexScraper):
                     )
 
         logger.info(
-            f"Starting to iterate through URLs (this may take time with large checkpoints)",
+            "Starting to iterate through URLs (this may take time with large checkpoints)",
             extra={
                 "checkpoint_id": checkpoint_id if checkpoint else None,
                 "processed_count": len(processed_urls),
@@ -172,7 +172,7 @@ class LegislationScraper(LexScraper):
                                 }
                             )
 
-                    yield soup
+                    yield url, soup
 
                 except RateLimitException as e:
                     # Save checkpoint before potential exit

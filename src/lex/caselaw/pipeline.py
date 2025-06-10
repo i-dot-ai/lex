@@ -1,12 +1,12 @@
 import logging
-from typing import Iterable, List, Optional
+from typing import Iterable
 
 from lex.caselaw.models import Caselaw, CaselawSection, Court
 from lex.caselaw.parser import CaselawParser, CaselawSectionParser
 from lex.caselaw.scraper import CaselawScraper
 from lex.core.document import generate_documents
-from lex.core.pipeline_utils import PipelineMonitor, checkpoint_manager
 from lex.core.error_utils import ErrorCategorizer
+from lex.core.pipeline_utils import PipelineMonitor, checkpoint_manager
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +38,7 @@ def pipe_caselaw(
     """
     scraper = CaselawScraper()
     parser = CaselawParser()
-    
+
     # Generate checkpoint ID if needed
     if use_checkpoint and not checkpoint_id:
         parts = ["caselaw"]
@@ -47,7 +47,7 @@ def pipe_caselaw(
         if types:
             parts.extend([t.value for t in sorted(types, key=lambda x: x.value)])
         checkpoint_id = "_".join(parts)
-    
+
     # Use checkpoint manager for all checkpoint operations
     with checkpoint_manager("caselaw", use_checkpoint, clear_checkpoint, checkpoint_id) as checkpoint:
         court_types = types or list(Court)
@@ -59,10 +59,10 @@ def pipe_caselaw(
             # Convert string back to Court enum
             court_enum = next(c for c in Court if c.value == court)
             combination_key = f"{court}_{year}"
-            
+
             try:
                 # Process cases for this combination
-                for soup, case_url in scraper.load_content(
+                for case_url, soup in scraper.load_content(
                     years=[year], limit=limit, types=[court_enum]
                 ):
                     # Skip if already processed
@@ -72,11 +72,11 @@ def pipe_caselaw(
                     try:
                         # Parse the caselaw - simple business logic
                         caselaw = parser.parse_content(soup)
-                        
+
                         # Update URL with actual ID if available
                         if caselaw.id:
                             case_url = caselaw.id
-                        
+
                         # Yield documents and mark as processed
                         yield from generate_documents([caselaw], Caselaw)
                         checkpoint.mark_processed(case_url, {
@@ -93,7 +93,7 @@ def pipe_caselaw(
                             "year": year,
                             "combination_key": combination_key
                         })
-                        
+
                         if ErrorCategorizer.is_recoverable_error(e):
                             # Log and continue
                             logger.error(
@@ -105,7 +105,7 @@ def pipe_caselaw(
                             # Non-recoverable error
                             raise
 
-                
+
                 # Mark combination as complete
                 checkpoint.mark_combination_completed(combination_key)
 
@@ -140,7 +140,7 @@ def pipe_caselaw_sections(
     """
     scraper = CaselawScraper()
     parser = CaselawSectionParser()
-    
+
     # Generate checkpoint ID if needed
     if use_checkpoint and not checkpoint_id:
         parts = ["caselaw_sections"]
@@ -149,7 +149,7 @@ def pipe_caselaw_sections(
         if types:
             parts.extend([t.value for t in sorted(types, key=lambda x: x.value)])
         checkpoint_id = "_".join(parts)
-    
+
     with checkpoint_manager("caselaw_section", use_checkpoint, clear_checkpoint, checkpoint_id) as checkpoint:
         court_types = types or list(Court)
 
@@ -158,7 +158,7 @@ def pipe_caselaw_sections(
         ):
             court_enum = next(c for c in Court if c.value == court)
             combination_key = f"{court}_{year}"
-            
+
             try:
                 for soup, case_url in scraper.load_content(
                     years=[year], limit=limit, types=[court_enum]
@@ -169,12 +169,12 @@ def pipe_caselaw_sections(
                     try:
                         # Parse sections
                         sections = parser.parse_content(soup)
-                        
+
                         if sections:
                             # Update URL with first section's case ID
                             if sections[0].caselaw_id:
                                 case_url = sections[0].caselaw_id
-                            
+
                             # Yield all sections
                             yield from generate_documents(sections, CaselawSection)
                             checkpoint.mark_processed(case_url, {
@@ -194,7 +194,7 @@ def pipe_caselaw_sections(
                         else:
                             raise
 
-                
+
                 checkpoint.mark_combination_completed(combination_key)
 
             except Exception as e:

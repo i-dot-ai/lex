@@ -2,8 +2,8 @@ import logging
 from typing import Iterator
 
 from lex.core.document import generate_documents
-from lex.core.pipeline_utils import PipelineMonitor
 from lex.core.error_utils import ErrorCategorizer
+from lex.core.pipeline_utils import PipelineMonitor
 from lex.legislation.loader import LegislationLoader
 from lex.legislation.models import Legislation, LegislationSection, LegislationType
 from lex.legislation.parser import LegislationParser, LegislationSectionParser
@@ -40,7 +40,7 @@ def pipe_legislation(
     else:
         content_iterator = loader_or_scraper.load_content(years, limit, types)
 
-    for soup in content_iterator:
+    for url, soup in content_iterator:
         try:
             # Parse the legislation - simple business logic
             legislation = parser.parse_content(soup)
@@ -86,11 +86,11 @@ def pipe_legislation_sections(
     else:
         content_iterator = loader_or_scraper.load_content(years, limit, types)
 
-    for soup in content_iterator:
+    for url, soup in content_iterator:
         try:
             # Parse sections
             legislation_sections = parser.parse_content(soup)
-            
+
             if legislation_sections:
                 yield from generate_documents(legislation_sections, LegislationSection)
         except Exception as e:
