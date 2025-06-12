@@ -159,7 +159,10 @@ class CaselawScraper(LexScraper):
                 if not request_url:
                     break
             except Exception as e:
-                logger.error(f"Error fetching page {page_counter + 1}: {str(e)}")
+                if page_counter == 0:
+                    logger.error(f"No results found for {request_url}")
+                else:
+                    logger.error(f"Error fetching page {page_counter + 1}: {str(e)}")
                 break
 
     def _get_cases_from_contents_soup(self, soup: BeautifulSoup) -> Iterator[str]:
