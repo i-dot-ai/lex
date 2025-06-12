@@ -47,6 +47,17 @@ class CaselawScraper(LexScraper):
     ) -> Iterator[tuple[str, BeautifulSoup]]:
         """Scrapes National Archives content, returning tuples of (BeautifulSoup, case_url)."""
 
+        # Filter out years before 2001 as caselaw only exists from 2001 onwards
+        if years:
+            valid_years = [year for year in years if year >= 2001]
+            if not valid_years:
+                logger.info("No valid years found for caselaw (must be >= 2001). Skipping.")
+                return
+            if len(valid_years) != len(years):
+                skipped_years = [year for year in years if year < 2001]
+                logger.info(f"Skipping years before 2001 for caselaw: {skipped_years}")
+            years = valid_years
+
         case_urls = self._get_cases_urls(
             page_offset=0, results_per_page=results_per_page, limit=limit, years=years, types=types
         )
