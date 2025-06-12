@@ -135,7 +135,7 @@ class LegislationScraper(LexScraper):
             if href.startswith(f"/{legislation_type}") and href.endswith(tuple(valid_endswith)):
                 # Just store the base URL (without /data.xml) for now
                 # We'll validate and process later
-                base_url = self.base_url + "/".join(href.split("/")[:4])
+                base_url = self.base_url + "/".join(href.split("/")[:-1])
                 hrefs.append(base_url)
 
         return hrefs

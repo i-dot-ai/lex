@@ -9,6 +9,7 @@ from typing import Any, Callable, Dict, Iterator, Optional, Set
 from diskcache import Cache
 
 from lex.core.error_utils import ErrorCategorizer
+from lex.core.exceptions import ProcessedException
 
 logger = logging.getLogger(__name__)
 
@@ -69,6 +70,11 @@ class CheckpointCombination:
             self.checkpoint_manager.mark_processed(url)
             logger.debug(f"Successfully processed URL: {url}")
             return result
+        except ProcessedException as e:
+            # Mark as processed even though parsing failed - we don't want to retry
+            self.checkpoint_manager.mark_processed(url)
+            logger.info(f"Marking URL as processed despite failure: {url} - {str(e)}")
+            return None
         except Exception as e:
             self.checkpoint_manager.mark_failed(url, str(e))
 
