@@ -11,7 +11,7 @@ def test_explanatory_note_integration():
 
     # Scrape and parse content
     explanatory_note = []
-    for explanatory_note_soup in scraper_and_parser.scrape_and_parse_content(
+    for url, explanatory_note_soup in scraper_and_parser.scrape_and_parse_content(
         years=[2024], types=[LegislationType.UKPGA], limit=10
     ):
         explanatory_note.append(explanatory_note_soup)

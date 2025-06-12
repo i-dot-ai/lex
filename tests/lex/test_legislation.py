@@ -1,5 +1,7 @@
 """Integration tests for legislation package."""
 
+import os
+
 import pytest
 from bs4 import BeautifulSoup
 
@@ -16,6 +18,10 @@ parser = CLMLMarkdownParser()
 
 def test_legislation_integration():
     """Test the full legislation parsing pipeline."""
+    # Skip if no data in data/raw/legislation/2024
+    data_dir = "data/raw/legislation/2024"
+    if not os.path.isdir(data_dir) or not any(os.scandir(data_dir)):
+        pytest.skip(f"Skipping test: no data in {data_dir}")
     # Initialize components
     loader = LegislationLoader()
     legislation_parser = LegislationParser()
@@ -24,7 +30,7 @@ def test_legislation_integration():
     # Load and parse content
     legislations = []
     sections = []
-    for legislation_soup in loader.load_content(
+    for url, legislation_soup in loader.load_content(
         years=[2024], types=[LegislationType.UKPGA], limit=10
     ):
         legislations.append(legislation_parser.parse_content(legislation_soup))

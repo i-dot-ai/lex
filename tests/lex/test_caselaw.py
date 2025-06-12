@@ -16,7 +16,7 @@ def test_caselaw_integration():
     # Scrape and parse content
     caselaw = []
     caselaw_sections = []
-    for caselaw_soup in scraper.load_content(years=[2024], limit=10):
+    for url, caselaw_soup in scraper.load_content(years=[2024], limit=10):
         caselaw.append(parser.parse_content(caselaw_soup))
         caselaw_sections.extend(section_parser.parse_content(caselaw_soup))
 
