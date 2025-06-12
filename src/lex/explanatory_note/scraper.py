@@ -342,4 +342,5 @@ class ExplanatoryNoteScraperAndParser:
                 "section_count": len(sections),
             },
         )
-        return list(zip([updated_legislation_id] * len(sections), sections))
+        ids = [section.id for section in sections]
+        return list(zip(ids, sections))

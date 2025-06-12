@@ -2,8 +2,7 @@ import logging
 from typing import Iterator
 
 from lex.core.checkpoint import get_checkpoints
-from lex.core.document import generate_documents
-from lex.core.pipeline_utils import PipelineMonitor
+from lex.core.pipeline_utils import PipelineMonitor, process_checkpoints
 from lex.legislation.loader import LegislationLoader
 from lex.legislation.models import Legislation, LegislationSection, LegislationType
 from lex.legislation.parser import LegislationParser, LegislationSectionParser
@@ -28,12 +27,14 @@ def pipe_legislation(
 
     checkpoints = get_checkpoints(years, types, "legislation")
 
-    for checkpoint in checkpoints:
-        with checkpoint as ctx:
-            for url, soup in loader_or_scraper.load_content([checkpoint.year], limit, [checkpoint.doc_type]):
-                result = ctx.process_item(url, lambda: parser.parse_content(soup))
-                if result:
-                    yield from generate_documents([result], Legislation)
+    yield from process_checkpoints(
+        checkpoints=checkpoints,
+        loader_or_scraper=loader_or_scraper,
+        parser=parser,
+        document_type=Legislation,
+        limit=limit,
+        wrap_result=True
+    )
 
 @PipelineMonitor(doc_type="legislation_section", track_progress=True)
 def pipe_legislation_sections(
@@ -52,9 +53,13 @@ def pipe_legislation_sections(
 
     checkpoints = get_checkpoints(years, types, "legislation_section")
 
-    for checkpoint in checkpoints:
-        with checkpoint as ctx:
-            for url, soup in loader_or_scraper.load_content([checkpoint.year], limit, [checkpoint.doc_type]):
-                result = ctx.process_item(url, lambda: parser.parse_content(soup))
-                if result:
-                    yield from generate_documents(result, LegislationSection)
+    yield from process_checkpoints(
+        checkpoints=checkpoints,
+        loader_or_scraper=loader_or_scraper,
+        parser=parser,
+        document_type=LegislationSection,
+        limit=limit,
+        wrap_result=False
+    )
+
+

@@ -8,45 +8,9 @@ from typing import Any, Callable, Dict, Iterator, Optional, Set
 
 from diskcache import Cache
 
+from lex.core.error_utils import ErrorCategorizer
+
 logger = logging.getLogger(__name__)
-
-class CheckpointContext:
-    """Context for processing URLs within a specific combination."""
-
-    def __init__(self, checkpoint_manager: 'PipelineCheckpoint'):
-        self.checkpoint_manager = checkpoint_manager
-
-    def is_processed(self, url: str) -> bool:
-        """Check if URL has already been successfully processed."""
-        return url in self.checkpoint_manager.get_processed_urls()
-
-    def process_item(self, url: str, processor_func: Callable[[], Any]) -> Optional[Any]:
-        """
-        Process an item with automatic checkpoint tracking.
-        
-        Args:
-            url: Unique identifier for this item
-            processor_func: Function that processes the item (e.g., parser.parse_content)
-            
-        Returns:
-            Result of processor_func if successful, None if already processed
-            
-        Raises:
-            Exception: Re-raises any exception from processor_func after marking as failed
-        """
-        if self.is_processed(url):
-            logger.debug(f"Skipping already processed URL: {url}")
-            return None
-
-        try:
-            result = processor_func()
-            self.checkpoint_manager.mark_processed(url)
-            logger.debug(f"Successfully processed URL: {url}")
-            return result
-        except Exception as e:
-            self.checkpoint_manager.mark_failed(url, str(e))
-            logger.error(f"Failed to process URL {url}: {e}")
-            raise  # Re-raise for pipeline to handle
 
 
 class CheckpointCombination:
@@ -74,20 +38,87 @@ class CheckpointCombination:
         """Check if this combination has been marked as complete."""
         return self.checkpoint_manager.cache.get(self.checkpoint_manager._get_key("combination_complete"), False)
 
-    def __enter__(self) -> CheckpointContext:
+    def is_processed(self, url: str) -> bool:
+        """Check if URL has already been successfully processed."""
+        return url in self.checkpoint_manager.get_processed_urls()
+
+    def mark_limit_hit(self):
+        """Mark that this combination has hit its processing limit."""
+        self.checkpoint_manager.mark_limit_hit()
+
+    def process_item(self, url: str, processor_func: Callable[[], Any]) -> Optional[Any]:
+        """
+        Process an item with automatic checkpoint tracking.
+
+        Args:
+            url: Unique identifier for this item
+            processor_func: Function that processes the item (e.g., parser.parse_content)
+
+        Returns:
+            Result of processor_func if successful, None if already processed
+
+        Raises:
+            Exception: Re-raises any exception from processor_func after marking as failed
+        """
+        if self.is_processed(url):
+            logger.debug(f"Skipping already processed URL: {url}")
+            return None
+
+        try:
+            result = processor_func()
+            self.checkpoint_manager.mark_processed(url)
+            logger.debug(f"Successfully processed URL: {url}")
+            return result
+        except Exception as e:
+            self.checkpoint_manager.mark_failed(url, str(e))
+
+            ErrorCategorizer.handle_error(logger, e, url)
+            return None
+
+    def __enter__(self):
         """Start processing this combination."""
         if self.is_complete():
             logger.info(f"Skipping completed combination: {self.checkpoint_manager.checkpoint_id}")
+        else:
+            logger.info(f"Starting combination: {self.checkpoint_manager.checkpoint_id}")
+            # Clear hit_limit flag when starting fresh processing
+            self.checkpoint_manager.clear_limit_hit()
 
-        return CheckpointContext(self.checkpoint_manager)
+        return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        """Mark combination complete if no exceptions."""
-        if exc_type is None:
-            # No exception - mark this combination as complete
-            self.checkpoint_manager.cache.set(self.checkpoint_manager._get_key("combination_complete"), True)
-            self.checkpoint_manager.cache.set(self.checkpoint_manager._get_key("updated_at"), datetime.now().isoformat())
-            logger.info(f"Completed combination: {self.checkpoint_manager.checkpoint_id}")
+        """Mark combination complete based on processing state, not exceptions."""
+        failed_urls = self.checkpoint_manager.cache.get(
+            self.checkpoint_manager._get_key("failed_urls"), {}
+        )
+
+        has_failed_urls = len(failed_urls) > 0
+        has_hit_limit = self.checkpoint_manager.has_hit_limit()
+
+        # Only mark complete if:
+        # - No failed URLs (nothing to retry)
+        # - AND didn't hit limit (no more items to process)
+        should_complete = not has_failed_urls and not has_hit_limit
+
+        if should_complete:
+            self.checkpoint_manager.cache.set(
+                self.checkpoint_manager._get_key("combination_complete"), True
+            )
+            self.checkpoint_manager.cache.set(
+                self.checkpoint_manager._get_key("updated_at"), datetime.now().isoformat()
+            )
+            logger.info(f"Marked {self.checkpoint_manager.checkpoint_id} as complete")
+        else:
+            # Log why it wasn't marked complete
+            reasons = []
+            if has_failed_urls:
+                reasons.append(f"{len(failed_urls)} failed URLs")
+            if has_hit_limit:
+                reasons.append("hit processing limit")
+
+            logger.info(
+                f"Not marking {self.checkpoint_manager.checkpoint_id} as complete: {', '.join(reasons)}"
+            )
 
 
 def get_checkpoints(
@@ -98,13 +129,13 @@ def get_checkpoints(
 ) -> Iterator[CheckpointCombination]:
     """
     Generate checkpoint combinations, skipping completed ones.
-    
+
     Args:
         years: List of years to process
         types: List of document types (LegislationType, Court, etc.) - None for amendments
         doc_type_name: Document type string for checkpoint naming
         **kwargs: Additional checkpoint options (clear_checkpoint, etc.)
-        
+
     Returns:
         Iterator of CheckpointCombination objects
     """
@@ -151,7 +182,7 @@ class PipelineCheckpoint:
         self.cache = Cache(str(self.base_dir))
         self._key_prefix = f"{checkpoint_id}:"
 
-        logger.info(
+        logger.debug(
             f"Checkpoint initialized: {checkpoint_id}",
             extra={"checkpoint_id": checkpoint_id, "checkpoint_path": str(self.base_dir)},
         )
@@ -165,6 +196,7 @@ class PipelineCheckpoint:
         return {
             "processed_urls": set(self.cache.get(self._get_key("processed_urls"), [])),
             "failed_urls": dict(self.cache.get(self._get_key("failed_urls"), {})),
+            "hit_limit": self.cache.get(self._get_key("hit_limit"), False),
             "last_position": self.cache.get(self._get_key("last_position"), 0),
             "metadata": self.cache.get(self._get_key("metadata"), {}),
             "created_at": self.cache.get(self._get_key("created_at"), datetime.now().isoformat()),
@@ -189,6 +221,23 @@ class PipelineCheckpoint:
         self.cache.set(self._get_key("failed_urls"), failed)
         self.cache.set(self._get_key("updated_at"), datetime.now().isoformat())
 
+
+    def mark_limit_hit(self):
+        """Mark that this combination has hit its processing limit."""
+        self.cache.set(self._get_key("hit_limit"), True)
+        self.cache.set(self._get_key("updated_at"), datetime.now().isoformat())
+        logger.debug(f"Marked {self.checkpoint_id} as having hit limit")
+
+    def clear_limit_hit(self):
+        """Clear the hit_limit flag - indicates we can process more if needed."""
+        self.cache.set(self._get_key("hit_limit"), False)
+        self.cache.set(self._get_key("updated_at"), datetime.now().isoformat())
+        logger.debug(f"Cleared hit limit flag for {self.checkpoint_id}")
+
+    def has_hit_limit(self) -> bool:
+        """Check if this combination has hit its processing limit."""
+        return self.cache.get(self._get_key("hit_limit"), False)
+
     def save_position(self, position: int):
         """Save current position in iteration."""
         self.cache.set(self._get_key("last_position"), position)
@@ -201,21 +250,7 @@ class PipelineCheckpoint:
         self.cache.set(self._get_key("metadata"), current_metadata)
         self.cache.set(self._get_key("updated_at"), datetime.now().isoformat())
 
-    def mark_combination_complete(self, combination_key: str):
-        """Mark a year/type combination as fully processed."""
-        completed = set(self.cache.get(self._get_key("completed_combinations"), []))
-        completed.add(combination_key)
-        self.cache.set(self._get_key("completed_combinations"), list(completed))
-        self.cache.set(self._get_key("updated_at"), datetime.now().isoformat())
 
-    def get_completed_combinations(self) -> Set[str]:
-        """Get set of completed year/type combinations."""
-        return set(self.cache.get(self._get_key("completed_combinations"), []))
-
-    def is_combination_complete(self, combination_key: str) -> bool:
-        """Check if a year/type combination is complete."""
-        completed = set(self.cache.get(self._get_key("completed_combinations"), []))
-        return combination_key in completed
 
     def clear(self):
         """Clear checkpoint data for this specific checkpoint."""

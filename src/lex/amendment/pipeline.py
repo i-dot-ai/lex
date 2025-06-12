@@ -2,9 +2,7 @@ import logging
 from typing import Iterator
 
 from lex.core.checkpoint import get_checkpoints
-from lex.core.document import generate_documents
-from lex.core.error_utils import ErrorCategorizer
-from lex.core.pipeline_utils import PipelineMonitor
+from lex.core.pipeline_utils import PipelineMonitor, process_checkpoints
 
 from .models import Amendment
 from .parser import AmendmentParser
@@ -22,9 +20,11 @@ def pipe_amendments(
 
     checkpoints = get_checkpoints(years, None, "amendment")
 
-    for checkpoint in checkpoints:
-        with checkpoint as ctx:
-            for url, soup in scraper.load_content([checkpoint.year], limit):
-                result = ctx.process_item(url, lambda: parser.parse_content(soup))
-                if result:
-                    yield from generate_documents(result, Amendment)
+    yield from process_checkpoints(
+        checkpoints=checkpoints,
+        loader_or_scraper=scraper,
+        parser=parser,
+        document_type=Amendment,
+        limit=limit,
+        wrap_result=False
+    )

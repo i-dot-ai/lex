@@ -4,8 +4,9 @@ import logging
 import re
 import time
 from functools import wraps
-from typing import Any, Callable, Dict, Iterator, TypeVar
+from typing import Any, Callable, Dict, Iterator, Type, TypeVar
 
+from lex.core.document import generate_documents
 from lex.core.models import LexModel
 
 T = TypeVar('T', bound=LexModel)
@@ -206,3 +207,109 @@ class PipelineMonitor:
         """Check if the error indicates a PDF fallback."""
         error_msg = str(error).lower()
         return "no body found" in error_msg or "likely a pdf" in error_msg
+
+from lex.core.checkpoint import CheckpointCombination
+from lex.core.loader import LexLoader
+from lex.core.parser import LexParser
+
+
+def process_checkpoints(
+    checkpoints: list[CheckpointCombination],
+    loader_or_scraper: LexLoader,
+    parser: LexParser,
+    document_type: Type[LexModel],
+    limit: int,
+    wrap_result: bool = False
+) -> Iterator[LexModel]:
+    """Abstract common checkpoint processing logic.
+    
+    Args:
+        checkpoints: List of checkpoints to process
+        loader_or_scraper: Content loader or scraper instance
+        parser: Parser instance with parse_content method
+        document_type: The document model class to generate
+        limit: Processing limit (modified in place)
+        wrap_result: Whether to wrap the parser result in a list before passing to generate_documents
+        
+    Yields:
+        Processed documents of the specified type
+    """
+    logger = logging.getLogger(__name__)
+
+    for checkpoint in checkpoints:
+        with checkpoint as ctx:
+            # Handle different load_content signatures based on whether doc_type exists
+            if hasattr(checkpoint, 'doc_type') and checkpoint.doc_type is not None:
+                # For pipelines with types (legislation, caselaw, explanatory_note)
+                content_iterator = loader_or_scraper.load_content(
+                    years=[checkpoint.year],
+                    types=[checkpoint.doc_type]
+                )
+            else:
+                # For pipelines without types (amendment)
+                content_iterator = loader_or_scraper.load_content([checkpoint.year])
+
+            for url, soup in content_iterator:
+                if limit <= 0:
+                    logger.info("Document limit reached during processing")
+                    ctx.mark_limit_hit()
+                    return
+
+                result = ctx.process_item(url, lambda: parser.parse_content(soup))
+                if result:
+                    limit -= 1
+                    # Handle the difference between single results and lists
+                    data_to_process = [result] if wrap_result else result
+                    yield from generate_documents(data_to_process, document_type)
+
+
+def process_checkpoints_with_combined_scraper_parser(
+    checkpoints: list[CheckpointCombination],
+    scraper_parser: Any,
+    document_type: Type[LexModel],
+    limit: int,
+    wrap_result: bool = False
+) -> Iterator[LexModel]:
+    """Abstract checkpoint processing for combined scraper-parser classes.
+    
+    This function handles pipelines where scraping and parsing are combined
+    into a single class (like ExplanatoryNoteScraperAndParser).
+    
+    Args:
+        checkpoints: List of checkpoints to process
+        scraper_parser: Combined scraper-parser instance with scrape_and_parse_content method
+        document_type: The document model class to generate
+        limit: Processing limit (modified in place)
+        wrap_result: Whether to wrap the result in a list before passing to generate_documents
+        
+    Yields:
+        Processed documents of the specified type
+    """
+    logger = logging.getLogger(__name__)
+
+    for checkpoint in checkpoints:
+        with checkpoint as ctx:
+            # Handle different scrape_and_parse_content signatures based on whether doc_type exists
+            if hasattr(checkpoint, 'doc_type') and checkpoint.doc_type is not None:
+                # For pipelines with types (explanatory_note)
+                content_iterator = scraper_parser.scrape_and_parse_content(
+                    [checkpoint.year],
+                    [checkpoint.doc_type]
+                )
+            else:
+                # For pipelines without types (if any future ones exist)
+                content_iterator = scraper_parser.scrape_and_parse_content([checkpoint.year])
+
+            for url, parsed_content in content_iterator:
+                if limit <= 0:
+                    logger.info("Document limit reached during processing")
+                    ctx.mark_limit_hit()
+                    break
+
+                # Content is already parsed, so we just pass it through
+                result = ctx.process_item(url, lambda: parsed_content)
+                if result:
+                    limit -= 1
+                    # Handle the difference between single results and lists
+                    data_to_process = [result] if wrap_result else result
+                    yield from generate_documents(data_to_process, document_type)

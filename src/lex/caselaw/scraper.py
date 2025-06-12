@@ -128,7 +128,6 @@ class CaselawScraper(LexScraper):
             page_offset=page_offset, results_per_page=results_per_page, years=years, types=types
         )
 
-        print(request_url)
         logger.info(f"Requesting {limit} cases from {request_url}")
 
         page_counter = 0

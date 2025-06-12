@@ -5,8 +5,7 @@ from lex.caselaw.models import Caselaw, CaselawSection, Court
 from lex.caselaw.parser import CaselawParser, CaselawSectionParser
 from lex.caselaw.scraper import CaselawScraper
 from lex.core.checkpoint import get_checkpoints
-from lex.core.document import generate_documents
-from lex.core.pipeline_utils import PipelineMonitor
+from lex.core.pipeline_utils import PipelineMonitor, process_checkpoints
 
 logger = logging.getLogger(__name__)
 
@@ -20,12 +19,14 @@ def pipe_caselaw(
 
     checkpoints = get_checkpoints(years, types, "caselaw")
 
-    for checkpoint in checkpoints:
-        with checkpoint as ctx:
-            for url, soup in scraper.load_content([checkpoint.year], limit, [checkpoint.doc_type]):
-                result = ctx.process_item(url, lambda: parser.parse_content(soup))
-                if result:
-                    yield from generate_documents([result], Caselaw)
+    yield from process_checkpoints(
+        checkpoints=checkpoints,
+        loader_or_scraper=scraper,
+        parser=parser,
+        document_type=Caselaw,
+        limit=limit,
+        wrap_result=True
+    )
 
 
 @PipelineMonitor(doc_type="caselaw_section", track_progress=True)
@@ -37,9 +38,11 @@ def pipe_caselaw_sections(
 
     checkpoints = get_checkpoints(years, types, "caselaw_section")
 
-    for checkpoint in checkpoints:
-        with checkpoint as ctx:
-            for url, soup in scraper.load_content([checkpoint.year], limit, [checkpoint.doc_type]):
-                result = ctx.process_item(url, lambda: parser.parse_content(soup))
-                if result:
-                    yield from generate_documents(result, CaselawSection)
+    yield from process_checkpoints(
+        checkpoints=checkpoints,
+        loader_or_scraper=scraper,
+        parser=parser,
+        document_type=CaselawSection,
+        limit=limit,
+        wrap_result=False
+    )

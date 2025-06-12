@@ -106,6 +106,9 @@ class CourtDivision(str, Enum):
     # Family Court divions
     B = "b"
 
+    # Tier 2 divisions
+    T2 = "t2"
+
 
 class Caselaw(EmbeddableModel):
     id: str
