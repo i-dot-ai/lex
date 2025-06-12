@@ -208,7 +208,7 @@ class ErrorCategorizer:
             return f"{category}: {str(error)[:100]}..."
 
     @classmethod
-    def handle_error(cls, logger, error: Exception, context: Optional[Dict[str, Any]] = None) -> bool:
+    def handle_error(cls, logger, error: Exception, url: Optional[str] = None, context: Optional[Dict[str, Any]] = None, safe: bool = True) -> bool:
         """Handle an error by logging if recoverable or re-raising if not.
         
         Args:
@@ -224,13 +224,18 @@ class ErrorCategorizer:
         """
         if cls.is_recoverable_error(error):
             logger.error(
-                cls.get_error_summary(error),
+                f"Failed to process {url}: {error}",
                 extra=cls.extract_error_metadata(error, context)
             )
             return True
         else:
             # Non-recoverable error - re-raise
-            raise error
+            logger.error(
+                f"Failed to process - non recoverable:{url}: {error}",
+                extra=cls.extract_error_metadata(error, context)
+            )
+            if not safe:
+                raise error
 
 
 def categorize_batch_errors(errors: list[Tuple[str, Exception]]) -> Dict[str, list]:

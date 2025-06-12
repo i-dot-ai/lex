@@ -15,8 +15,8 @@ T = TypeVar('T', bound=LexModel)
 class PipelineMonitor:
     """Decorator for pipeline monitoring and structured logging.
     
-    This decorator adds consistent logging, error handling, and performance
-    monitoring to pipeline functions without cluttering the business logic.
+    This decorator adds consistent logging and performance monitoring 
+    to pipeline functions without cluttering the business logic.
     """
 
     def __init__(self, doc_type: str, track_progress: bool = True,
@@ -40,8 +40,6 @@ class PipelineMonitor:
             logger = logging.getLogger(func.__module__)
             start_time = time.time()
             doc_count = 0
-            error_count = 0
-            pdf_fallback_count = 0
             last_progress_time = start_time
 
             # Extract meaningful parameters for logging
@@ -87,9 +85,7 @@ class PipelineMonitor:
                                     "pipeline_status": "in_progress",
                                     "doc_count": doc_count,
                                     "elapsed_seconds": elapsed,
-                                    "docs_per_second": rate,
-                                    "error_count": error_count,
-                                    "pdf_fallback_count": pdf_fallback_count
+                                    "docs_per_second": rate
                                 }
                             )
                             last_progress_time = current_time
@@ -97,24 +93,14 @@ class PipelineMonitor:
                     yield doc
 
             except Exception as e:
-                error_count += 1
-                error_metadata = self._extract_error_metadata(e, args, kwargs)
-
-                # Check if it's a PDF fallback
-                if self._is_pdf_fallback(e):
-                    pdf_fallback_count += 1
-                    error_metadata["processing_status"] = "pdf_fallback"
-                else:
-                    error_metadata["processing_status"] = "error"
-
+                # Pipeline-level error - log and re-raise
                 logger.error(
-                    f"Error in {self.doc_type} pipeline: {str(e)}",
+                    f"Pipeline failure in {self.doc_type}: {str(e)}",
                     exc_info=True,
                     extra={
                         "doc_type": self.doc_type,
-                        "error_type": type(e).__name__,
-                        "error_count": error_count,
-                        **error_metadata
+                        "pipeline_status": "failed",
+                        "error_type": type(e).__name__
                     }
                 )
                 raise
@@ -130,8 +116,6 @@ class PipelineMonitor:
                         "doc_type": self.doc_type,
                         "pipeline_status": "completed",
                         "total_docs": doc_count,
-                        "total_errors": error_count,
-                        "pdf_fallbacks": pdf_fallback_count,
                         "elapsed_seconds": elapsed,
                         "docs_per_second": rate,
                         **params_info
@@ -182,31 +166,6 @@ class PipelineMonitor:
 
         return metadata
 
-    def _extract_error_metadata(self, error: Exception, args: tuple, kwargs: dict) -> Dict[str, Any]:
-        """Extract metadata from an error for structured logging."""
-        metadata = {}
-
-        # Try to extract document information from error message
-        error_msg = str(error)
-
-        # Extract URL if present
-        url_match = re.search(r'https?://[^\s]+', error_msg)
-        if url_match:
-            metadata['error_url'] = url_match.group(0)
-
-        # Extract document ID if present
-        id_match = re.search(r'/(ukpga|uksi|ukla|[a-z]+)/(\d{4})/(\d+)', error_msg)
-        if id_match:
-            metadata['doc_id'] = f"{id_match.group(1)}/{id_match.group(2)}/{id_match.group(3)}"
-            metadata['doc_type_specific'] = id_match.group(1)
-            metadata['doc_year'] = int(id_match.group(2))
-
-        return metadata
-
-    def _is_pdf_fallback(self, error: Exception) -> bool:
-        """Check if the error indicates a PDF fallback."""
-        error_msg = str(error).lower()
-        return "no body found" in error_msg or "likely a pdf" in error_msg
 
 from lex.core.checkpoint import CheckpointCombination
 from lex.core.loader import LexLoader

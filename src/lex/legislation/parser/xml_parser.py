@@ -471,7 +471,7 @@ class UKXMLParser(XMLParser):
         body = xml_soup.find("Body")
         if not body:
             raise LexParsingError(
-                f"Error parsing legislation: {xml_soup.find('Legislation').get('IdURI')} - no body found in the .xml file, it's likely a pdf"
+                "No body found in the .xml file, it's likely a pdf"
             )
         for section_elem in body.find_all("P1", attrs={"IdURI": True}):
             section = self._parse_section(section_elem, extent, legislation_id)
