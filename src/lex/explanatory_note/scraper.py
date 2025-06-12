@@ -50,6 +50,7 @@ class NoteProcessor:
     """Base class for processing explanatory notes."""
 
     def __init__(self, legislation_id: str):
+        self.base_url = "https://www.legislation.gov.uk"
         self.legislation_id = legislation_id
 
     def _extract_section_info(
@@ -178,7 +179,7 @@ class OldNoteProcessor(NoteProcessor):
 
     def process_sections(self, soup: BeautifulSoup) -> List[ExplanatoryNote]:
         """Process sections from old style notes."""
-        notes_page_link = soup.find("a", title="Open Explanatory Notes")["href"]
+        notes_page_link = self.base_url + soup.find("a", title="Open Explanatory Notes")["href"]
         notes_page = http_client.get(notes_page_link)
         notes_page_soup = BeautifulSoup(notes_page.content, "html.parser")
 
