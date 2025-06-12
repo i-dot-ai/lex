@@ -422,7 +422,7 @@ class CaselawSectionParser(LexParser):
         """Parse the content of a BeautifulSoup object into a CaselawSection."""
         caselaw_parser = CaselawAndCaselawSectionsParser()
         metadata, sections = caselaw_parser.parse_content(soup)
-        logger.info(
+        logger.debug(
             f"Parsed caselaw sections: {metadata.id}",
             extra={
                 "doc_id": metadata.id,
@@ -446,7 +446,7 @@ class CaselawParser(LexParser):
         """Parse the content of a BeautifulSoup object into a Caselaw."""
         caselaw_parser = CaselawAndCaselawSectionsParser()
         metadata, sections = caselaw_parser.parse_content(soup)
-        logger.info(
+        logger.debug(
             f"Parsed caselaw: {metadata.id}",
             extra={
                 "doc_id": metadata.id,

@@ -1,21 +1,128 @@
 """Pipeline checkpoint system for resilient processing."""
 
-import itertools
 import logging
 import os
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, Iterator, Sequence, Set
+from typing import Any, Callable, Dict, Iterator, Optional, Set
 
 from diskcache import Cache
 
 logger = logging.getLogger(__name__)
 
-def get_checkpoints(*args: Sequence[Any], **kwargs: Any) -> Iterator[tuple[Any, ...]]:
-    """Generate cartesian product of all input arguments and keyword arguments."""
-    args = list(args)
-    args.extend(kwargs.values())
-    return itertools.product(*args)
+class CheckpointContext:
+    """Context for processing URLs within a specific combination."""
+
+    def __init__(self, checkpoint_manager: 'PipelineCheckpoint'):
+        self.checkpoint_manager = checkpoint_manager
+
+    def is_processed(self, url: str) -> bool:
+        """Check if URL has already been successfully processed."""
+        return url in self.checkpoint_manager.get_processed_urls()
+
+    def process_item(self, url: str, processor_func: Callable[[], Any]) -> Optional[Any]:
+        """
+        Process an item with automatic checkpoint tracking.
+        
+        Args:
+            url: Unique identifier for this item
+            processor_func: Function that processes the item (e.g., parser.parse_content)
+            
+        Returns:
+            Result of processor_func if successful, None if already processed
+            
+        Raises:
+            Exception: Re-raises any exception from processor_func after marking as failed
+        """
+        if self.is_processed(url):
+            logger.debug(f"Skipping already processed URL: {url}")
+            return None
+
+        try:
+            result = processor_func()
+            self.checkpoint_manager.mark_processed(url)
+            logger.debug(f"Successfully processed URL: {url}")
+            return result
+        except Exception as e:
+            self.checkpoint_manager.mark_failed(url, str(e))
+            logger.error(f"Failed to process URL {url}: {e}")
+            raise  # Re-raise for pipeline to handle
+
+
+class CheckpointCombination:
+    """Represents a single checkpoint combination with its own checkpoint file."""
+
+    def __init__(self, year: int, doc_type: Any, doc_type_name: str, **kwargs):
+        self.year = year
+        self.doc_type = doc_type  # LegislationType.UKPGA, Court.UKSC, or None
+
+        # Each combination gets its own checkpoint file
+        if doc_type is None:
+            # Amendments case
+            checkpoint_id = f"{doc_type_name}_{year}"
+        else:
+            # All other cases: legislation_ukpga_2023, caselaw_uksc_2022
+            checkpoint_id = f"{doc_type_name}_{doc_type.value}_{year}"
+
+        self.checkpoint_manager = PipelineCheckpoint(checkpoint_id)
+
+        # Handle clear_checkpoint if requested
+        if kwargs.get('clear_checkpoint', False):
+            self.checkpoint_manager.clear()
+
+    def is_complete(self) -> bool:
+        """Check if this combination has been marked as complete."""
+        return self.checkpoint_manager.cache.get(self.checkpoint_manager._get_key("combination_complete"), False)
+
+    def __enter__(self) -> CheckpointContext:
+        """Start processing this combination."""
+        if self.is_complete():
+            logger.info(f"Skipping completed combination: {self.checkpoint_manager.checkpoint_id}")
+
+        return CheckpointContext(self.checkpoint_manager)
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Mark combination complete if no exceptions."""
+        if exc_type is None:
+            # No exception - mark this combination as complete
+            self.checkpoint_manager.cache.set(self.checkpoint_manager._get_key("combination_complete"), True)
+            self.checkpoint_manager.cache.set(self.checkpoint_manager._get_key("updated_at"), datetime.now().isoformat())
+            logger.info(f"Completed combination: {self.checkpoint_manager.checkpoint_id}")
+
+
+def get_checkpoints(
+    years: list[int],
+    types: list[Any] = None,
+    doc_type_name: str = None,
+    **kwargs
+) -> Iterator[CheckpointCombination]:
+    """
+    Generate checkpoint combinations, skipping completed ones.
+    
+    Args:
+        years: List of years to process
+        types: List of document types (LegislationType, Court, etc.) - None for amendments
+        doc_type_name: Document type string for checkpoint naming
+        **kwargs: Additional checkpoint options (clear_checkpoint, etc.)
+        
+    Returns:
+        Iterator of CheckpointCombination objects
+    """
+
+    if types is None:
+        # Amendments case - just years
+        for year in years:
+            combination = CheckpointCombination(year, None, doc_type_name, **kwargs)
+            if not combination.is_complete():
+                yield combination
+    else:
+        # All other cases - year × type combinations
+        for year in years:
+            for doc_type_val in types:
+                combination = CheckpointCombination(year, doc_type_val, doc_type_name, **kwargs)
+                if not combination.is_complete():
+                    yield combination
+
 
 class PipelineCheckpoint:
     """Manages checkpoint state for pipeline runs using mounted volume."""
@@ -25,7 +132,7 @@ class PipelineCheckpoint:
         Initialize checkpoint manager.
 
         Args:
-            checkpoint_id: Unique identifier for this checkpoint
+            checkpoint_id: Unique identifier for this checkpoint. For example: "legislation_ukpga_2023"
             base_dir: Base directory for checkpoints (auto-detected if None)
         """
         self.checkpoint_id = checkpoint_id
@@ -40,76 +147,107 @@ class PipelineCheckpoint:
         self.base_dir = Path(base_dir)
         self.base_dir.mkdir(parents=True, exist_ok=True)
 
-        # Use diskcache for atomic operations
-        self.cache_dir = self.base_dir / checkpoint_id
-        self.cache = Cache(str(self.cache_dir))
+        # Use shared cache with prefixed keys instead of separate directories
+        self.cache = Cache(str(self.base_dir))
+        self._key_prefix = f"{checkpoint_id}:"
 
         logger.info(
             f"Checkpoint initialized: {checkpoint_id}",
-            extra={"checkpoint_id": checkpoint_id, "checkpoint_path": str(self.cache_dir)},
+            extra={"checkpoint_id": checkpoint_id, "checkpoint_path": str(self.base_dir)},
         )
+
+    def _get_key(self, key: str) -> str:
+        """Get prefixed key for cache operations."""
+        return f"{self._key_prefix}{key}"
 
     def get_state(self) -> Dict[str, Any]:
         """Get current checkpoint state."""
         return {
-            "processed_urls": set(self.cache.get("processed_urls", [])),
-            "failed_urls": dict(self.cache.get("failed_urls", {})),
-            "last_position": self.cache.get("last_position", 0),
-            "metadata": self.cache.get("metadata", {}),
-            "created_at": self.cache.get("created_at", datetime.now().isoformat()),
-            "updated_at": self.cache.get("updated_at", datetime.now().isoformat()),
+            "processed_urls": set(self.cache.get(self._get_key("processed_urls"), [])),
+            "failed_urls": dict(self.cache.get(self._get_key("failed_urls"), {})),
+            "last_position": self.cache.get(self._get_key("last_position"), 0),
+            "metadata": self.cache.get(self._get_key("metadata"), {}),
+            "created_at": self.cache.get(self._get_key("created_at"), datetime.now().isoformat()),
+            "updated_at": self.cache.get(self._get_key("updated_at"), datetime.now().isoformat()),
         }
 
     def get_processed_urls(self) -> Set[str]:
         """Get set of processed URLs."""
-        return set(self.cache.get("processed_urls", []))
+        return set(self.cache.get(self._get_key("processed_urls"), []))
 
     def mark_processed(self, url: str):
         """Mark a URL as successfully processed."""
-        processed = set(self.cache.get("processed_urls", []))
+        processed = set(self.cache.get(self._get_key("processed_urls"), []))
         processed.add(url)
-        self.cache.set("processed_urls", list(processed))
-        self.cache.set("updated_at", datetime.now().isoformat())
+        self.cache.set(self._get_key("processed_urls"), list(processed))
+        self.cache.set(self._get_key("updated_at"), datetime.now().isoformat())
 
     def mark_failed(self, url: str, error: str):
         """Mark a URL as failed with error details."""
-        failed = dict(self.cache.get("failed_urls", {}))
+        failed = dict(self.cache.get(self._get_key("failed_urls"), {}))
         failed[url] = {"error": error, "timestamp": datetime.now().isoformat()}
-        self.cache.set("failed_urls", failed)
-        self.cache.set("updated_at", datetime.now().isoformat())
+        self.cache.set(self._get_key("failed_urls"), failed)
+        self.cache.set(self._get_key("updated_at"), datetime.now().isoformat())
 
     def save_position(self, position: int):
         """Save current position in iteration."""
-        self.cache.set("last_position", position)
-        self.cache.set("updated_at", datetime.now().isoformat())
+        self.cache.set(self._get_key("last_position"), position)
+        self.cache.set(self._get_key("updated_at"), datetime.now().isoformat())
 
     def update_metadata(self, metadata: Dict[str, Any]):
         """Update checkpoint metadata."""
-        current_metadata = self.cache.get("metadata", {})
+        current_metadata = self.cache.get(self._get_key("metadata"), {})
         current_metadata.update(metadata)
-        self.cache.set("metadata", current_metadata)
-        self.cache.set("updated_at", datetime.now().isoformat())
+        self.cache.set(self._get_key("metadata"), current_metadata)
+        self.cache.set(self._get_key("updated_at"), datetime.now().isoformat())
 
     def mark_combination_complete(self, combination_key: str):
         """Mark a year/type combination as fully processed."""
-        completed = set(self.cache.get("completed_combinations", []))
+        completed = set(self.cache.get(self._get_key("completed_combinations"), []))
         completed.add(combination_key)
-        self.cache.set("completed_combinations", list(completed))
-        self.cache.set("updated_at", datetime.now().isoformat())
+        self.cache.set(self._get_key("completed_combinations"), list(completed))
+        self.cache.set(self._get_key("updated_at"), datetime.now().isoformat())
 
     def get_completed_combinations(self) -> Set[str]:
         """Get set of completed year/type combinations."""
-        return set(self.cache.get("completed_combinations", []))
+        return set(self.cache.get(self._get_key("completed_combinations"), []))
 
     def is_combination_complete(self, combination_key: str) -> bool:
         """Check if a year/type combination is complete."""
-        completed = set(self.cache.get("completed_combinations", []))
+        completed = set(self.cache.get(self._get_key("completed_combinations"), []))
         return combination_key in completed
 
     def clear(self):
-        """Clear checkpoint data."""
-        self.cache.clear()
-        logger.info(f"Checkpoint cleared: {self.checkpoint_id}")
+        """Clear checkpoint data for this specific checkpoint."""
+        deleted_count = 0
+
+        # Much more efficient: use SQL pattern matching instead of iterating all keys
+        try:
+            # Use SQL LIKE for pattern-based deletion (avoids scanning all keys)
+            with self.cache.transact():
+                cursor = self.cache._sql(
+                    'DELETE FROM Cache WHERE key LIKE ?',
+                    (f'{self._key_prefix}%',)
+                )
+                deleted_count = cursor.rowcount
+
+        except (AttributeError, Exception) as e:
+            # Fallback to iteration if SQL access fails
+            logger.warning(f"SQL deletion failed, falling back to iteration: {e}")
+            with self.cache.transact():
+                # Track our own keys to avoid full scan
+                known_keys = [
+                    "processed_urls", "failed_urls", "metadata",
+                    "created_at", "updated_at", "combination_complete", "last_position"
+                ]
+                for key_suffix in known_keys:
+                    full_key = self._get_key(key_suffix)
+                    if full_key in self.cache:
+                        del self.cache[full_key]
+                        deleted_count += 1
+
+        logger.info(f"Checkpoint cleared: {self.checkpoint_id} ({deleted_count} keys removed)")
+        return None  # Explicitly return None to avoid printing numbers in notebooks
 
     def exists(self) -> bool:
         """Check if checkpoint has data."""

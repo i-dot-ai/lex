@@ -6,7 +6,6 @@ from lex.caselaw.parser import CaselawParser, CaselawSectionParser
 from lex.caselaw.scraper import CaselawScraper
 from lex.core.checkpoint import get_checkpoints
 from lex.core.document import generate_documents
-from lex.core.error_utils import ErrorCategorizer
 from lex.core.pipeline_utils import PipelineMonitor
 
 logger = logging.getLogger(__name__)
@@ -19,15 +18,14 @@ def pipe_caselaw(
     scraper = CaselawScraper()
     parser = CaselawParser()
 
-    checkpoints = get_checkpoints(years, types)
+    checkpoints = get_checkpoints(years, types, "caselaw")
 
-    for year, court in checkpoints:
-        for soup in scraper.load_content([year], limit, [court]):
-            try:
-                caselaw = parser.parse_content(soup)
-                yield from generate_documents([caselaw], Caselaw)
-            except Exception as e:
-                ErrorCategorizer.handle_error(logger, e)
+    for checkpoint in checkpoints:
+        with checkpoint as ctx:
+            for url, soup in scraper.load_content([checkpoint.year], limit, [checkpoint.doc_type]):
+                result = ctx.process_item(url, lambda: parser.parse_content(soup))
+                if result:
+                    yield from generate_documents([result], Caselaw)
 
 
 @PipelineMonitor(doc_type="caselaw_section", track_progress=True)
@@ -37,13 +35,11 @@ def pipe_caselaw_sections(
     scraper = CaselawScraper()
     parser = CaselawSectionParser()
 
-    checkpoints = get_checkpoints(years, types)
+    checkpoints = get_checkpoints(years, types, "caselaw_section")
 
-    for year, court in checkpoints:
-        for soup in scraper.load_content([year], limit, [court]):
-            try:
-                sections = parser.parse_content(soup)
-                if sections:
-                    yield from generate_documents(sections, CaselawSection)
-            except Exception as e:
-                ErrorCategorizer.handle_error(logger, e)
+    for checkpoint in checkpoints:
+        with checkpoint as ctx:
+            for url, soup in scraper.load_content([checkpoint.year], limit, [checkpoint.doc_type]):
+                result = ctx.process_item(url, lambda: parser.parse_content(soup))
+                if result:
+                    yield from generate_documents(result, CaselawSection)

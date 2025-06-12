@@ -18,7 +18,7 @@ class LegislationParser(LexParser):
 
         legislation_with_content = self.parser.parse(soup)
 
-        logger.info(
+        logger.debug(
             f"Parsed legislation: {legislation_with_content.id}",
             extra={
                 "doc_id": legislation_with_content.id,
@@ -53,7 +53,7 @@ class LegislationSectionParser(LexParser):
         all_provisions.extend(legislation.sections)
         all_provisions.extend(legislation.schedules)
 
-        logger.info(
+        logger.debug(
             f"Parsed legislation sections: {legislation.id}",
             extra={
                 "doc_id": legislation.id,

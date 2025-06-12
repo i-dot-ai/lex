@@ -76,6 +76,8 @@ def upload_documents(
         max_retries: Maximum number of retries for connection errors
         retry_delay: Initial delay between retries (seconds)
     """
+    logger.info(f"Starting upload to index {index_name} with batch size {batch_size}")
+    
     documents = (doc.model_dump() for doc in documents)
 
     batch_generator = documents_to_batches(documents, batch_size)

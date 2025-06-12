@@ -20,13 +20,11 @@ def pipe_amendments(
     scraper = AmendmentScraper()
     parser = AmendmentParser()
 
-    checkpoints = get_checkpoints(years)
+    checkpoints = get_checkpoints(years, None, "amendment")
 
-    for year, in checkpoints:
-        for url, soup in scraper.load_content([year], limit):
-            try:
-                amendments = parser.parse_content(soup)
-                if amendments:
-                    yield from generate_documents(amendments, Amendment)
-            except Exception as e:
-                ErrorCategorizer.handle_error(logger, e)
+    for checkpoint in checkpoints:
+        with checkpoint as ctx:
+            for url, soup in scraper.load_content([checkpoint.year], limit):
+                result = ctx.process_item(url, lambda: parser.parse_content(soup))
+                if result:
+                    yield from generate_documents(result, Amendment)

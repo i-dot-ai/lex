@@ -3,7 +3,6 @@ from typing import Iterator
 
 from lex.core.checkpoint import get_checkpoints
 from lex.core.document import generate_documents
-from lex.core.error_utils import ErrorCategorizer
 from lex.core.pipeline_utils import PipelineMonitor
 from lex.legislation.loader import LegislationLoader
 from lex.legislation.models import Legislation, LegislationSection, LegislationType
@@ -27,23 +26,22 @@ def pipe_legislation(
         loader_or_scraper = scraper
         logging.info("Parsing legislation from web")
 
-    checkpoints = get_checkpoints(years, types)
+    checkpoints = get_checkpoints(years, types, "legislation")
 
-    for year, type in checkpoints:
-        for url, soup in loader_or_scraper.load_content([year], limit, [type]):
-            try:
-                legislation = parser.parse_content(soup)
-                yield from generate_documents([legislation], Legislation)
-            except Exception as e:
-                ErrorCategorizer.handle_error(logger, e)
+    for checkpoint in checkpoints:
+        with checkpoint as ctx:
+            for url, soup in loader_or_scraper.load_content([checkpoint.year], limit, [checkpoint.doc_type]):
+                result = ctx.process_item(url, lambda: parser.parse_content(soup))
+                if result:
+                    yield from generate_documents([result], Legislation)
 
 @PipelineMonitor(doc_type="legislation_section", track_progress=True)
 def pipe_legislation_sections(
     years: list[int], limit: int, types: list[LegislationType], **kwargs
 ) -> Iterator[LegislationSection]:
     scraper = LegislationScraper()
-    parser = LegislationSectionParser()
     loader = LegislationLoader()
+    parser = LegislationSectionParser()
 
     if kwargs.get("from_file"):
         loader_or_scraper = loader
@@ -52,12 +50,11 @@ def pipe_legislation_sections(
         loader_or_scraper = scraper
         logging.info("Parsing legislation sections from web")
 
-    checkpoints = get_checkpoints(years, types)
+    checkpoints = get_checkpoints(years, types, "legislation_section")
 
-    for year, type in checkpoints:
-        for url, soup in loader_or_scraper.load_content([year], limit, [type]):
-            try:
-                legislation_sections = parser.parse_content(soup)
-                yield from generate_documents(legislation_sections, LegislationSection)
-            except Exception as e:
-                ErrorCategorizer.handle_error(logger, e)
+    for checkpoint in checkpoints:
+        with checkpoint as ctx:
+            for url, soup in loader_or_scraper.load_content([checkpoint.year], limit, [checkpoint.doc_type]):
+                result = ctx.process_item(url, lambda: parser.parse_content(soup))
+                if result:
+                    yield from generate_documents(result, LegislationSection)

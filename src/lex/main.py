@@ -446,7 +446,9 @@ def main():
         else:
             args.types = [LegislationType(t) for t in args.types]
     elif args.model in ["caselaw", "caselaw-section"]:
-        if args.types is not None:
+        if args.types is None:
+            args.types = list(Court)
+        else:
             args.types = [Court(t) for t in args.types]
     elif args.model == "amendment":
         pass
@@ -493,7 +495,7 @@ def main():
         ).total_seconds()
 
         logger.info(
-            f"Pipeline completed successfully",
+            "Pipeline completed successfully",
             extra={
                 "model": args.model,
                 "start_time": start_timestamp,

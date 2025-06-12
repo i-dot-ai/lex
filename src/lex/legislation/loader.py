@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Iterable
+from typing import Iterator
 
 from bs4 import BeautifulSoup
 
@@ -18,7 +18,7 @@ class LegislationLoader(LexLoader):
         years: list[int],
         limit: int | None = None,
         types: list[LegislationType] = list(LegislationType),
-    ) -> Iterable[str, BeautifulSoup]:
+    ) -> Iterator[tuple[str, BeautifulSoup]]:
         """Load the content of the legislation files."""
 
         filenames = self._get_filenames(years, types, limit)

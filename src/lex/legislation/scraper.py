@@ -21,13 +21,14 @@ class LegislationScraper(LexScraper):
         years: list[int],
         limit: int | None = None,
         types: list[LegislationType] = list(LegislationType),
-    ) -> Iterator[BeautifulSoup]:
+    ) -> Iterator[tuple[str, BeautifulSoup]]:
         "Scrapes legislation content from the internet."
 
         legislation_urls = self.load_urls(years, types, limit)
 
         for url in legislation_urls:
-            yield self._load_legislation_from_url(url)
+            soup = self._load_legislation_from_url(url)
+            yield url, soup
 
     def load_urls(
         self,

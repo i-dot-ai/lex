@@ -42,8 +42,8 @@ class CaselawScraper(LexScraper):
         self,
         years: list[int] | None = None,
         limit: int = 50,
-        results_per_page: int = 50,
         types: list[Court] | None = None,
+        results_per_page: int = 50,
     ) -> Iterator[tuple[str, BeautifulSoup]]:
         """Scrapes National Archives content, returning tuples of (BeautifulSoup, case_url)."""
 
@@ -128,11 +128,12 @@ class CaselawScraper(LexScraper):
             page_offset=page_offset, results_per_page=results_per_page, years=years, types=types
         )
 
-        logger.info(f"Requesting {'all' if limit is None else limit} cases from {request_url}")
+        print(request_url)
+        logger.info(f"Requesting {limit} cases from {request_url}")
 
         page_counter = 0
         return_counter = 0
-        while limit is None or return_counter < limit:
+        while return_counter < limit:
             logger.debug(f"Requesting page {page_counter + 1} from {request_url}")
             try:
                 res = http_client.get(request_url)
@@ -140,7 +141,7 @@ class CaselawScraper(LexScraper):
                 cases = self._get_cases_from_contents_soup(soup)
                 for case in cases:
                     return_counter += 1
-                    if limit is not None and return_counter >= limit:
+                    if return_counter > limit:
                         break
                     yield case
                 page_counter += 1
@@ -152,12 +153,8 @@ class CaselawScraper(LexScraper):
                 break
 
     def _get_cases_from_contents_soup(self, soup: BeautifulSoup) -> Iterator[str]:
-        judgment_list = soup.find("ul", class_="judgment-listing__list")
-        if not judgment_list:
-            return []
-
-        list_elements = judgment_list.find_all("li")
-        links = [element.find("a")["href"] for element in list_elements if element.find("a")]
+        list_elements =soup.find("div", class_="judgments-table").find("table").find_all("tr")
+        links = [element.find("a")["href"] for element in list_elements[1:]]
         links = [self.BASE_URL + element.split("?")[0] for element in links]
         return links
 

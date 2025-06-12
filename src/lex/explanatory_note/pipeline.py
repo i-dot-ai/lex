@@ -18,11 +18,11 @@ def pipe_explanatory_note(
 ) -> Iterator[ExplanatoryNote]:
     scraper_and_parser = ExplanatoryNoteScraperAndParser()
 
-    checkpoints = get_checkpoints(years, types)
+    checkpoints = get_checkpoints(years, types, "explanatory_note")
 
-    for year, leg_type in checkpoints:
-        for url, note in scraper_and_parser.scrape_and_parse_content([year], [leg_type], limit):
-            try:
-                yield from generate_documents([note], ExplanatoryNote)
-            except Exception as e:
-                ErrorCategorizer.handle_error(logger, e)
+    for checkpoint in checkpoints:
+        with checkpoint as ctx:
+            for url, note in scraper_and_parser.scrape_and_parse_content([checkpoint.year], [checkpoint.doc_type], limit):
+                result = ctx.process_item(url, lambda: note)
+                if result:
+                    yield from generate_documents([result], ExplanatoryNote)
