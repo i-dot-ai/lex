@@ -128,8 +128,8 @@ class CaselawScraper(LexScraper):
                 break
 
     def _get_cases_from_contents_soup(self, soup: BeautifulSoup) -> Iterator[str]:
-        list_elements = soup.find("ul", class_="judgment-listing__list").find_all("li")
-        links = [element.find("a")["href"] for element in list_elements]
+        list_elements = soup.find("div", class_="judgments-table").find("table").find_all("tr")
+        links = [element.find("a")["href"] for element in list_elements[1:]]
         links = [self.BASE_URL + element.split("?")[0] for element in links]
         return links
 
