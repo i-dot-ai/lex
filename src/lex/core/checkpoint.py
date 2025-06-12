@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 class CheckpointCombination:
     """Represents a single checkpoint combination with its own checkpoint file."""
 
-    def __init__(self, year: int, doc_type: Any, doc_type_name: str, **kwargs):
+    def __init__(self, year: int, doc_type: Any, doc_type_name: str, clear_checkpoint: bool = False):
         self.year = year
         self.doc_type = doc_type  # LegislationType.UKPGA, Court.UKSC, or None
 
@@ -32,7 +32,7 @@ class CheckpointCombination:
         self.checkpoint_manager = PipelineCheckpoint(checkpoint_id)
 
         # Handle clear_checkpoint if requested
-        if kwargs.get('clear_checkpoint', False):
+        if clear_checkpoint:
             self.checkpoint_manager.clear()
 
     def is_complete(self) -> bool:
@@ -131,7 +131,7 @@ def get_checkpoints(
     years: list[int],
     types: list[Any] = None,
     doc_type_name: str = None,
-    **kwargs
+    clear_checkpoint: bool = False,
 ) -> Iterator[CheckpointCombination]:
     """
     Generate checkpoint combinations, skipping completed ones.
@@ -149,14 +149,14 @@ def get_checkpoints(
     if types is None:
         # Amendments case - just years
         for year in years:
-            combination = CheckpointCombination(year, None, doc_type_name, **kwargs)
+            combination = CheckpointCombination(year, None, doc_type_name, clear_checkpoint=clear_checkpoint)
             if not combination.is_complete():
                 yield combination
     else:
         # All other cases - year × type combinations
         for year in years:
             for doc_type_val in types:
-                combination = CheckpointCombination(year, doc_type_val, doc_type_name, **kwargs)
+                combination = CheckpointCombination(year, doc_type_val, doc_type_name, clear_checkpoint=clear_checkpoint)
                 if not combination.is_complete():
                     yield combination
 

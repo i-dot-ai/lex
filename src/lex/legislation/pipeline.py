@@ -25,7 +25,7 @@ def pipe_legislation(
         loader_or_scraper = scraper
         logging.info("Parsing legislation from web")
 
-    checkpoints = get_checkpoints(years, types, "legislation")
+    checkpoints = get_checkpoints(years, types, "legislation", kwargs.get("clear_checkpoint", False))
 
     yield from process_checkpoints(
         checkpoints=checkpoints,
@@ -51,7 +51,7 @@ def pipe_legislation_sections(
         loader_or_scraper = scraper
         logging.info("Parsing legislation sections from web")
 
-    checkpoints = get_checkpoints(years, types, "legislation_section")
+    checkpoints = get_checkpoints(years, types, "legislation_section", kwargs.get("clear_checkpoint", False))
 
     yield from process_checkpoints(
         checkpoints=checkpoints,

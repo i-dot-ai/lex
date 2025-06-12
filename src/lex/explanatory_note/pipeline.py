@@ -16,7 +16,7 @@ def pipe_explanatory_note(
 ) -> Iterator[ExplanatoryNote]:
     scraper_and_parser = ExplanatoryNoteScraperAndParser()
 
-    checkpoints = get_checkpoints(years, types, "explanatory_note")
+    checkpoints = get_checkpoints(years, types, "explanatory_note", kwargs.get("clear_checkpoint", False))
 
     yield from process_checkpoints_with_combined_scraper_parser(
         checkpoints=checkpoints,

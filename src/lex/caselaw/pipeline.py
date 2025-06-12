@@ -17,7 +17,7 @@ def pipe_caselaw(
     scraper = CaselawScraper()
     parser = CaselawParser()
 
-    checkpoints = get_checkpoints(years, types, "caselaw")
+    checkpoints = get_checkpoints(years, types, "caselaw", kwargs.get("clear_checkpoint", False))
 
     yield from process_checkpoints(
         checkpoints=checkpoints,
@@ -36,7 +36,7 @@ def pipe_caselaw_sections(
     scraper = CaselawScraper()
     parser = CaselawSectionParser()
 
-    checkpoints = get_checkpoints(years, types, "caselaw_section")
+    checkpoints = get_checkpoints(years, types, "caselaw_section", kwargs.get("clear_checkpoint", False))
 
     yield from process_checkpoints(
         checkpoints=checkpoints,

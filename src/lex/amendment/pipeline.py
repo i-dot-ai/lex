@@ -18,7 +18,7 @@ def pipe_amendments(
     scraper = AmendmentScraper()
     parser = AmendmentParser()
 
-    checkpoints = get_checkpoints(years, None, "amendment")
+    checkpoints = get_checkpoints(years, None, "amendment", kwargs.get("clear_checkpoint", False))
 
     yield from process_checkpoints(
         checkpoints=checkpoints,

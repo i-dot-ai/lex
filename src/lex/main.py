@@ -199,6 +199,12 @@ def main():
         help="[Legislation] Load documents from file instead of scraping",
     )
 
+    parser.add_argument(
+        "--clear-checkpoint",
+        action="store_true",
+        help="[Legislation] Clear the checkpoint file",
+    )
+
     # Set environment variables for local run
     os.environ["ENVIRONMENT"] = "local"
 
