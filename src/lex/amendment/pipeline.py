@@ -12,9 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 @PipelineMonitor(doc_type="amendment", track_progress=True)
-def pipe_amendments(
-    years: list[int], limit: int, **kwargs
-) -> Iterator[Amendment]:
+def pipe_amendments(years: list[int], limit: int, **kwargs) -> Iterator[Amendment]:
     scraper = AmendmentScraper()
     parser = AmendmentParser()
 
@@ -26,5 +24,5 @@ def pipe_amendments(
         parser=parser,
         document_type=Amendment,
         limit=limit,
-        wrap_result=False
+        wrap_result=False,
     )

@@ -7,6 +7,7 @@ from typing import Any, Dict, Optional, Tuple
 
 class ErrorCategories:
     """Standard error categories across the pipeline."""
+
     PDF_FALLBACK = "pdf_fallback"
     HTTP_ERROR = "http_error"
     PARSE_ERROR = "parse_error"
@@ -26,7 +27,7 @@ class ErrorCategorizer:
             "no body found",
             "likely a pdf",
             "pdf fallback",
-            "no xml content"
+            "no xml content",
         ],
         ErrorCategories.HTTP_ERROR: [
             "httperror",
@@ -38,7 +39,7 @@ class ErrorCategorizer:
             "500",
             "502",
             "503",
-            "504"
+            "504",
         ],
         ErrorCategories.PARSE_ERROR: [
             "lexparsingerror",
@@ -47,42 +48,38 @@ class ErrorCategorizer:
             "xml parse error",
             "invalid xml",
             "malformed",
-            "syntax error"
+            "syntax error",
         ],
         ErrorCategories.VALIDATION_ERROR: [
             "validation error",
             "validationerror",
             "invalid value",
             "missing required field",
-            "commentarycitation"
+            "commentarycitation",
         ],
-        ErrorCategories.MEMORY_ERROR: [
-            "memoryerror",
-            "out of memory",
-            "memory limit"
-        ],
+        ErrorCategories.MEMORY_ERROR: ["memoryerror", "out of memory", "memory limit"],
         ErrorCategories.ENCODING_ERROR: [
             "unicodedecodeerror",
             "unicodeencodeerror",
             "encoding error",
-            "codec"
+            "codec",
         ],
         ErrorCategories.FILE_ERROR: [
             "filenotfounderror",
             "ioerror",
             "permissionerror",
             "file not found",
-            "access denied"
-        ]
+            "access denied",
+        ],
     }
 
     @classmethod
     def categorize_error(cls, error: Exception) -> str:
         """Categorize an error based on its type and message.
-        
+
         Args:
             error: The exception to categorize
-            
+
         Returns:
             Error category string
         """
@@ -98,14 +95,15 @@ class ErrorCategorizer:
         return ErrorCategories.UNKNOWN_ERROR
 
     @classmethod
-    def extract_error_metadata(cls, error: Exception,
-                             context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    def extract_error_metadata(
+        cls, error: Exception, context: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
         """Extract structured metadata from an error.
-        
+
         Args:
             error: The exception to analyze
             context: Optional context information
-            
+
         Returns:
             Dictionary of error metadata
         """
@@ -113,25 +111,25 @@ class ErrorCategorizer:
             "error_type": type(error).__name__,
             "error_message": str(error),
             "error_category": cls.categorize_error(error),
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
 
         # Extract document information from error message
         error_msg = str(error)
 
         # Extract URL
-        url_match = re.search(r'https?://[^\s]+', error_msg)
+        url_match = re.search(r"https?://[^\s]+", error_msg)
         if url_match:
             metadata["error_url"] = url_match.group(0).rstrip(".,;)")
 
         # Extract document ID (flexible pattern)
         doc_patterns = [
             # Standard format: /type/year/number
-            (r'/([a-z]+)/(\d{4})/(\d+)', 'standard'),
+            (r"/([a-z]+)/(\d{4})/(\d+)", "standard"),
             # ID format: id/type/year/number
-            (r'id/([a-z]+)/(\d{4})/(\d+)', 'id_format'),
+            (r"id/([a-z]+)/(\d{4})/(\d+)", "id_format"),
             # Legislation.gov.uk format
-            (r'legislation\.gov\.uk/([a-z]+)/(\d{4})/(\d+)', 'url_format')
+            (r"legislation\.gov\.uk/([a-z]+)/(\d{4})/(\d+)", "url_format"),
         ]
 
         for pattern, format_type in doc_patterns:
@@ -145,7 +143,7 @@ class ErrorCategorizer:
                 break
 
         # Extract HTTP status code if present
-        status_match = re.search(r'\b(40[0-9]|50[0-9])\b', error_msg)
+        status_match = re.search(r"\b(40[0-9]|50[0-9])\b", error_msg)
         if status_match:
             metadata["http_status"] = int(status_match.group(0))
 
@@ -158,10 +156,10 @@ class ErrorCategorizer:
     @classmethod
     def is_recoverable_error(cls, error: Exception) -> bool:
         """Determine if an error is recoverable (processing should continue).
-        
+
         Args:
             error: The exception to check
-            
+
         Returns:
             True if processing should continue, False if it should stop
         """
@@ -170,10 +168,10 @@ class ErrorCategorizer:
         # These errors are expected and processing should continue
         recoverable_categories = {
             ErrorCategories.PDF_FALLBACK,  # Expected for old documents
-            ErrorCategories.HTTP_ERROR,     # Individual document failures
-            ErrorCategories.PARSE_ERROR,    # Individual document issues
+            ErrorCategories.HTTP_ERROR,  # Individual document failures
+            ErrorCategories.PARSE_ERROR,  # Individual document issues
             ErrorCategories.VALIDATION_ERROR,  # Data quality issues
-            ErrorCategories.FILE_ERROR      # Missing files
+            ErrorCategories.FILE_ERROR,  # Missing files
         }
 
         return category in recoverable_categories
@@ -181,10 +179,10 @@ class ErrorCategorizer:
     @classmethod
     def get_error_summary(cls, error: Exception) -> str:
         """Get a concise summary of an error for logging.
-        
+
         Args:
             error: The exception to summarize
-            
+
         Returns:
             Concise error summary
         """
@@ -208,31 +206,38 @@ class ErrorCategorizer:
             return f"{category}: {str(error)[:100]}..."
 
     @classmethod
-    def handle_error(cls, logger, error: Exception, url: Optional[str] = None, context: Optional[Dict[str, Any]] = None, safe: bool = True) -> bool:
+    def handle_error(
+        cls,
+        logger,
+        error: Exception,
+        url: Optional[str] = None,
+        context: Optional[Dict[str, Any]] = None,
+        safe: bool = True,
+    ) -> bool:
         """Handle an error by logging if recoverable or re-raising if not.
-        
+
         Args:
             logger: Logger instance to use for error logging
             error: The exception to handle
             context: Optional context information for error metadata
-            
+
         Returns:
             True if error was handled (recoverable), False if re-raised (non-recoverable)
-            
+
         Raises:
             Exception: Re-raises the original error if it's non-recoverable
         """
         if cls.is_recoverable_error(error):
             logger.error(
                 f"Failed to process {url}: {error}",
-                extra=cls.extract_error_metadata(error, context)
+                extra=cls.extract_error_metadata(error, context),
             )
             return True
         else:
             # Non-recoverable error - re-raise
             logger.error(
                 f"Failed to process - non recoverable:{url}: {error}",
-                extra=cls.extract_error_metadata(error, context)
+                extra=cls.extract_error_metadata(error, context),
             )
             if not safe:
                 raise error
@@ -240,10 +245,10 @@ class ErrorCategorizer:
 
 def categorize_batch_errors(errors: list[Tuple[str, Exception]]) -> Dict[str, list]:
     """Categorize a batch of errors for reporting.
-    
+
     Args:
         errors: List of (url, exception) tuples
-        
+
     Returns:
         Dictionary mapping categories to error details
     """

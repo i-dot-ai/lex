@@ -10,6 +10,7 @@ from lex.legislation.scraper import LegislationScraper
 
 logger = logging.getLogger(__name__)
 
+
 @PipelineMonitor(doc_type="legislation", track_progress=True)
 def pipe_legislation(
     years: list[int], limit: int, types: list[LegislationType], **kwargs
@@ -25,7 +26,9 @@ def pipe_legislation(
         loader_or_scraper = scraper
         logging.info("Parsing legislation from web")
 
-    checkpoints = get_checkpoints(years, types, "legislation", kwargs.get("clear_checkpoint", False))
+    checkpoints = get_checkpoints(
+        years, types, "legislation", kwargs.get("clear_checkpoint", False)
+    )
 
     yield from process_checkpoints(
         checkpoints=checkpoints,
@@ -33,8 +36,9 @@ def pipe_legislation(
         parser=parser,
         document_type=Legislation,
         limit=limit,
-        wrap_result=True
+        wrap_result=True,
     )
+
 
 @PipelineMonitor(doc_type="legislation_section", track_progress=True)
 def pipe_legislation_sections(
@@ -51,7 +55,9 @@ def pipe_legislation_sections(
         loader_or_scraper = scraper
         logging.info("Parsing legislation sections from web")
 
-    checkpoints = get_checkpoints(years, types, "legislation_section", kwargs.get("clear_checkpoint", False))
+    checkpoints = get_checkpoints(
+        years, types, "legislation_section", kwargs.get("clear_checkpoint", False)
+    )
 
     yield from process_checkpoints(
         checkpoints=checkpoints,
@@ -59,7 +65,5 @@ def pipe_legislation_sections(
         parser=parser,
         document_type=LegislationSection,
         limit=limit,
-        wrap_result=False
+        wrap_result=False,
     )
-
-

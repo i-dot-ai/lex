@@ -1,7 +1,6 @@
 import logging
 import os
 import time
-from pathlib import Path
 from typing import Any, Dict, Optional, Type, Union
 
 import requests

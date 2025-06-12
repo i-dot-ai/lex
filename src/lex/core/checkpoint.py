@@ -17,7 +17,9 @@ logger = logging.getLogger(__name__)
 class CheckpointCombination:
     """Represents a single checkpoint combination with its own checkpoint file."""
 
-    def __init__(self, year: int, doc_type: Any, doc_type_name: str, clear_checkpoint: bool = False):
+    def __init__(
+        self, year: int, doc_type: Any, doc_type_name: str, clear_checkpoint: bool = False
+    ):
         self.year = year
         self.doc_type = doc_type  # LegislationType.UKPGA, Court.UKSC, or None
 
@@ -37,7 +39,9 @@ class CheckpointCombination:
 
     def is_complete(self) -> bool:
         """Check if this combination has been marked as complete."""
-        return self.checkpoint_manager.cache.get(self.checkpoint_manager._get_key("combination_complete"), False)
+        return self.checkpoint_manager.cache.get(
+            self.checkpoint_manager._get_key("combination_complete"), False
+        )
 
     def is_processed(self, url: str) -> bool:
         """Check if URL has already been successfully processed."""
@@ -149,14 +153,18 @@ def get_checkpoints(
     if types is None:
         # Amendments case - just years
         for year in years:
-            combination = CheckpointCombination(year, None, doc_type_name, clear_checkpoint=clear_checkpoint)
+            combination = CheckpointCombination(
+                year, None, doc_type_name, clear_checkpoint=clear_checkpoint
+            )
             if not combination.is_complete():
                 yield combination
     else:
         # All other cases - year × type combinations
         for year in years:
             for doc_type_val in types:
-                combination = CheckpointCombination(year, doc_type_val, doc_type_name, clear_checkpoint=clear_checkpoint)
+                combination = CheckpointCombination(
+                    year, doc_type_val, doc_type_name, clear_checkpoint=clear_checkpoint
+                )
                 if not combination.is_complete():
                     yield combination
 
@@ -227,7 +235,6 @@ class PipelineCheckpoint:
         self.cache.set(self._get_key("failed_urls"), failed)
         self.cache.set(self._get_key("updated_at"), datetime.now().isoformat())
 
-
     def mark_limit_hit(self):
         """Mark that this combination has hit its processing limit."""
         self.cache.set(self._get_key("hit_limit"), True)
@@ -256,8 +263,6 @@ class PipelineCheckpoint:
         self.cache.set(self._get_key("metadata"), current_metadata)
         self.cache.set(self._get_key("updated_at"), datetime.now().isoformat())
 
-
-
     def clear(self):
         """Clear checkpoint data for this specific checkpoint."""
         deleted_count = 0
@@ -267,8 +272,7 @@ class PipelineCheckpoint:
             # Use SQL LIKE for pattern-based deletion (avoids scanning all keys)
             with self.cache.transact():
                 cursor = self.cache._sql(
-                    'DELETE FROM Cache WHERE key LIKE ?',
-                    (f'{self._key_prefix}%',)
+                    "DELETE FROM Cache WHERE key LIKE ?", (f"{self._key_prefix}%",)
                 )
                 deleted_count = cursor.rowcount
 
@@ -278,8 +282,13 @@ class PipelineCheckpoint:
             with self.cache.transact():
                 # Track our own keys to avoid full scan
                 known_keys = [
-                    "processed_urls", "failed_urls", "metadata",
-                    "created_at", "updated_at", "combination_complete", "last_position"
+                    "processed_urls",
+                    "failed_urls",
+                    "metadata",
+                    "created_at",
+                    "updated_at",
+                    "combination_complete",
+                    "last_position",
                 ]
                 for key_suffix in known_keys:
                     full_key = self._get_key(key_suffix)

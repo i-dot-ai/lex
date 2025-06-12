@@ -9,20 +9,19 @@ from typing import Any, Callable, Dict, Iterator, Type, TypeVar
 from lex.core.document import generate_documents
 from lex.core.models import LexModel
 
-T = TypeVar('T', bound=LexModel)
+T = TypeVar("T", bound=LexModel)
 
 
 class PipelineMonitor:
     """Decorator for pipeline monitoring and structured logging.
-    
-    This decorator adds consistent logging and performance monitoring 
+
+    This decorator adds consistent logging and performance monitoring
     to pipeline functions without cluttering the business logic.
     """
 
-    def __init__(self, doc_type: str, track_progress: bool = True,
-                 progress_interval: int = 10):
+    def __init__(self, doc_type: str, track_progress: bool = True, progress_interval: int = 10):
         """Initialize the pipeline monitor.
-        
+
         Args:
             doc_type: The type of document being processed (e.g., 'legislation', 'caselaw')
             track_progress: Whether to log progress updates
@@ -47,11 +46,7 @@ class PipelineMonitor:
 
             logger.info(
                 f"Starting {self.doc_type} pipeline",
-                extra={
-                    "doc_type": self.doc_type,
-                    "pipeline_status": "started",
-                    **params_info
-                }
+                extra={"doc_type": self.doc_type, "pipeline_status": "started", **params_info},
             )
 
             try:
@@ -67,8 +62,8 @@ class PipelineMonitor:
                             "doc_type": self.doc_type,
                             "processing_status": "success",
                             "doc_count": doc_count,
-                            **doc_metadata
-                        }
+                            **doc_metadata,
+                        },
                     )
 
                     # Progress tracking
@@ -85,8 +80,8 @@ class PipelineMonitor:
                                     "pipeline_status": "in_progress",
                                     "doc_count": doc_count,
                                     "elapsed_seconds": elapsed,
-                                    "docs_per_second": rate
-                                }
+                                    "docs_per_second": rate,
+                                },
                             )
                             last_progress_time = current_time
 
@@ -100,8 +95,8 @@ class PipelineMonitor:
                     extra={
                         "doc_type": self.doc_type,
                         "pipeline_status": "failed",
-                        "error_type": type(e).__name__
-                    }
+                        "error_type": type(e).__name__,
+                    },
                 )
                 raise
 
@@ -118,8 +113,8 @@ class PipelineMonitor:
                         "total_docs": doc_count,
                         "elapsed_seconds": elapsed,
                         "docs_per_second": rate,
-                        **params_info
-                    }
+                        **params_info,
+                    },
                 )
 
         return wrapper
@@ -129,18 +124,18 @@ class PipelineMonitor:
         info = {}
 
         # Common parameters across pipelines
-        if 'years' in kwargs:
-            info['years'] = kwargs['years']
+        if "years" in kwargs:
+            info["years"] = kwargs["years"]
         elif len(args) > 1 and isinstance(args[1], list):
-            info['years'] = args[1]
+            info["years"] = args[1]
 
-        if 'types' in kwargs:
-            info['types'] = kwargs['types']
+        if "types" in kwargs:
+            info["types"] = kwargs["types"]
         elif len(args) > 0 and isinstance(args[0], list):
-            info['types'] = args[0]
+            info["types"] = args[0]
 
-        if 'limit' in kwargs:
-            info['limit'] = kwargs['limit']
+        if "limit" in kwargs:
+            info["limit"] = kwargs["limit"]
 
         return info
 
@@ -149,20 +144,20 @@ class PipelineMonitor:
         metadata = {}
 
         # Common fields across document types
-        if hasattr(doc, 'id'):
-            metadata['doc_id'] = doc.id
+        if hasattr(doc, "id"):
+            metadata["doc_id"] = doc.id
 
             # Try to extract year and type from ID
-            year_match = re.search(r'/(\d{4})/', str(doc.id))
+            year_match = re.search(r"/(\d{4})/", str(doc.id))
             if year_match:
-                metadata['doc_year'] = int(year_match.group(1))
+                metadata["doc_year"] = int(year_match.group(1))
 
-            type_match = re.search(r'/([a-z]+)/', str(doc.id))
+            type_match = re.search(r"/([a-z]+)/", str(doc.id))
             if type_match:
-                metadata['doc_subtype'] = type_match.group(1)
+                metadata["doc_subtype"] = type_match.group(1)
 
-        if hasattr(doc, 'title'):
-            metadata['doc_title'] = doc.title[:100]  # Truncate long titles
+        if hasattr(doc, "title"):
+            metadata["doc_title"] = doc.title[:100]  # Truncate long titles
 
         return metadata
 
@@ -178,10 +173,10 @@ def process_checkpoints(
     parser: LexParser,
     document_type: Type[LexModel],
     limit: int,
-    wrap_result: bool = False
+    wrap_result: bool = False,
 ) -> Iterator[LexModel]:
     """Abstract common checkpoint processing logic.
-    
+
     Args:
         checkpoints: List of checkpoints to process
         loader_or_scraper: Content loader or scraper instance
@@ -189,7 +184,7 @@ def process_checkpoints(
         document_type: The document model class to generate
         limit: Processing limit (modified in place)
         wrap_result: Whether to wrap the parser result in a list before passing to generate_documents
-        
+
     Yields:
         Processed documents of the specified type
     """
@@ -198,11 +193,10 @@ def process_checkpoints(
     for checkpoint in checkpoints:
         with checkpoint as ctx:
             # Handle different load_content signatures based on whether doc_type exists
-            if hasattr(checkpoint, 'doc_type') and checkpoint.doc_type is not None:
+            if hasattr(checkpoint, "doc_type") and checkpoint.doc_type is not None:
                 # For pipelines with types (legislation, caselaw, explanatory_note)
                 content_iterator = loader_or_scraper.load_content(
-                    years=[checkpoint.year],
-                    types=[checkpoint.doc_type]
+                    years=[checkpoint.year], types=[checkpoint.doc_type]
                 )
             else:
                 # For pipelines without types (amendment)
@@ -227,20 +221,20 @@ def process_checkpoints_with_combined_scraper_parser(
     scraper_parser: Any,
     document_type: Type[LexModel],
     limit: int,
-    wrap_result: bool = False
+    wrap_result: bool = False,
 ) -> Iterator[LexModel]:
     """Abstract checkpoint processing for combined scraper-parser classes.
-    
+
     This function handles pipelines where scraping and parsing are combined
     into a single class (like ExplanatoryNoteScraperAndParser).
-    
+
     Args:
         checkpoints: List of checkpoints to process
         scraper_parser: Combined scraper-parser instance with scrape_and_parse_content method
         document_type: The document model class to generate
         limit: Processing limit (modified in place)
         wrap_result: Whether to wrap the result in a list before passing to generate_documents
-        
+
     Yields:
         Processed documents of the specified type
     """
@@ -249,11 +243,10 @@ def process_checkpoints_with_combined_scraper_parser(
     for checkpoint in checkpoints:
         with checkpoint as ctx:
             # Handle different scrape_and_parse_content signatures based on whether doc_type exists
-            if hasattr(checkpoint, 'doc_type') and checkpoint.doc_type is not None:
+            if hasattr(checkpoint, "doc_type") and checkpoint.doc_type is not None:
                 # For pipelines with types (explanatory_note)
                 content_iterator = scraper_parser.scrape_and_parse_content(
-                    [checkpoint.year],
-                    [checkpoint.doc_type]
+                    [checkpoint.year], [checkpoint.doc_type]
                 )
             else:
                 # For pipelines without types (if any future ones exist)

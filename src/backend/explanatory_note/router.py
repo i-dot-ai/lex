@@ -11,8 +11,8 @@ from backend.explanatory_note.models import (
     ExplanatoryNoteSectionLookup,
 )
 from backend.explanatory_note.search import (
-    get_explanatory_note_by_section,
     get_explanatory_note_by_legislation_id,
+    get_explanatory_note_by_section,
     search_explanatory_note,
 )
 from lex.explanatory_note.models import ExplanatoryNote

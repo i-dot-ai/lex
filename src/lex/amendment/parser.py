@@ -1,4 +1,5 @@
 import logging
+
 from bs4 import BeautifulSoup
 
 from lex.core.parser import LexParser

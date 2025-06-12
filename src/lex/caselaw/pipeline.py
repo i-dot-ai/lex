@@ -11,9 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 @PipelineMonitor(doc_type="caselaw", track_progress=True)
-def pipe_caselaw(
-    years: list[int], limit: int, types: list[Court], **kwargs
-) -> Iterator[Caselaw]:
+def pipe_caselaw(years: list[int], limit: int, types: list[Court], **kwargs) -> Iterator[Caselaw]:
     scraper = CaselawScraper()
     parser = CaselawParser()
 
@@ -25,7 +23,7 @@ def pipe_caselaw(
         parser=parser,
         document_type=Caselaw,
         limit=limit,
-        wrap_result=True
+        wrap_result=True,
     )
 
 
@@ -36,7 +34,9 @@ def pipe_caselaw_sections(
     scraper = CaselawScraper()
     parser = CaselawSectionParser()
 
-    checkpoints = get_checkpoints(years, types, "caselaw_section", kwargs.get("clear_checkpoint", False))
+    checkpoints = get_checkpoints(
+        years, types, "caselaw_section", kwargs.get("clear_checkpoint", False)
+    )
 
     yield from process_checkpoints(
         checkpoints=checkpoints,
@@ -44,5 +44,5 @@ def pipe_caselaw_sections(
         parser=parser,
         document_type=CaselawSection,
         limit=limit,
-        wrap_result=False
+        wrap_result=False,
     )

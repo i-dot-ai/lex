@@ -25,7 +25,7 @@ class LegislationLoader(LexLoader):
         sorted_filenames = self._sort_filenames(filenames)
 
         for filename in sorted_filenames:
-            yield filename,self._load_xml_file(filename)
+            yield filename, self._load_xml_file(filename)
 
     def _get_filenames(
         self, years: list[int], types: list[LegislationType], limit: int | None = None

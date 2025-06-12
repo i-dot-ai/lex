@@ -77,7 +77,7 @@ def upload_documents(
         retry_delay: Initial delay between retries (seconds)
     """
     logger.info(f"Starting upload to index {index_name} with batch size {batch_size}")
-    
+
     documents = (doc.model_dump() for doc in documents)
 
     batch_generator = documents_to_batches(documents, batch_size)
@@ -257,7 +257,7 @@ def update_documents(
                     logger.error(f"Failed to update batch after {max_retries} attempts")
                     # Continue to next batch instead of failing completely
 
-            except Exception as e:
+            except Exception:
                 logger.error("Error updating documents", exc_info=True)
 
         if i % batches_per_log == 0 and i != 0:

@@ -111,8 +111,6 @@ class CourtDivision(str, Enum):
     T2 = "t2"
 
 
-
-
 class Caselaw(EmbeddableModel):
     id: str
     court: Court

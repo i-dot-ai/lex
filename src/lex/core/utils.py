@@ -249,6 +249,7 @@ def load_xml_file_to_soup(filepath: str) -> BeautifulSoup:
     with open(filepath, "r") as f:
         return BeautifulSoup(f.read(), "xml")
 
+
 def parse_years(years_input):
     """
     Parse years input that can contain individual years or ranges.
