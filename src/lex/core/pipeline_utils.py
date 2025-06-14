@@ -182,35 +182,40 @@ def process_checkpoints(
         loader_or_scraper: Content loader or scraper instance
         parser: Parser instance with parse_content method
         document_type: The document model class to generate
-        limit: Processing limit (modified in place)
+        limit: Processing limit
         wrap_result: Whether to wrap the parser result in a list before passing to generate_documents
 
     Yields:
         Processed documents of the specified type
     """
     logger = logging.getLogger(__name__)
+    
+    remaining_limit = limit if limit is not None else float('inf')
 
     for checkpoint in checkpoints:
         with checkpoint as ctx:
             # Handle different load_content signatures based on whether doc_type exists
             if hasattr(checkpoint, "doc_type") and checkpoint.doc_type is not None:
                 # For pipelines with types (legislation, caselaw, explanatory_note)
+                # Pass None for limit if we want all documents
+                passed_limit = None if limit is None else int(remaining_limit)
                 content_iterator = loader_or_scraper.load_content(
-                    years=[checkpoint.year], types=[checkpoint.doc_type]
+                    years=[checkpoint.year], types=[checkpoint.doc_type], limit=passed_limit
                 )
             else:
                 # For pipelines without types (amendment)
-                content_iterator = loader_or_scraper.load_content([checkpoint.year])
+                passed_limit = None if limit is None else int(remaining_limit)
+                content_iterator = loader_or_scraper.load_content([checkpoint.year], limit=passed_limit)
 
             for url, soup in content_iterator:
-                if limit <= 0:
+                if remaining_limit <= 0:
                     logger.info("Document limit reached during processing")
                     ctx.mark_limit_hit()
                     return
 
                 result = ctx.process_item(url, lambda: parser.parse_content(soup))
                 if result:
-                    limit -= 1
+                    remaining_limit -= 1
                     # Handle the difference between single results and lists
                     data_to_process = [result] if wrap_result else result
                     yield from generate_documents(data_to_process, document_type)

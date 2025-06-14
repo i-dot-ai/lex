@@ -189,8 +189,8 @@ def main():
         "-l",
         "--limit",
         type=int,
-        default=10000,
-        help="[Legislation] Limit number of files to process",
+        default=None,
+        help="Limit number of files to process (default: no limit)",
     )
 
     parser.add_argument(

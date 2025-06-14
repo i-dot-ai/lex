@@ -41,7 +41,7 @@ class CaselawScraper(LexScraper):
     def load_content(
         self,
         years: list[int] | None = None,
-        limit: int = 50,
+        limit: int | None = None,
         types: list[Court] | None = None,
         results_per_page: int = 50,
     ) -> Iterator[tuple[str, BeautifulSoup]]:
@@ -131,7 +131,7 @@ class CaselawScraper(LexScraper):
         self,
         page_offset: int = 0,
         results_per_page: int = 50,
-        limit: int = 50,
+        limit: int | None = None,
         years: list[int] | None = None,
         types: list[Court] | None = None,
     ) -> Iterator[str]:
@@ -139,37 +139,83 @@ class CaselawScraper(LexScraper):
             page_offset=page_offset, results_per_page=results_per_page, years=years, types=types
         )
 
-        logger.info(f"Requesting {limit} cases from {request_url}")
+        if limit is None:
+            logger.info(f"Requesting all cases from {request_url}")
+        else:
+            logger.info(f"Requesting up to {limit} cases from {request_url}")
 
         page_counter = 0
         return_counter = 0
-        while return_counter < limit:
+        while limit is None or return_counter < limit:
             logger.debug(f"Requesting page {page_counter + 1} from {request_url}")
             try:
                 res = http_client.get(request_url)
                 soup = BeautifulSoup(res.text, "html.parser")
                 cases = self._get_cases_from_contents_soup(soup)
+                
+                if not cases:
+                    logger.debug(f"No cases found on page {page_counter + 1}")
+                    # Still check for next page even if no cases on this page
+                    next_url = self._get_next_page_url(soup)
+                    if next_url:
+                        request_url = next_url
+                        page_counter += 1
+                        continue
+                    else:
+                        break
+                
                 for case in cases:
                     return_counter += 1
-                    if return_counter > limit:
+                    if limit is not None and return_counter > limit:
                         break
                     yield case
+                    
                 page_counter += 1
                 request_url = self._get_next_page_url(soup)
                 if not request_url:
+                    logger.debug(f"No more pages available after page {page_counter}")
                     break
             except Exception as e:
                 if page_counter == 0:
-                    logger.error(f"No results found for {request_url}")
+                    logger.error(f"Error on first page for {request_url}: {str(e)}")
                 else:
                     logger.error(f"Error fetching page {page_counter + 1}: {str(e)}")
                 break
+        
+        logger.debug(f"Finished retrieving {return_counter} cases across {page_counter} pages")
 
     def _get_cases_from_contents_soup(self, soup: BeautifulSoup) -> Iterator[str]:
-        list_elements = soup.find("div", class_="judgments-table").find("table").find_all("tr")
-        links = [element.find("a")["href"] for element in list_elements[1:]]
-        links = [self.BASE_URL + element.split("?")[0] for element in links]
-        return links
+        try:
+            judgments_table = soup.find("div", class_="judgments-table")
+            if not judgments_table:
+                logger.warning("No judgments-table div found in search results")
+                return []
+            
+            table = judgments_table.find("table")
+            if not table:
+                logger.warning("No table found in judgments-table div")
+                return []
+            
+            list_elements = table.find_all("tr")
+            if len(list_elements) <= 1:
+                logger.debug("No case rows found in table (only header or empty)")
+                return []
+            
+            links = []
+            for element in list_elements[1:]:
+                link_elem = element.find("a")
+                if link_elem and "href" in link_elem.attrs:
+                    links.append(self.BASE_URL + link_elem["href"].split("?")[0])
+            
+            if not links:
+                logger.debug("No case links extracted from table")
+            else:
+                logger.debug(f"Extracted {len(links)} case links from search results")
+            
+            return links
+        except Exception as e:
+            logger.error(f"Error extracting cases from search results: {str(e)}", exc_info=True)
+            return []
 
     def _get_next_page_url(self, soup: BeautifulSoup) -> str | None:
         next_page = soup.find("a", class_="pagination__page-chevron-next")
