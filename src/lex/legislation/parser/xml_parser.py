@@ -4,8 +4,9 @@ from datetime import date, datetime
 from typing import Dict, List, Optional, Tuple
 
 from bs4 import BeautifulSoup, Tag
+from pydantic import ValidationError
 
-from lex.core.exceptions import LexParsingError
+from lex.core.exceptions import LexParsingError, PDFParsingException
 from lex.legislation.models import (
     Commentary,
     CommentaryCitation,
@@ -385,26 +386,48 @@ class EUXMLParser(XMLParser):
         )  # Here we can either make it so attrs is also 'id' or we can substitute ID with the URI, or use parent id?
         citations = []
         for citation in citation_elements:
-            citation = CommentaryCitation(
-                id=citation.get(
-                    "id", citation.get("URI")
-                ),  # This is a temporary fix, we need to decide whether to use URI or ID
-                uri=citation.get("URI"),
-                type=commentary_type,
-                context=citation.text,
-            )
-            citations.append(citation)
+            try:
+                citation = CommentaryCitation(
+                    id=citation.get(
+                        "id", citation.get("URI")
+                    ),  # This is a temporary fix, we need to decide whether to use URI or ID
+                    uri=citation.get("URI"),
+                    type=commentary_type,
+                    context=citation.text,
+                )
+                citations.append(citation)
+            except ValidationError as e:
+                logger.warning(
+                    f"Skipping invalid citation in commentary: {e}",
+                    extra={
+                        "citation_uri": citation.get("URI"),
+                        "commentary_type": commentary_type,
+                        "error_type": "ValidationError",
+                    },
+                )
 
         # Lower level citation
         citation_subref_elements = element.find_all("CitationSubRef", attrs={"URI": True})
         for citation_sub_ref in citation_subref_elements:
-            citation_sub_ref = CommentaryCitation(
-                id=citation_sub_ref.get("id"),
-                uri=citation_sub_ref.get("URI"),
-                type=commentary_type,
-                context=citation_sub_ref.text,
-            )
-            citations.append(citation_sub_ref)
+            try:
+                citation_sub_ref = CommentaryCitation(
+                    id=citation_sub_ref.get(
+                        "id", citation_sub_ref.get("URI")
+                    ),  # Fallback to URI if id is missing
+                    uri=citation_sub_ref.get("URI"),
+                    type=commentary_type,
+                    context=citation_sub_ref.text,
+                )
+                citations.append(citation_sub_ref)
+            except ValidationError as e:
+                logger.warning(
+                    f"Skipping invalid citation subref in commentary: {e}",
+                    extra={
+                        "citation_uri": citation_sub_ref.get("URI"),
+                        "commentary_type": commentary_type,
+                        "error_type": "ValidationError",
+                    },
+                )
 
         commentary = Commentary(
             id=element.get("id"),
@@ -447,9 +470,7 @@ class UKXMLParser(XMLParser):
         # Extract and parse sections from the body with citable Ids
         body = xml_soup.find("Body")
         if not body:
-            raise LexParsingError(
-                f"Error parsing legislation: {xml_soup.find('Legislation').get('IdURI')} - no body found in the .xml file, it's likely a pdf"
-            )
+            raise PDFParsingException("This legislation only exists as a PDF, not as XML")
         for section_elem in body.find_all("P1", attrs={"IdURI": True}):
             section = self._parse_section(section_elem, extent, legislation_id)
             sections[section.id] = section
@@ -617,32 +638,54 @@ class UKXMLParser(XMLParser):
         citation_elements = element.find_all("Citation", attrs={"URI": True})
         citations = []
         for citation in citation_elements:
-            citation = CommentaryCitation(
-                id=citation.get("id"),
-                uri=citation.get("URI"),
-                type=commentary_type,
-                context=citation.text,
-                section_ref=citation.get("SectionRef", citation.get("StartSectionRef")),
-                citation_ref=citation.get("CitationRef", "SelfReference"),
-                citation_type="primary",
-            )
-            citations.append(citation)
+            try:
+                citation = CommentaryCitation(
+                    id=citation.get("id", citation.get("URI")),  # Fallback to URI if id is missing
+                    uri=citation.get("URI"),
+                    type=commentary_type,
+                    context=citation.text,
+                    section_ref=citation.get("SectionRef", citation.get("StartSectionRef")),
+                    citation_ref=citation.get("CitationRef", "SelfReference"),
+                    citation_type="primary",
+                )
+                citations.append(citation)
+            except ValidationError as e:
+                logger.warning(
+                    f"Skipping invalid citation in commentary: {e}",
+                    extra={
+                        "citation_uri": citation.get("URI"),
+                        "commentary_type": commentary_type,
+                        "error_type": "ValidationError",
+                    },
+                )
 
         # Lower level citation
         citation_subref_elements = element.find_all("CitationSubRef", attrs={"URI": True})
         for citation_sub_ref in citation_subref_elements:
-            citation_sub_ref = CommentaryCitation(
-                id=citation_sub_ref.get("id"),
-                uri=citation_sub_ref.get("URI"),
-                type=commentary_type,
-                context=citation_sub_ref.text,
-                section_ref=citation_sub_ref.get(
-                    "SectionRef", citation_sub_ref.get("StartSectionRef")
-                ),
-                citation_ref=citation_sub_ref.get("CitationRef", "SelfReference"),
-                citation_type="sub_reference",
-            )
-            citations.append(citation_sub_ref)
+            try:
+                citation_sub_ref = CommentaryCitation(
+                    id=citation_sub_ref.get(
+                        "id", citation_sub_ref.get("URI")
+                    ),  # Fallback to URI if id is missing
+                    uri=citation_sub_ref.get("URI"),
+                    type=commentary_type,
+                    context=citation_sub_ref.text,
+                    section_ref=citation_sub_ref.get(
+                        "SectionRef", citation_sub_ref.get("StartSectionRef")
+                    ),
+                    citation_ref=citation_sub_ref.get("CitationRef", "SelfReference"),
+                    citation_type="sub_reference",
+                )
+                citations.append(citation_sub_ref)
+            except ValidationError as e:
+                logger.warning(
+                    f"Skipping invalid citation subref in commentary: {e}",
+                    extra={
+                        "citation_uri": citation_sub_ref.get("URI"),
+                        "commentary_type": commentary_type,
+                        "error_type": "ValidationError",
+                    },
+                )
 
         commentary = Commentary(
             id=element.get("id"),

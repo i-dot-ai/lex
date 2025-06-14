@@ -18,7 +18,22 @@ class LegislationParser(LexParser):
 
         legislation_with_content = self.parser.parse(soup)
 
-        logger.info(f"Parsed legislation: {legislation_with_content.id}")
+        logger.debug(
+            f"Parsed legislation: {legislation_with_content.id}",
+            extra={
+                "doc_id": legislation_with_content.id,
+                "doc_type": legislation_with_content.type.value
+                if legislation_with_content.type
+                else None,
+                "doc_year": legislation_with_content.year,
+                "doc_number": legislation_with_content.number,
+                "processing_status": "success",
+                "has_xml": True,
+                "title": legislation_with_content.title[:100]
+                if legislation_with_content.title
+                else None,
+            },
+        )
 
         legislation = Legislation(
             **legislation_with_content.model_dump(exclude={"sections", "schedules", "commentaries"})
@@ -34,11 +49,37 @@ class LegislationSectionParser(LexParser):
     def parse_content(self, soup: BeautifulSoup) -> list[LegislationSection]:
         legislation = self.parser.parse(soup)
 
-        logger.info(f"Parsed legislation: {legislation.id}")
-
         all_provisions = []
         all_provisions.extend(legislation.sections)
         all_provisions.extend(legislation.schedules)
+
+        logger.debug(
+            f"Parsed legislation sections: {legislation.id}",
+            extra={
+                "doc_id": legislation.id,
+                "doc_type": legislation.type.value if legislation.type else None,
+                "doc_year": legislation.year,
+                "doc_number": legislation.number,
+                "processing_status": "success",
+                "has_xml": True,
+                "section_count": len(legislation.sections),
+                "schedule_count": len(legislation.schedules),
+                "provision_count": len(all_provisions),
+                "title": legislation.title[:100] if legislation.title else None,
+            },
+        )
+
+        # Warn if no provisions found
+        if len(all_provisions) == 0:
+            logger.warning(
+                f"No sections or schedules found in legislation: {legislation.id}",
+                extra={
+                    "doc_id": legislation.id,
+                    "doc_type": legislation.type.value if legislation.type else None,
+                    "doc_year": legislation.year,
+                    "processing_status": "no_provisions",
+                },
+            )
 
         all_provisions = [
             LegislationSection(**provision.model_dump()) for provision in all_provisions

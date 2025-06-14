@@ -193,3 +193,16 @@ cython_debug/
 
 # javascript stuff
 .next/
+
+# Analysis output files
+analysis/*.json
+analysis/**/*.json
+# Prevent nested analysis directories
+analysis/analysis/
+
+# Cache and checkpoint directories
+data/cache/
+data/checkpoints/
+
+CLAUDE.md
+.claude/settings.local.json

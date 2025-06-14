@@ -103,7 +103,7 @@ async def lookup_legislation_endpoint(
     operation_id="get_legislation_sections",
     responses={404: {"description": "No sections found for the specified legislation title"}},
 )
-async def get_sections_by_title(
+async def get_sections_by_id(
     input: LegislationSectionLookup, es_client: AsyncElasticsearch = Depends(get_es_client)
 ):
     try:

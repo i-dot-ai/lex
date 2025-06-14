@@ -10,6 +10,6 @@ class LexLoader(ABC):
     @abstractmethod
     def load_content(
         self, years: list[int] | None = None, limit: int | None = None
-    ) -> Iterator[BeautifulSoup]:
-        """Loads content, returning a list of BeautifulSoup objects."""
+    ) -> Iterator[tuple[str, BeautifulSoup]]:
+        """Loads content, returning a list of urls andBeautifulSoup objects."""
         pass

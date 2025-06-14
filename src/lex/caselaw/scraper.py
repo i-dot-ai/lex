@@ -8,7 +8,28 @@ from lex.core.http import HttpClient
 from lex.core.scraper import LexScraper
 
 logger = logging.getLogger(__name__)
-http_client = HttpClient(timeout=10, enable_cache=True, cache_size_limit=1000000, cache_ttl=3600)
+# Create a more resilient HTTP client for caselaw scraping
+from lex.core.rate_limiter import AdaptiveRateLimiter
+
+# Create custom rate limiter with longer backoffs
+rate_limiter = AdaptiveRateLimiter(
+    min_delay=0.0,
+    max_delay=300.0,  # Max 5 minutes between requests
+    success_reduction_factor=0.98,  # Slower reduction
+    failure_increase_factor=3.0,  # More aggressive backoff
+)
+
+http_client = HttpClient(
+    max_retries=20,  # Increased from default 5
+    initial_delay=2.0,  # Start with 2 seconds
+    max_delay=600.0,  # Max 10 minutes between retries
+    timeout=30,  # Increased timeout
+    enable_cache=True,
+    cache_size_limit=1000000,
+    cache_ttl=3600,
+)
+# Replace the default rate limiter with our custom one
+http_client.rate_limiter = rate_limiter
 
 
 class CaselawScraper(LexScraper):
@@ -21,10 +42,21 @@ class CaselawScraper(LexScraper):
         self,
         years: list[int] | None = None,
         limit: int = 50,
-        results_per_page: int = 50,
         types: list[Court] | None = None,
-    ) -> Iterator[BeautifulSoup]:
-        """Scrapes National Archives content, returning a list of BeautifulSoup objects."""
+        results_per_page: int = 50,
+    ) -> Iterator[tuple[str, BeautifulSoup]]:
+        """Scrapes National Archives content, returning tuples of (BeautifulSoup, case_url)."""
+
+        # Filter out years before 2001 as caselaw only exists from 2001 onwards
+        if years:
+            valid_years = [year for year in years if year >= 2001]
+            if not valid_years:
+                logger.info("No valid years found for caselaw (must be >= 2001). Skipping.")
+                return
+            if len(valid_years) != len(years):
+                skipped_years = [year for year in years if year < 2001]
+                logger.info(f"Skipping years before 2001 for caselaw: {skipped_years}")
+            years = valid_years
 
         case_urls = self._get_cases_urls(
             page_offset=0, results_per_page=results_per_page, limit=limit, years=years, types=types
@@ -33,11 +65,14 @@ class CaselawScraper(LexScraper):
         for case_url in case_urls:
             try:
                 logger.debug(f"Requesting case from {case_url}")
-                case_url = case_url + "/data.xml"
-                res = http_client.get(case_url)
+                xml_url = case_url + "/data.xml"
+                res = http_client.get(xml_url)
 
                 # Use lxml parser which is more memory efficient
-                yield BeautifulSoup(res.text, "xml")
+                soup = BeautifulSoup(res.text, "xml")
+
+                # Yield both soup and the original case URL
+                yield case_url, soup
 
             except Exception as e:
                 logger.error(f"Error with case {case_url}: {str(e)}", exc_info=True)
@@ -124,7 +159,10 @@ class CaselawScraper(LexScraper):
                 if not request_url:
                     break
             except Exception as e:
-                logger.error(f"Error fetching page {page_counter + 1}: {str(e)}")
+                if page_counter == 0:
+                    logger.error(f"No results found for {request_url}")
+                else:
+                    logger.error(f"Error fetching page {page_counter + 1}: {str(e)}")
                 break
 
     def _get_cases_from_contents_soup(self, soup: BeautifulSoup) -> Iterator[str]:

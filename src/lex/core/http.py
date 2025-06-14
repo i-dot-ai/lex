@@ -1,6 +1,6 @@
 import logging
 import os
-from pathlib import Path
+import time
 from typing import Any, Dict, Optional, Type, Union
 
 import requests
@@ -12,6 +12,9 @@ from tenacity import (
     stop_after_attempt,
     wait_exponential,
 )
+
+from lex.core.exceptions import RateLimitException
+from lex.core.rate_limiter import AdaptiveRateLimiter, CircuitBreaker
 
 logger = logging.getLogger(__name__)
 
@@ -61,6 +64,7 @@ class HttpClient:
             requests.exceptions.HTTPError,
             requests.exceptions.ConnectionError,
             requests.exceptions.Timeout,
+            RateLimitException,  # Important: retry on rate limits
         )
 
         # Create the retry decorator with configured parameters
@@ -78,9 +82,12 @@ class HttpClient:
         # Create persistent cache if enabled
         if self.enable_cache:
             if cache_dir is None:
-                # Default to ~/.cache/lex/http
-                home_dir = Path.home()
-                cache_dir = os.path.join(home_dir, ".cache", "lex", "http")
+                # Check if running in container with mounted volume
+                if os.path.exists("/app/data"):
+                    cache_dir = "/app/data/cache/http"
+                else:
+                    # Local development - use project data directory
+                    cache_dir = os.path.join(os.getcwd(), "data", "cache", "http")
 
             # Ensure cache directory exists
             os.makedirs(cache_dir, exist_ok=True)
@@ -91,14 +98,71 @@ class HttpClient:
             )
             logger.debug(f"Cache initialized at {cache_dir}")
 
+        # Initialize rate limiter and circuit breaker
+        self.rate_limiter = AdaptiveRateLimiter()
+        self.circuit_breaker = CircuitBreaker(
+            failure_threshold=10, recovery_timeout=300, expected_exception=RateLimitException
+        )
+
     def _make_request(self, method: str, url: str, **kwargs: Any) -> requests.Response:
         """
         Internal method that makes the actual request.
         This is decorated with retry logic.
         """
         response = self.session.request(method=method, url=url, timeout=self.timeout, **kwargs)
+
+        # Check for rate limiting
+        if response.status_code == 429:
+            retry_after = response.headers.get("Retry-After")
+            if retry_after:
+                try:
+                    retry_after = int(retry_after)
+                except ValueError:
+                    retry_after = None
+
+            self.rate_limiter.record_rate_limit(retry_after)
+
+            logger.warning(
+                f"Rate limited: {url}",
+                extra={
+                    "event_type": "rate_limit",
+                    "url": url,
+                    "retry_after": retry_after,
+                    "current_delay": self.rate_limiter.get_current_delay(),
+                    "status_code": 429,
+                },
+            )
+
+            # Convert to RateLimitException so circuit breaker can track it
+            raise RateLimitException(f"Rate limited on {url}", retry_after)
+
         response.raise_for_status()
         return response
+
+    def _make_request_with_circuit_breaker(
+        self, method: str, url: str, **kwargs: Any
+    ) -> requests.Response:
+        """Wrap request with circuit breaker and rate limiting."""
+        # Apply adaptive delay
+        delay = self.rate_limiter.get_current_delay()
+        if delay > 0:
+            logger.debug(f"Applying rate limit delay: {delay}s")
+            time.sleep(delay)
+
+        try:
+            # Use circuit breaker to protect against cascading failures
+            response = self.circuit_breaker.call(
+                self._retry_decorator(self._make_request), method, url, **kwargs
+            )
+            self.rate_limiter.record_success()
+            return response
+        except RateLimitException:
+            # Re-raise rate limit exceptions
+            raise
+        except Exception as e:
+            # Log other exceptions but re-raise
+            logger.error(f"Request failed: {e}")
+            raise
 
     def _get_cache_key(self, method: str, url: str, **kwargs: Any) -> str:
         """Generate a cache key from the request parameters."""
@@ -122,29 +186,37 @@ class HttpClient:
 
         Raises:
             requests.exceptions.RequestException: If all retry attempts fail
+            RateLimitException: If rate limited and circuit breaker is open
         """
         # Only cache GET requests
         if not self.enable_cache or method != "GET":
             # Clear cache for non-GET methods that modify data
             if self.enable_cache and method in ["POST", "PUT", "PATCH", "DELETE"]:
                 self.clear_cache()
-            return self._retry_decorator(self._make_request)(method, url, **kwargs)
+            return self._make_request_with_circuit_breaker(method, url, **kwargs)
 
         # For GET requests with cache enabled
         cache_key = self._get_cache_key(method, url, **kwargs)
 
         # Check cache
-        cached_response = self._cache.get(cache_key)
-        if cached_response is not None:
-            logger.debug(f"Cache hit for {url}")
-            return cached_response
+        try:
+            cached_response = self._cache.get(cache_key)
+            if cached_response is not None:
+                logger.debug(f"Cache hit for {url}")
+                return cached_response
+        except Exception as e:
+            logger.warning(f"Cache read error for {url}: {e}. Continuing without cache.")
+            # Continue without cache on read errors
 
         # Cache miss - make request
-        response = self._retry_decorator(self._make_request)(method, url, **kwargs)
+        response = self._make_request_with_circuit_breaker(method, url, **kwargs)
 
         # Store in cache
-        self._cache.set(cache_key, response, expire=self.cache_ttl)
-        logger.debug(f"Cached response for {url}")
+        try:
+            self._cache.set(cache_key, response, expire=self.cache_ttl)
+            logger.debug(f"Cached response for {url}")
+        except Exception as e:
+            logger.warning(f"Cache write error for {url}: {e}. Response returned without caching.")
 
         return response
 
@@ -155,8 +227,41 @@ class HttpClient:
     def clear_cache(self) -> None:
         """Clear the entire cache."""
         if self.enable_cache:
-            self._cache.clear()
-            logger.debug("Cache cleared")
+            try:
+                self._cache.clear()
+                logger.debug("Cache cleared")
+            except Exception as e:
+                logger.error(f"Failed to clear cache: {e}. Attempting to recreate cache.")
+                self._recreate_cache()
+
+    def _recreate_cache(self) -> None:
+        """Recreate the cache directory if corrupted."""
+        if self.enable_cache and hasattr(self, "_cache"):
+            try:
+                # Close existing cache
+                self._cache.close()
+            except:
+                pass
+
+            # Get cache directory
+            cache_dir = self._cache.directory
+
+            # Remove corrupted cache files
+            import shutil
+
+            try:
+                shutil.rmtree(cache_dir)
+                logger.info(f"Removed corrupted cache directory: {cache_dir}")
+            except Exception as e:
+                logger.error(f"Failed to remove cache directory: {e}")
+
+            # Recreate cache
+            os.makedirs(cache_dir, exist_ok=True)
+            self._cache = Cache(
+                directory=cache_dir,
+                size_limit=self.cache_size_limit,
+            )
+            logger.info("Cache recreated successfully")
 
     def get_cache_info(self) -> Dict[str, Any]:
         """

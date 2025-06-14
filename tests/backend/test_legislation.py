@@ -49,7 +49,7 @@ def test_search_legislation_sections_endpoint(client):
             assert section.id, "id should not be empty"
             assert section.uri, "uri should not be empty"
             assert section.title, "title should not be empty"
-            assert section.legislation_title, "legislation_title should not be empty"
+            assert section.legislation_id, "legislation_title should not be empty"
 
         except ValidationError as e:
             pytest.fail(f"Validation error: {e}")
@@ -189,17 +189,17 @@ def test_lookup_legislation_endpoint(client):
 def test_get_legislation_sections_endpoint(client):
     """Test that the /legislation/section/lookup endpoint returns valid data."""
     # Use a title that should exist in most environments
-    test_title = "Finance Act 2022"
+    test_id = "http://www.legislation.gov.uk/id/ukpga/2022/3"
 
     response = client.post(
         "/legislation/section/lookup",
-        json={"title": test_title, "limit": 10},
+        json={"legislation_id": test_id, "limit": 10},
     )
 
     # Check response status
     # This endpoint could return 404 if title not found, which is valid
     if response.status_code == 404:
-        pytest.skip(f"No sections found for legislation title: {test_title}, this is valid")
+        pytest.skip(f"No sections found for legislation title: {test_id}, this is valid")
         return
 
     assert response.status_code == 200, (
@@ -218,8 +218,8 @@ def test_get_legislation_sections_endpoint(client):
             # Verify the section has the expected fields
             assert section.id, "id should not be empty"
             assert section.uri, "uri should not be empty"
-            assert section.legislation_title == test_title, (
-                "legislation_title should match the requested title"
+            assert section.legislation_id == "http://www.legislation.gov.uk/id/ukpga/2022/3", (
+                "legislation_id should match the requested title"
             )
             assert section.number, "number should not be empty"
 

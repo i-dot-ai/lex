@@ -18,7 +18,7 @@ def client():
         yield test_client
 
 
-def test_search_explanatory_notes_endpoint(client):
+def test_search_explanatory_note_endpoint(client):
     """Test that the /explanatory_note/section/search endpoint returns valid data."""
     # Simple search with a query that should return results in most environments
     search_query = "purpose of legislation"
@@ -56,7 +56,7 @@ def test_search_explanatory_notes_endpoint(client):
             pytest.fail(f"Validation error: {e}")
 
 
-def test_search_explanatory_notes_with_filters_endpoint(client):
+def test_search_explanatory_note_with_filters_endpoint(client):
     """Test that the /explanatory_note/section/search endpoint works with note_type and section_type filters."""
     # Search for notes with specific types
     search_query = "generic legislation"
@@ -108,7 +108,7 @@ def test_search_explanatory_notes_with_filters_endpoint(client):
             pytest.fail(f"Validation error: {e}")
 
 
-def test_get_explanatory_notes_by_legislation_endpoint(client):
+def test_get_explanatory_note_by_legislation_endpoint(client):
     """Test that the /explanatory_note/legislation/lookup endpoint returns valid data."""
     # Use a common legislation ID format that should exist in most environments
     test_legislation_id = "https://www.legislation.gov.uk/ukpga/2022/4"

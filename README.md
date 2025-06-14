@@ -8,7 +8,7 @@ This project would not have been possible without the generous support of [The N
 
 ## Project Structure
 
-Lex is split into two key components. These have their own detailed documentation to cover in depth the [ingestion](src/lex/README.md) and [backend](src/backend/README.md). Each of these is then divided into legislation, caselaw, explanatory notes, and amendments. 
+Lex is split into two key components. These have their own detailed documentation to cover in depth the [ingestion](src/lex/README.md) and [backend](src/backend/README.md). Each of these is then divided into legislation, caselaw, explanatory notes, and amendments.
 
 ```
 src/
@@ -57,17 +57,17 @@ This will setup four containers:
 
 **4. Load some initial datasets using the Makefile:**
 ```bash
-# Load primary legislation and recent caselaw (recommended for getting started)
-make ingest-legislation
-make ingest-legislation-section
-make ingest-caselaw
+# Load sample data (recommended for getting started)
+make ingest-legislation-sample
+make ingest-legislation-section-sample
+make ingest-caselaw-sample
 ...
 ```
-We've chosen to load samples of legislation, legislation sections, and caselaw. There are a few other options if you wanted but we'll leave these for now.
+We've chosen to load samples of legislation, legislation sections, and caselaw. These sample commands load a limited subset of recent data (2020-current year for legislation, 50 documents limit).
 
 Each command does a fair bit of work behind the scenes. It scrapes the data from The National Archives, parses it to json, uploads it to Elasticsearch (which creates embeddings for the semantic text fields). This will process significant data behind the scenes. For this quickstart only a small subset of data is downloaded - it'll take around 5 minutes to complete.
 
-To index all legislation, explanatory notes, and caselaw can take up to 24hrs. To understand how to index all the data you're interested in explore the [ingestion README](src/lex/README.md).
+To index complete datasets, use the `-full` commands which can take up to 24hrs. These commands ingest all legislation types from 1963 onwards and caselaw from 2001 onwards. To understand how to index all the data you're interested in explore the [ingestion README](src/lex/README.md).
 
 **5. Run an MCP client**
 
@@ -89,22 +89,37 @@ That's it. You've now got a backend hosted at http://localhost:8000 (view the do
 
 ## Quick Data Loading
 
-The Makefile provides convenient commands for loading different types of legal data beyond those listed above
+The Makefile provides convenient commands for loading different types of legal data:
 
+### Sample Data (Quick Start)
 ```bash
-# Individual data types
-make ingest-legislation          # Primary legislation documents
-make ingest-legislation-section  # Individual sections of legislation  
-make ingest-caselaw             # Court judgments and decisions
-make ingest-caselaw-section     # Individual sections of caselaw
-make ingest-explanatory-note    # Documents explaining legislation
-make ingest-amendment           # Changes to legislation
+# Individual data types - limited samples for testing
+make ingest-legislation-sample          # Primary legislation (ukpga only, 2020-current year, limit 50)
+make ingest-legislation-section-sample  # Individual sections of legislation
+make ingest-caselaw-sample             # Court judgments (limit 50)
+make ingest-caselaw-section-sample     # Individual sections of caselaw
+make ingest-explanatory-note-sample    # Documents explaining legislation
+make ingest-amendment-sample           # Changes to legislation
 
-# Load a bit of everything
-make ingest-all
+# Load sample of everything
+make ingest-all-sample
 ```
 
-These are only intended to get you up and running. To understand how to index all the data you're interested in explore the next steps.
+### Full Data (Complete Dataset)
+```bash
+# Individual data types - all available data
+make ingest-legislation-full          # ALL legislation types (1963-current year)
+make ingest-legislation-section-full  # ALL legislation sections (1963-current year)
+make ingest-caselaw-full             # ALL court judgments (2001-current year)
+make ingest-caselaw-section-full     # ALL caselaw sections (2001-current year)
+make ingest-explanatory-note-full    # ALL explanatory notes (1963-current year)
+make ingest-amendment-full           # ALL amendments (1963-current year)
+
+# Load everything (warning: this takes 24+ hours)
+make ingest-all-full
+```
+
+Note: Legislation data is available from 1963 onwards, while caselaw data is available from 2001 onwards. The sample commands are intended to get you up and running quickly with recent data. The full commands will ingest all available data but require significant time and resources.
 
 ## Next Steps
 

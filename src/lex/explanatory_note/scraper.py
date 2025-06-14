@@ -50,6 +50,7 @@ class NoteProcessor:
     """Base class for processing explanatory notes."""
 
     def __init__(self, legislation_id: str):
+        self.base_url = "https://www.legislation.gov.uk"
         self.legislation_id = legislation_id
 
     def _extract_section_info(
@@ -178,7 +179,7 @@ class OldNoteProcessor(NoteProcessor):
 
     def process_sections(self, soup: BeautifulSoup) -> List[ExplanatoryNote]:
         """Process sections from old style notes."""
-        notes_page_link = soup.find("a", title="Open Explanatory Notes")["href"]
+        notes_page_link = self.base_url + soup.find("a", title="Open Explanatory Notes")["href"]
         notes_page = http_client.get(notes_page_link)
         notes_page_soup = BeautifulSoup(notes_page.content, "html.parser")
 
@@ -242,18 +243,18 @@ class ExplanatoryNoteScraperAndParser:
 
     def scrape_and_parse_content(
         self, years: list[int], types: list[LegislationType], limit: Optional[int] = None
-    ) -> Iterator[ExplanatoryNote]:
+    ) -> Iterator[tuple[str, ExplanatoryNote]]:
         legislation_scraper = LegislationScraper()
 
         self.urls = legislation_scraper.load_urls(years, types, limit, include_xml=False)
 
         for url in self.urls:
             try:
-                yield from self._get_explanatory_notes_sections(url)
+                yield from self._get_explanatory_note_sections(url)
             except Exception as e:
-                logger.error(f"Error scraping and parsing explanatory notes: {e}", exc_info=True)
+                logger.error(f"Error scraping and parsing explanatory note: {e}", exc_info=True)
 
-    def _get_explanatory_notes_contents_soup(self, legislation_id: str) -> Optional[BeautifulSoup]:
+    def _get_explanatory_note_contents_soup(self, legislation_id: str) -> Optional[BeautifulSoup]:
         """Get the BeautifulSoup object for the explanatory notes contents page."""
 
         contents_page_uri = legislation_id + "/contents"
@@ -271,10 +272,10 @@ class ExplanatoryNoteScraperAndParser:
             notes_contents_page = http_client.get(notes_contents_page_link)
             return BeautifulSoup(notes_contents_page.text, "html.parser")
         except (requests.RequestException, TypeError, AttributeError):
-            logger.info(f"No explanatory notes found for {legislation_id}")
+            logger.info(f"No explanatory note found for {legislation_id}")
             return None
 
-    def _is_old_explanatory_notes_page(self, notes_contents_soup: BeautifulSoup) -> Optional[bool]:
+    def _is_old_explanatory_note_page(self, notes_contents_soup: BeautifulSoup) -> Optional[bool]:
         """Determine if the page is an old style explanatory notes page."""
         try:
             if (
@@ -296,24 +297,30 @@ class ExplanatoryNoteScraperAndParser:
 
         return None
 
-    def _get_explanatory_notes_sections(self, legislation_id: str) -> list[ExplanatoryNote]:
+    def _get_explanatory_note_sections(self, legislation_id: str) -> list[ExplanatoryNote]:
         """Get all explanatory notes sections for a document."""
-        explanatory_notes_contents_soup = self._get_explanatory_notes_contents_soup(legislation_id)
+        explanatory_note_contents_soup = self._get_explanatory_note_contents_soup(legislation_id)
 
-        if not explanatory_notes_contents_soup:
+        if not explanatory_note_contents_soup:
             return []
 
-        is_old_page = self._is_old_explanatory_notes_page(explanatory_notes_contents_soup)
+        is_old_page = self._is_old_explanatory_note_page(explanatory_note_contents_soup)
         if is_old_page is None:
             logger.info(
-                f"Could not determine the style of the explanatory notes page for {legislation_id}."
+                f"Could not determine the style of the explanatory note page for {legislation_id}.",
+                extra={
+                    "doc_type": "explanatory_note",
+                    "legislation_id": legislation_id,
+                    "processing_status": "style_unknown",
+                    "note_style": "unknown",
+                },
             )
             return []
 
         processor = (
             OldNoteProcessor(legislation_id) if is_old_page else NewNoteProcessor(legislation_id)
         )
-        sections = processor.process_sections(explanatory_notes_contents_soup)
+        sections = processor.process_sections(explanatory_note_contents_soup)
 
         # Update the section legislation_ids to make them match the legislation endpoints
 
@@ -326,5 +333,15 @@ class ExplanatoryNoteScraperAndParser:
                 "https://www.legislation.gov.uk/", "http://www.legislation.gov.uk/id/"
             )
 
-        logger.info(f"Scraped and parsed {len(sections)} sections for {legislation_id}")
-        return sections
+        logger.info(
+            f"Scraped and parsed {len(sections)} sections for {legislation_id}",
+            extra={
+                "doc_type": "explanatory_note",
+                "legislation_id": legislation_id,
+                "processing_status": "success",
+                "note_style": "old" if is_old_page else "new",
+                "section_count": len(sections),
+            },
+        )
+        ids = [section.id for section in sections]
+        return list(zip(ids, sections))

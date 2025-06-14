@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 
 # Index names from environment variables
 CASELAW_INDEX = os.getenv("ELASTIC_CASELAW_INDEX", "lex-dev-caselaw")
@@ -87,7 +88,9 @@ LEGISLATION_NAME_MAPPING = {
     "ukci": "Church Instruments",
 }
 
-YEARS = list(range(1267, 2024))
+# Dynamically calculate years up to current year
+CURRENT_YEAR = datetime.now().year
+YEARS = list(range(1267, CURRENT_YEAR + 1))  # Includes current year
 
 EMBEDDING_DIMENSIONS = 1024
 EMBEDDING_MODEL = "text-embedding-3-large"

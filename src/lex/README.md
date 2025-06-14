@@ -234,6 +234,41 @@ Embedding is automatically handled by Elasticsearch. Any content uploaded to the
 
 Although most content is taken from The National Archives, we implement HTTP caching to minimize unnecessary requests to external sources. When downloading content from legislation.gov.uk and other legal data sources, the scrapers will only make HTTP requests if the content is not already cached locally. This significantly improves performance during development and reduces load on external services, especially when re-running ingestion processes or processing large datasets.
 
+## Checkpoint System and Resume Capability
+
+Lex includes a sophisticated checkpointing system that enables reliable processing of large datasets with automatic resume capability.
+
+### Key Features
+- **Persistent Progress Tracking**: Automatically saves progress for each year/type combination
+- **Intelligent Resume**: Continues from exactly where processing was interrupted  
+- **Error Recovery**: Distinguishes between retryable and permanent failures
+- **Memory Efficiency**: Skips already-processed documents and combinations
+
+### Using Checkpoints
+Checkpointing is enabled by default. If processing is interrupted:
+
+```bash
+# Simply re-run the same command - it will resume automatically
+docker compose exec pipeline uv run src/lex/main.py -m legislation --types ukpga --years 2020-2025
+```
+
+### Managing Checkpoints
+```bash
+# Clear checkpoint state to restart from beginning
+docker compose exec pipeline uv run src/lex/main.py -m legislation --types ukpga --years 2020-2025 --clear-checkpoint
+
+# Checkpoints are stored persistently and survive container restarts
+```
+
+### How It Works
+The system tracks:
+- Successfully processed document URLs
+- Failed URLs with error details  
+- Current position in each year/type combination
+- Completed combinations (fully processed)
+
+This enables processing of large datasets (10,000+ documents) over multiple sessions with confidence.
+
 ## Extending the System
 
 To add support for new document types, you can follow one of two patterns:

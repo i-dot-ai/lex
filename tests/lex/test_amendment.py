@@ -13,7 +13,7 @@ def test_amendment_integration():
 
     # Scrape and parse content
     amendments = []
-    for amendment_soup in scraper.load_content(years=[2024], limit=200):
+    for url, amendment_soup in scraper.load_content(years=[2024], limit=200):
         amendment = parser.parse_content(amendment_soup)
         amendments.extend(amendment)
 

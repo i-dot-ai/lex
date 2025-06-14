@@ -93,6 +93,7 @@ class CourtDivision(str, Enum):
     SCCO = "scco"
     TCC = "tcc"
     QB = "qb"
+    COSTS = "costs"
 
     # Upper Tribunal divisions
     AAC = "aac"
@@ -105,6 +106,9 @@ class CourtDivision(str, Enum):
 
     # Family Court divions
     B = "b"
+
+    # Tier 2 divisions
+    T2 = "t2"
 
 
 class Caselaw(EmbeddableModel):

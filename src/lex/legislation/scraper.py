@@ -21,13 +21,14 @@ class LegislationScraper(LexScraper):
         years: list[int],
         limit: int | None = None,
         types: list[LegislationType] = list(LegislationType),
-    ) -> Iterator[BeautifulSoup]:
+    ) -> Iterator[tuple[str, BeautifulSoup]]:
         "Scrapes legislation content from the internet."
 
         legislation_urls = self.load_urls(years, types, limit)
 
         for url in legislation_urls:
-            yield self._load_legislation_from_url(url)
+            soup = self._load_legislation_from_url(url)
+            yield url, soup
 
     def load_urls(
         self,
@@ -134,7 +135,7 @@ class LegislationScraper(LexScraper):
             if href.startswith(f"/{legislation_type}") and href.endswith(tuple(valid_endswith)):
                 # Just store the base URL (without /data.xml) for now
                 # We'll validate and process later
-                base_url = self.base_url + "/".join(href.split("/")[:4])
+                base_url = self.base_url + "/".join(href.split("/")[:-1])
                 hrefs.append(base_url)
 
         return hrefs
