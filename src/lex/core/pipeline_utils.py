@@ -189,8 +189,8 @@ def process_checkpoints(
         Processed documents of the specified type
     """
     logger = logging.getLogger(__name__)
-    
-    remaining_limit = limit if limit is not None else float('inf')
+
+    remaining_limit = limit if limit is not None else float("inf")
 
     for checkpoint in checkpoints:
         with checkpoint as ctx:
@@ -205,7 +205,9 @@ def process_checkpoints(
             else:
                 # For pipelines without types (amendment)
                 passed_limit = None if limit is None else int(remaining_limit)
-                content_iterator = loader_or_scraper.load_content([checkpoint.year], limit=passed_limit)
+                content_iterator = loader_or_scraper.load_content(
+                    [checkpoint.year], limit=passed_limit
+                )
 
             for url, soup in content_iterator:
                 if remaining_limit <= 0:

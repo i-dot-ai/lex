@@ -152,7 +152,7 @@ class CaselawScraper(LexScraper):
                 res = http_client.get(request_url)
                 soup = BeautifulSoup(res.text, "html.parser")
                 cases = self._get_cases_from_contents_soup(soup)
-                
+
                 if not cases:
                     logger.debug(f"No cases found on page {page_counter + 1}")
                     # Still check for next page even if no cases on this page
@@ -163,13 +163,13 @@ class CaselawScraper(LexScraper):
                         continue
                     else:
                         break
-                
+
                 for case in cases:
                     return_counter += 1
                     if limit is not None and return_counter > limit:
                         break
                     yield case
-                    
+
                 page_counter += 1
                 request_url = self._get_next_page_url(soup)
                 if not request_url:
@@ -181,7 +181,7 @@ class CaselawScraper(LexScraper):
                 else:
                     logger.error(f"Error fetching page {page_counter + 1}: {str(e)}")
                 break
-        
+
         logger.debug(f"Finished retrieving {return_counter} cases across {page_counter} pages")
 
     def _get_cases_from_contents_soup(self, soup: BeautifulSoup) -> Iterator[str]:
@@ -190,28 +190,28 @@ class CaselawScraper(LexScraper):
             if not judgments_table:
                 logger.warning("No judgments-table div found in search results")
                 return []
-            
+
             table = judgments_table.find("table")
             if not table:
                 logger.warning("No table found in judgments-table div")
                 return []
-            
+
             list_elements = table.find_all("tr")
             if len(list_elements) <= 1:
                 logger.debug("No case rows found in table (only header or empty)")
                 return []
-            
+
             links = []
             for element in list_elements[1:]:
                 link_elem = element.find("a")
                 if link_elem and "href" in link_elem.attrs:
                     links.append(self.BASE_URL + link_elem["href"].split("?")[0])
-            
+
             if not links:
                 logger.debug("No case links extracted from table")
             else:
                 logger.debug(f"Extracted {len(links)} case links from search results")
-            
+
             return links
         except Exception as e:
             logger.error(f"Error extracting cases from search results: {str(e)}", exc_info=True)
