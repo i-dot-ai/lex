@@ -247,6 +247,8 @@ def process_checkpoints_with_combined_scraper_parser(
     """
     logger = logging.getLogger(__name__)
 
+    limit = limit if limit is not None else float("inf")
+
     for checkpoint in checkpoints:
         with checkpoint as ctx:
             # Handle different scrape_and_parse_content signatures based on whether doc_type exists
