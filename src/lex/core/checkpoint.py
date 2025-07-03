@@ -97,7 +97,11 @@ class CheckpointCombination:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        """Mark combination complete based on processing state, not exceptions."""
+        """Mark combination parsing complete, but not fully complete until pipeline ends."""
+        # Debug logging to understand what's happening
+        logger.info(f"Checkpoint __exit__ called for {self.checkpoint_manager.checkpoint_id}")
+        logger.info(f"Exception info: exc_type={exc_type}, exc_val={exc_val}")
+
         failed_urls = self.checkpoint_manager.cache.get(
             self.checkpoint_manager._get_key("failed_urls"), {}
         )
@@ -105,30 +109,63 @@ class CheckpointCombination:
         has_failed_urls = len(failed_urls) > 0
         has_hit_limit = self.checkpoint_manager.has_hit_limit()
 
-        # Only mark complete if:
+        # Check if we were interrupted by user or system
+        was_interrupted = exc_type is not None and issubclass(exc_type, (KeyboardInterrupt, SystemExit))
+
+        logger.info(f"Checkpoint state: failed_urls={has_failed_urls}, hit_limit={has_hit_limit}, interrupted={was_interrupted}")
+
+        # Only mark parsing complete if:
         # - No failed URLs (nothing to retry)
         # - AND didn't hit limit (no more items to process)
-        should_complete = not has_failed_urls and not has_hit_limit
+        # - AND wasn't interrupted by user/system
+        should_mark_parsing_complete = not has_failed_urls and not has_hit_limit and not was_interrupted
 
-        if should_complete:
+        if should_mark_parsing_complete:
+            # Mark as parsing complete, but not fully complete yet
+            self.checkpoint_manager.cache.set(
+                self.checkpoint_manager._get_key("parsing_complete"), True
+            )
+            self.checkpoint_manager.cache.set(
+                self.checkpoint_manager._get_key("updated_at"), datetime.now().isoformat()
+            )
+            logger.info(f"Marked {self.checkpoint_manager.checkpoint_id} as parsing complete (not fully complete yet)")
+        else:
+            # Log why it wasn't marked parsing complete
+            reasons = []
+            if has_failed_urls:
+                reasons.append(f"{len(failed_urls)} failed URLs")
+            if has_hit_limit:
+                reasons.append("hit processing limit")
+            if was_interrupted:
+                reasons.append(f"interrupted by {exc_type.__name__}")
+
+            logger.info(
+                f"Not marking {self.checkpoint_manager.checkpoint_id} as parsing complete: {', '.join(reasons)}"
+            )
+
+    def mark_fully_complete(self):
+        """Mark this combination as fully complete (parsing + upload successful)."""
+        # Only mark fully complete if parsing was completed successfully
+        parsing_complete = self.checkpoint_manager.cache.get(
+            self.checkpoint_manager._get_key("parsing_complete"), False
+        )
+
+        if parsing_complete:
             self.checkpoint_manager.cache.set(
                 self.checkpoint_manager._get_key("combination_complete"), True
             )
             self.checkpoint_manager.cache.set(
                 self.checkpoint_manager._get_key("updated_at"), datetime.now().isoformat()
             )
-            logger.info(f"Marked {self.checkpoint_manager.checkpoint_id} as complete")
+            logger.info(f"Marked {self.checkpoint_manager.checkpoint_id} as fully complete")
         else:
-            # Log why it wasn't marked complete
-            reasons = []
-            if has_failed_urls:
-                reasons.append(f"{len(failed_urls)} failed URLs")
-            if has_hit_limit:
-                reasons.append("hit processing limit")
+            logger.warning(f"Cannot mark {self.checkpoint_manager.checkpoint_id} as fully complete - parsing was not completed")
 
-            logger.info(
-                f"Not marking {self.checkpoint_manager.checkpoint_id} as complete: {', '.join(reasons)}"
-            )
+    def is_parsing_complete(self) -> bool:
+        """Check if this combination has completed parsing (but may not be fully complete)."""
+        return self.checkpoint_manager.cache.get(
+            self.checkpoint_manager._get_key("parsing_complete"), False
+        )
 
 
 def get_checkpoints(
