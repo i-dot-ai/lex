@@ -6,6 +6,9 @@ Lex is a comprehensive legislative service that downloads, parses, and indexes l
 #### Acknowledgements
 This project would not have been possible without the generous support of [The National Archives](https://www.nationalarchives.gov.uk/) and previous work from the [Ministry of Justice](https://www.gov.uk/government/organisations/ministry-of-justice). They have been heavily involved in the development of Lex and helping it get to where it is today.
 
+#### Limitations
+Lex is currently in alpha and cannot guarantee access to complete legislative data. The codebase and features are subject to change. Lex does not yet support ingestion of legislation that is only held as a pdf.
+
 ## Project Structure
 
 Lex is split into two key components. These have their own detailed documentation to cover in depth the [ingestion](src/lex/README.md) and [backend](src/backend/README.md). Each of these is then divided into legislation, caselaw, explanatory notes, and amendments.
