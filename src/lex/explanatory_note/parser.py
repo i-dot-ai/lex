@@ -233,7 +233,7 @@ class NewNoteProcessor(NoteProcessor):
 
 class ExplanatoryNoteParser(LexParser):
     """Parser for explanatory notes. Note that this is strictly not just parsing the provided soup, but will also scrape several other pages to get the full explanatory note.
-    
+
     This means that on each legislation page, we may perform an unecessary request of the .xml page. However this is deemed acceptable to standardise the APIs across all document types."""
 
     def __init__(
