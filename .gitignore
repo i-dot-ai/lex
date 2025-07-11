@@ -206,3 +206,5 @@ data/checkpoints/
 
 CLAUDE.md
 .claude/settings.local.json
+*.jpg
+.vercel

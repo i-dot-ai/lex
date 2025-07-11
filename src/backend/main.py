@@ -1,10 +1,11 @@
 import uvicorn
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.responses import JSONResponse
 from fastapi_mcp import FastApiMCP
 
 from backend.amendment.router import router as amendment_router
 from backend.caselaw.router import router as caselaw_router
+from backend.core.dependencies import verify_api_key
 from backend.explanatory_note.router import router as explanatory_note_router
 from backend.legislation.router import router as legislation_router
 
@@ -14,11 +15,11 @@ app = FastAPI(
     version="0.1.0",
 )
 
-# Include routers
-app.include_router(legislation_router)
-app.include_router(caselaw_router)
-app.include_router(explanatory_note_router)
-app.include_router(amendment_router)
+# Include routers with API key protection
+app.include_router(legislation_router, dependencies=[Depends(verify_api_key)])
+app.include_router(caselaw_router, dependencies=[Depends(verify_api_key)])
+app.include_router(explanatory_note_router, dependencies=[Depends(verify_api_key)])
+app.include_router(amendment_router, dependencies=[Depends(verify_api_key)])
 
 
 @app.get("/")
