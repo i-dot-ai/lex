@@ -1,20 +1,23 @@
 """Integration tests for explanatory note package."""
 
-from lex.explanatory_note.scraper import ExplanatoryNoteScraperAndParser
+from lex.explanatory_note.parser import ExplanatoryNoteParser
+from lex.explanatory_note.scraper import ExplanatoryNoteScraper
 from lex.legislation.models import LegislationType
 
 
 def test_explanatory_note_integration():
     """Test the full explanatory note scraping and parsing pipeline."""
     # Initialize components
-    scraper_and_parser = ExplanatoryNoteScraperAndParser()
+    scraper = ExplanatoryNoteScraper()
+    parser = ExplanatoryNoteParser()
 
     # Scrape and parse content
     explanatory_note = []
-    for url, explanatory_note_soup in scraper_and_parser.scrape_and_parse_content(
+    for url, soup in scraper.load_content(
         years=[2024], types=[LegislationType.UKPGA], limit=10
     ):
-        explanatory_note.append(explanatory_note_soup)
+        for note in parser.parse_content(soup):
+            explanatory_note.append(note)
 
     # Assertions
     assert len(explanatory_note) > 0, "Should have parsed at least one explanatory note"

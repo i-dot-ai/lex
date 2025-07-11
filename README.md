@@ -13,6 +13,8 @@ Lex is currently in alpha and cannot guarantee access to complete legislative da
 
 Lex is split into two key components. These have their own detailed documentation to cover in depth the [ingestion](src/lex/README.md) and [backend](src/backend/README.md). Each of these is then divided into legislation, caselaw, explanatory notes, and amendments.
 
+All document types follow a consistent scraper→parser→pipeline architecture pattern, with dedicated scraper and parser classes for each type. Explanatory notes have a small performance trade-off as they require additional HTTP requests during parsing to fetch content across multiple pages, but this maintains API consistency across document types.
+
 ```
 src/
 ├── lex/             # Core library for legislative processing
