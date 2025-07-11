@@ -8,8 +8,9 @@ from lex.core.pipeline_utils import (
 )
 from lex.explanatory_note.models import ExplanatoryNote
 from lex.explanatory_note.parser import ExplanatoryNoteParser
-from lex.explanatory_note.scraper import ExplanatoryNoteScraper
+from lex.legislation.loader import LegislationLoader
 from lex.legislation.models import LegislationType
+from lex.legislation.scraper import LegislationScraper
 
 logger = logging.getLogger(__name__)
 
@@ -18,9 +19,16 @@ logger = logging.getLogger(__name__)
 def pipe_explanatory_note(
     years: list[int], types: list[LegislationType], limit: int = None, **kwargs
 ) -> Iterator[ExplanatoryNote]:
-
-    scraper = ExplanatoryNoteScraper()
+    scraper = LegislationScraper()
+    loader = LegislationLoader()
     parser = ExplanatoryNoteParser()
+
+    if kwargs.get("from_file"):
+        loader_or_scraper = loader
+        logging.info("Loading explanatory notes from file")
+    else:
+        loader_or_scraper = scraper
+        logging.info("Parsing explanatory notes from web")
 
     checkpoints = get_checkpoints(
         years, types, "explanatory_note", kwargs.get("clear_checkpoint", False)
@@ -28,7 +36,7 @@ def pipe_explanatory_note(
 
     yield from process_checkpoints(
         checkpoints=checkpoints,
-        loader_or_scraper=scraper,
+        loader_or_scraper=loader_or_scraper,
         parser=parser,
         document_type=ExplanatoryNote,
         limit=limit,

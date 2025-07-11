@@ -1,14 +1,14 @@
 """Integration tests for explanatory note package."""
 
 from lex.explanatory_note.parser import ExplanatoryNoteParser
-from lex.explanatory_note.scraper import ExplanatoryNoteScraper
 from lex.legislation.models import LegislationType
+from lex.legislation.scraper import LegislationScraper
 
 
 def test_explanatory_note_integration():
     """Test the full explanatory note scraping and parsing pipeline."""
     # Initialize components
-    scraper = ExplanatoryNoteScraper()
+    scraper = LegislationScraper()
     parser = ExplanatoryNoteParser()
 
     # Scrape and parse content
