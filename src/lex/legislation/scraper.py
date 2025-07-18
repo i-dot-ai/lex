@@ -27,7 +27,7 @@ class LegislationScraper(LexScraper):
         legislation_urls = self.load_urls(years, types, limit)
 
         for url in legislation_urls:
-            soup = self._load_legislation_from_url(url)
+            soup = self.load_legislation_from_url(url)
             yield url, soup
 
     def load_urls(

@@ -248,10 +248,13 @@ class ExplanatoryNoteParser(LexParser):
 
         url = self._extract_legislation_id(soup)
 
-        try:
-            yield from self._get_explanatory_note_sections(url)
-        except Exception as e:
-            logger.error(f"Error scraping and parsing explanatory note: {e}", exc_info=True)
+        if self._parse_explanatory_note_from_legislation_soup(soup):
+            yield self._parse_explanatory_note_from_legislation_soup(soup)
+        else:
+            try:
+                yield from self._get_explanatory_note_sections(url)
+            except Exception as e:
+                logger.error(f"Error scraping and parsing explanatory note: {e}", exc_info=True)
 
     def _extract_legislation_id(self, soup: BeautifulSoup) -> str:
         """Extract the legislation id from the soup."""
@@ -348,4 +351,22 @@ class ExplanatoryNoteParser(LexParser):
         )
         return sections
 
+    def _parse_explanatory_note_from_legislation_soup(self, soup: BeautifulSoup) -> ExplanatoryNote | None:
+        """Parse any explanatory notes directly from the legislation soup. This is most typical of Statutory Instruments."""
 
+        explanatory_note_section = soup.find("Legislation").find("ExplanatoryNotes")
+        if explanatory_note_section is None:
+            return None
+
+        legislation_id = soup.find("Legislation").get("DocumentURI").replace("http:", "https:").replace("https://www.legislation.gov.uk/", "http://www.legislation.gov.uk/id/")
+
+        return ExplanatoryNote(
+            id=legislation_id + "_0",
+            legislation_id=legislation_id,
+            note_type=ExplanatoryNoteType.OVERVIEW,
+            route=[],
+            section_type=ExplanatoryNoteSectionType.SECTION,
+            section_number=0,
+            order=0,
+            text=explanatory_note_section.text,
+        )
