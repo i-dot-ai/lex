@@ -248,8 +248,10 @@ class ExplanatoryNoteParser(LexParser):
 
         url = self._extract_legislation_id(soup)
 
-        if self._parse_explanatory_note_from_legislation_soup(soup):
-            yield self._parse_explanatory_note_from_legislation_soup(soup)
+        explanatory_notes = self._parse_explanatory_note_from_legislation_soup(soup)
+        if explanatory_notes:
+            yield from explanatory_notes
+            return
         else:
             try:
                 yield from self._get_explanatory_note_sections(url)
@@ -351,22 +353,39 @@ class ExplanatoryNoteParser(LexParser):
         )
         return sections
 
-    def _parse_explanatory_note_from_legislation_soup(self, soup: BeautifulSoup) -> ExplanatoryNote | None:
+    def _parse_explanatory_note_from_legislation_soup(self, soup: BeautifulSoup) -> list[ExplanatoryNote]:
         """Parse any explanatory notes directly from the legislation soup. This is most typical of Statutory Instruments."""
 
+        legislation_id = soup.find("Legislation").get("DocumentURI").replace("http:", "https:").replace("https://www.legislation.gov.uk/", "http://www.legislation.gov.uk/id/")
+        explanatory_note_sections = []
+
+        enacting_text = soup.find("Legislation").find("SecondaryPreamble")
+        if enacting_text:
+            explanatory_note_sections.append(ExplanatoryNote(
+                id=legislation_id + f"_{len(explanatory_note_sections)}",
+                legislation_id=legislation_id,
+                note_type=ExplanatoryNoteType.ENACTING_TEXT,
+                route=["Enacting Text"],
+                section_type=ExplanatoryNoteSectionType.SECTION,
+                section_number=0,
+                order=0,
+                text="Legislation Enacting Text: \n\n" + enacting_text.text,
+            ))
+
         explanatory_note_section = soup.find("Legislation").find("ExplanatoryNotes")
-        if explanatory_note_section is None:
+        if explanatory_note_section:
+            explanatory_note_sections.append(ExplanatoryNote(
+                id=legislation_id + f"_{len(explanatory_note_sections)}",
+                legislation_id=legislation_id,
+                note_type=ExplanatoryNoteType.OVERVIEW,
+                route=[],
+                section_type=ExplanatoryNoteSectionType.SECTION,
+                section_number=0,
+                order=0,
+                text=explanatory_note_section.text,
+            ))
+
+        if len(explanatory_note_sections) == 0:
             return None
 
-        legislation_id = soup.find("Legislation").get("DocumentURI").replace("http:", "https:").replace("https://www.legislation.gov.uk/", "http://www.legislation.gov.uk/id/")
-
-        return ExplanatoryNote(
-            id=legislation_id + "_0",
-            legislation_id=legislation_id,
-            note_type=ExplanatoryNoteType.OVERVIEW,
-            route=[],
-            section_type=ExplanatoryNoteSectionType.SECTION,
-            section_number=0,
-            order=0,
-            text=explanatory_note_section.text,
-        )
+        return explanatory_note_sections

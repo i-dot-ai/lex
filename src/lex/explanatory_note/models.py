@@ -7,6 +7,7 @@ from lex.core.models import EmbeddableModel
 
 class ExplanatoryNoteType(str, Enum):
     OVERVIEW = "overview"
+    ENACTING_TEXT = "enacting_text"
     POLICY_BACKGROUND = "policy_background"
     LEGAL_BACKGROUND = "legal_background"
     EXTENT = "extent"
