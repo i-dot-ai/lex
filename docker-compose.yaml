@@ -59,8 +59,6 @@ services:
       - ELASTIC_CASELAW_SECTION_INDEX=${ELASTIC_CASELAW_SECTION_INDEX:-lex-dev-caselaw-section}
       - ELASTIC_EXPLANATORY_NOTE_INDEX=${ELASTIC_EXPLANATORY_NOTE_INDEX:-lex-dev-explanatory-note}
       - ELASTIC_AMENDMENT_INDEX=${ELASTIC_AMENDMENT_INDEX:-lex-dev-amendment}
-    volumes:
-      - ./data:/app/data
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/healthcheck"]
       interval: 10s
