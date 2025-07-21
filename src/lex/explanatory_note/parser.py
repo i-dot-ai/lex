@@ -356,7 +356,7 @@ class ExplanatoryNoteParser(LexParser):
     def _parse_explanatory_note_from_legislation_soup(self, soup: BeautifulSoup) -> list[ExplanatoryNote]:
         """Parse any explanatory notes directly from the legislation soup. This is most typical of Statutory Instruments."""
 
-        legislation_id = soup.find("Legislation").get("DocumentURI").replace("http:", "https:").replace("https://www.legislation.gov.uk/", "http://www.legislation.gov.uk/id/")
+        legislation_id = soup.find("Legislation").get("DocumentURI").replace("http:", "https:").replace("https://www.legislation.gov.uk/", "http://www.legislation.gov.uk/id/").replace("/made", "")
         explanatory_note_sections = []
 
         enacting_text = soup.find("Legislation").find("SecondaryPreamble")
