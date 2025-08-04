@@ -7,74 +7,63 @@ from lex.caselaw.models import Court, CourtDivision
 
 
 class ReferenceType(str, Enum):
-    """Type of reference to search for"""
-
     CASELAW = "caselaw"
     LEGISLATION = "legislation"
 
 
 class CaselawSearch(BaseModel):
-    "Search for caselaw that is relevant to a specific query. Useful for finding caselaw that is relevant to a specific question if this or related topics have been put before the courts."
-
     query: Optional[str] = Field(
         default=None,
-        description="The natural language query to search for caselaw. Often this will be the question on which the case hinges, but it could be more tangential. If not provided, will return results based on filters only.",
+        description="Natural language query to search caselaw content. Can be legal issues, questions, or topics. Omit to return results based on filters only.",
     )
     is_semantic_search: bool = Field(
         default=True,
-        description="Whether to use semantic search. Unless the user requests a non-semantic search, default to semantic search",
+        description="Use semantic search for conceptually related results. Set to false for exact keyword matching.",
     )
-    court: Optional[List[Court]] = Field(default=None, description="Filter by court.")
+    court: Optional[List[Court]] = Field(default=None, description="Filter by specific courts (UKSC, EWCA, EWHC, etc.). Omit to include all courts.")
     division: Optional[List[CourtDivision]] = Field(
-        default=None, description="Filter by court division."
+        default=None, description="Filter by court division (QBD, CH, COMM, etc.). Omit to include all divisions."
     )
     year_from: Optional[int] = Field(
-        default=None, description="Filter by cases from this year onwards."
+        default=None, description="Filter cases from this year onwards. Omit for no year filtering."
     )
-    year_to: Optional[int] = Field(default=None, description="Filter by cases up to this year.")
+    year_to: Optional[int] = Field(default=None, description="Filter cases up to this year. Omit for no year filtering.")
     size: int = Field(default=20, description="Maximum number of results to return.")
 
 
 class CaselawSectionSearch(BaseModel):
-    "Search for caselaw sections that are relevant to a specific query."
-
     query: Optional[str] = Field(
         default=None,
-        description="The query to search for in case names, citations, etc. If not provided, will return results based on filters only.",
+        description="Natural language query to search within case section content (paragraphs, judgments). Omit to return results based on filters only.",
     )
-    court: Optional[List[Court]] = Field(default=None, description="Filter by court.")
+    court: Optional[List[Court]] = Field(default=None, description="Filter by specific courts (UKSC, EWCA, EWHC, etc.). Omit to include all courts.")
     division: Optional[List[CourtDivision]] = Field(
-        default=None, description="Filter by court division."
+        default=None, description="Filter by court division (QBD, CH, COMM, etc.). Omit to include all divisions."
     )
     year_from: Optional[int] = Field(
-        default=None, description="Filter by cases from this year onwards."
+        default=None, description="Filter cases from this year onwards. Omit for no year filtering."
     )
-    year_to: Optional[int] = Field(default=None, description="Filter by cases up to this year.")
+    year_to: Optional[int] = Field(default=None, description="Filter cases up to this year. Omit for no year filtering.")
     limit: int = Field(default=10, description="Maximum number of results to return.")
 
 
 class CaselawReferenceSearch(BaseModel):
-    "Search for caselaw that references a specific case or legislation."
-
     reference_id: str = Field(
-        description=(
-            "The full id of the document you want to find cases that cite. "
-            "e.g. https://caselaw.nationalarchives.gov.uk/ukhl/2008/43"
-        ),
+        description="Full ID of the document to find citing cases for (e.g. https://caselaw.nationalarchives.gov.uk/uksc/2020/17 or http://www.legislation.gov.uk/id/ukpga/2018/12)",
     )
     reference_type: ReferenceType = Field(
-        description="The type of reference to search for (caselaw or legislation)."
+        description="Type of document being referenced: 'caselaw' for cases, 'legislation' for Acts/SIs"
     )
     court: Optional[List[Court]] = Field(
-        default=None, description="Filter by court of the citing cases."
+        default=None, description="Filter citing cases by specific courts (UKSC, EWCA, EWHC, etc.). Omit to include all courts."
     )
     division: Optional[List[CourtDivision]] = Field(
-        default=None, description="Filter by court division of the citing cases."
+        default=None, description="Filter citing cases by court division (QBD, CH, COMM, etc.). Omit to include all divisions."
     )
     year_from: Optional[int] = Field(
-        default=None, description="Filter by citing cases from this year onwards."
+        default=None, description="Filter citing cases from this year onwards. Omit for no year filtering."
     )
     year_to: Optional[int] = Field(
-        default=None, description="Filter by citing cases up to this year."
+        default=None, description="Filter citing cases up to this year. Omit for no year filtering."
     )
     size: int = Field(default=20, description="Maximum number of results to return.")
