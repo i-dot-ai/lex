@@ -8,7 +8,6 @@ from .models import Amendment
 
 logger = logging.getLogger(__name__)
 
-
 class AmendmentParser(LexParser):
     """
     Parser for amendments to legislation. Takes a BeautifulSoup object and returns a list of Amendment objects.
@@ -16,7 +15,7 @@ class AmendmentParser(LexParser):
 
     def __init__(
         self,
-        base_url: str = "https://www.legislation.gov.uk",
+        base_url: str = "http://www.legislation.gov.uk",
     ):
         self.base_url = base_url
 
