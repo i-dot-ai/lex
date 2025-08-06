@@ -20,7 +20,12 @@ from backend.legislation.search import (
     legislation_lookup,
     legislation_section_search,
 )
-from lex.legislation.models import Legislation, LegislationSection, LegislationCategory, LegislationType
+from lex.legislation.models import (
+    Legislation,
+    LegislationCategory,
+    LegislationSection,
+    LegislationType,
+)
 
 router = APIRouter(
     prefix="/legislation",
@@ -36,10 +41,16 @@ router = APIRouter(
 )
 async def search_for_legislation_sections(
     es_client: AsyncElasticsearch = Depends(get_es_client),
-    query: str = Query(..., description="Natural language query to search within legislation sections"),
+    query: str = Query(
+        ..., description="Natural language query to search within legislation sections"
+    ),
     legislation_id: Optional[str] = Query(None, description="Full legislation ID to search within"),
-    legislation_category: Optional[LegislationCategory] = Query(None, description="Filter by legislation category"),
-    legislation_type: Optional[LegislationType] = Query(None, description="Filter by legislation type"),
+    legislation_category: Optional[LegislationCategory] = Query(
+        None, description="Filter by legislation category"
+    ),
+    legislation_type: Optional[LegislationType] = Query(
+        None, description="Filter by legislation type"
+    ),
     year_from: Optional[int] = Query(None, description="Filter legislation from this year onwards"),
     year_to: Optional[int] = Query(None, description="Filter legislation up to this year"),
     size: int = Query(10, description="Maximum number of results to return"),
@@ -106,7 +117,9 @@ async def search_for_legislation_acts(
     query: str = Query(..., description="Search query for legislation titles and short titles"),
     year_from: Optional[int] = Query(None, description="Filter legislation from this year onwards"),
     year_to: Optional[int] = Query(None, description="Filter legislation up to this year"),
-    legislation_type: Optional[LegislationType] = Query(None, description="Filter by legislation type"),
+    legislation_type: Optional[LegislationType] = Query(
+        None, description="Filter by legislation type"
+    ),
     limit: int = Query(10, description="Maximum number of results to return"),
 ):
     """
@@ -165,7 +178,9 @@ async def search_for_legislation_acts(
 )
 async def lookup_legislation_endpoint(
     es_client: AsyncElasticsearch = Depends(get_es_client),
-    legislation_type: LegislationType = Query(..., description="Legislation type (ukpga, uksi, asp, etc.)"),
+    legislation_type: LegislationType = Query(
+        ..., description="Legislation type (ukpga, uksi, asp, etc.)"
+    ),
     year: int = Query(..., description="Year the legislation was enacted"),
     number: int = Query(..., description="Legislation number"),
 ):
@@ -176,7 +191,7 @@ async def lookup_legislation_endpoint(
     Use this when you have the specific reference (e.g., "2006 c. 46" for Companies Act 2006)
     and need the complete metadata for that legislation.
 
-    The legislation ID format follows: 
+    The legislation ID format follows:
     http://www.legislation.gov.uk/id/{legislation_type}/{year}/{number}
 
     Usage patterns:
@@ -337,9 +352,7 @@ async def get_full_text_by_id(
         )
         result = await get_legislation_full_text(input, es_client)
         if not result:
-            raise HTTPException(
-                status_code=404, detail=f"Legislation not found: {legislation_id}"
-            )
+            raise HTTPException(status_code=404, detail=f"Legislation not found: {legislation_id}")
         return result
     except HTTPException:
         raise

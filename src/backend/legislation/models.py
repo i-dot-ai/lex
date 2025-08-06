@@ -60,13 +60,17 @@ class LegislationActSearch(BaseModel):
 
 
 class LegislationLookup(BaseModel):
-    legislation_type: LegislationType = Field(description="Legislation type (ukpga, uksi, asp, etc.)")
+    legislation_type: LegislationType = Field(
+        description="Legislation type (ukpga, uksi, asp, etc.)"
+    )
     year: int = Field(description="Year the legislation was enacted")
     number: int = Field(description="Legislation number (e.g. 46 for Companies Act 2006 c. 46)")
 
 
 class LegislationSectionLookup(BaseModel):
-    legislation_id: str = Field(description="Full legislation ID (e.g. http://www.legislation.gov.uk/id/ukpga/2006/46)")
+    legislation_id: str = Field(
+        description="Full legislation ID (e.g. http://www.legislation.gov.uk/id/ukpga/2006/46)"
+    )
     limit: int = Field(
         default=10,
         description="Maximum number of sections to return.",
@@ -74,7 +78,9 @@ class LegislationSectionLookup(BaseModel):
 
 
 class LegislationFullTextLookup(BaseModel):
-    legislation_id: str = Field(description="Full legislation ID (e.g. http://www.legislation.gov.uk/id/ukpga/2006/46)")
+    legislation_id: str = Field(
+        description="Full legislation ID (e.g. http://www.legislation.gov.uk/id/ukpga/2006/46)"
+    )
     include_schedules: bool = Field(
         default=False,
         description="Include schedules in the full text. Warning: schedules can significantly increase response size.",

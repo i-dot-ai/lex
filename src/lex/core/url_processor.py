@@ -40,11 +40,7 @@ def process_urls_to_elasticsearch(
     legislation_section_docs = []
     explanatory_note_docs = []
 
-    total_counts = {
-        "legislation": 0,
-        "legislation_sections": 0,
-        "explanatory_notes": 0
-    }
+    total_counts = {"legislation": 0, "legislation_sections": 0, "explanatory_notes": 0}
 
     for i, url in enumerate(urls, 1):
         logger.info(f"Processing URL {i}/{len(urls)}: {url}")
@@ -84,14 +80,20 @@ def process_urls_to_elasticsearch(
 
             # Upload legislation section documents
             if legislation_section_docs:
-                upload_documents(legislation_section_index, legislation_section_docs, batch_size=batch_size)
+                upload_documents(
+                    legislation_section_index, legislation_section_docs, batch_size=batch_size
+                )
                 total_counts["legislation_sections"] += len(legislation_section_docs)
-                logger.info(f"Uploaded {len(legislation_section_docs)} legislation section documents")
+                logger.info(
+                    f"Uploaded {len(legislation_section_docs)} legislation section documents"
+                )
                 legislation_section_docs.clear()
 
             # Upload explanatory note documents
             if explanatory_note_docs:
-                upload_documents(explanatory_note_index, explanatory_note_docs, batch_size=batch_size)
+                upload_documents(
+                    explanatory_note_index, explanatory_note_docs, batch_size=batch_size
+                )
                 total_counts["explanatory_notes"] += len(explanatory_note_docs)
                 logger.info(f"Uploaded {len(explanatory_note_docs)} explanatory note documents")
                 explanatory_note_docs.clear()

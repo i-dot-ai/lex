@@ -24,7 +24,10 @@ router = APIRouter(
 async def search_amendments_endpoint(
     es_client: AsyncElasticsearch = Depends(get_es_client),
     legislation_id: str = Query(..., description="Full legislation ID to search amendments for"),
-    search_amended: bool = Query(..., description="True to search amendments TO this legislation, False to search amendments BY this legislation"),
+    search_amended: bool = Query(
+        ...,
+        description="True to search amendments TO this legislation, False to search amendments BY this legislation",
+    ),
     size: int = Query(20, description="Maximum number of results to return"),
 ):
     """
@@ -79,7 +82,10 @@ async def search_amendments_endpoint(
 async def search_amendment_sections_endpoint(
     es_client: AsyncElasticsearch = Depends(get_es_client),
     provision_id: str = Query(..., description="Full provision ID to search amendments for"),
-    search_amended: bool = Query(..., description="True to search amendments TO this provision, False to search amendments BY this provision"),
+    search_amended: bool = Query(
+        ...,
+        description="True to search amendments TO this provision, False to search amendments BY this provision",
+    ),
     size: int = Query(20, description="Maximum number of results to return"),
 ):
     """

@@ -22,16 +22,12 @@ class LegislationParser(LexParser):
             f"Parsed legislation: {legislation.id}",
             extra={
                 "doc_id": legislation.id,
-                "doc_type": legislation.type.value
-                if legislation.type
-                else None,
+                "doc_type": legislation.type.value if legislation.type else None,
                 "doc_year": legislation.year,
                 "doc_number": legislation.number,
                 "processing_status": "success",
                 "has_xml": True,
-                "title": legislation.title[:100]
-                if legislation.title
-                else None,
+                "title": legislation.title[:100] if legislation.title else None,
             },
         )
 

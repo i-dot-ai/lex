@@ -20,14 +20,20 @@ class CaselawSearch(BaseModel):
         default=True,
         description="Use semantic search for conceptually related results. Set to false for exact keyword matching.",
     )
-    court: Optional[Court] = Field(default=None, description="Filter by specific courts (UKSC, EWCA, EWHC, etc.). Omit to include all courts.")
+    court: Optional[Court] = Field(
+        default=None,
+        description="Filter by specific courts (UKSC, EWCA, EWHC, etc.). Omit to include all courts.",
+    )
     division: Optional[CourtDivision] = Field(
-        default=None, description="Filter by court division (QBD, CH, COMM, etc.). Omit to include all divisions."
+        default=None,
+        description="Filter by court division (QBD, CH, COMM, etc.). Omit to include all divisions.",
     )
     year_from: Optional[int] = Field(
         default=None, description="Filter cases from this year onwards. Omit for no year filtering."
     )
-    year_to: Optional[int] = Field(default=None, description="Filter cases up to this year. Omit for no year filtering.")
+    year_to: Optional[int] = Field(
+        default=None, description="Filter cases up to this year. Omit for no year filtering."
+    )
     size: int = Field(default=20, description="Maximum number of results to return.")
 
 
@@ -36,14 +42,20 @@ class CaselawSectionSearch(BaseModel):
         default=None,
         description="Natural language query to search within case section content (paragraphs, judgments). Omit to return results based on filters only.",
     )
-    court: Optional[Court] = Field(default=None, description="Filter by specific courts (UKSC, EWCA, EWHC, etc.). Omit to include all courts.")
+    court: Optional[Court] = Field(
+        default=None,
+        description="Filter by specific courts (UKSC, EWCA, EWHC, etc.). Omit to include all courts.",
+    )
     division: Optional[CourtDivision] = Field(
-        default=None, description="Filter by court division (QBD, CH, COMM, etc.). Omit to include all divisions."
+        default=None,
+        description="Filter by court division (QBD, CH, COMM, etc.). Omit to include all divisions.",
     )
     year_from: Optional[int] = Field(
         default=None, description="Filter cases from this year onwards. Omit for no year filtering."
     )
-    year_to: Optional[int] = Field(default=None, description="Filter cases up to this year. Omit for no year filtering.")
+    year_to: Optional[int] = Field(
+        default=None, description="Filter cases up to this year. Omit for no year filtering."
+    )
     limit: int = Field(default=10, description="Maximum number of results to return.")
 
 
@@ -55,13 +67,16 @@ class CaselawReferenceSearch(BaseModel):
         description="Type of document being referenced: 'caselaw' for cases, 'legislation' for Acts/SIs"
     )
     court: Optional[Court] = Field(
-        default=None, description="Filter citing cases by specific courts (UKSC, EWCA, EWHC, etc.). Omit to include all courts."
+        default=None,
+        description="Filter citing cases by specific courts (UKSC, EWCA, EWHC, etc.). Omit to include all courts.",
     )
     division: Optional[CourtDivision] = Field(
-        default=None, description="Filter citing cases by court division (QBD, CH, COMM, etc.). Omit to include all divisions."
+        default=None,
+        description="Filter citing cases by court division (QBD, CH, COMM, etc.). Omit to include all divisions.",
     )
     year_from: Optional[int] = Field(
-        default=None, description="Filter citing cases from this year onwards. Omit for no year filtering."
+        default=None,
+        description="Filter citing cases from this year onwards. Omit for no year filtering.",
     )
     year_to: Optional[int] = Field(
         default=None, description="Filter citing cases up to this year. Omit for no year filtering."

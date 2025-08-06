@@ -4,7 +4,12 @@ from typing import List, Optional
 from elasticsearch import AsyncElasticsearch
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-from backend.caselaw.models import CaselawReferenceSearch, CaselawSearch, CaselawSectionSearch, ReferenceType
+from backend.caselaw.models import (
+    CaselawReferenceSearch,
+    CaselawSearch,
+    CaselawSectionSearch,
+    ReferenceType,
+)
 from backend.caselaw.search import caselaw_reference_search, caselaw_search, caselaw_section_search
 from backend.core.dependencies import get_es_client
 from lex.caselaw.models import Caselaw, CaselawSection, Court, CourtDivision
@@ -19,10 +24,18 @@ router = APIRouter(
 @router.get("/search", response_model=List[Caselaw], operation_id="search_for_caselaw")
 async def search_caselaw_endpoint(
     es_client: AsyncElasticsearch = Depends(get_es_client),
-    query: Optional[str] = Query(None, description="Natural language query to search caselaw content"),
-    is_semantic_search: bool = Query(True, description="Use semantic search for conceptually related results"),
-    court: Optional[Court] = Query(None, description="Filter by specific court (UKSC, EWCA, EWHC, etc.)"),
-    division: Optional[CourtDivision] = Query(None, description="Filter by court division (QBD, CH, COMM, etc.)"),
+    query: Optional[str] = Query(
+        None, description="Natural language query to search caselaw content"
+    ),
+    is_semantic_search: bool = Query(
+        True, description="Use semantic search for conceptually related results"
+    ),
+    court: Optional[Court] = Query(
+        None, description="Filter by specific court (UKSC, EWCA, EWHC, etc.)"
+    ),
+    division: Optional[CourtDivision] = Query(
+        None, description="Filter by court division (QBD, CH, COMM, etc.)"
+    ),
     year_from: Optional[int] = Query(None, description="Filter cases from this year onwards"),
     year_to: Optional[int] = Query(None, description="Filter cases up to this year"),
     size: int = Query(20, description="Maximum number of results to return"),
@@ -88,9 +101,15 @@ async def search_caselaw_endpoint(
 )
 async def search_caselaw_section_endpoint(
     es_client: AsyncElasticsearch = Depends(get_es_client),
-    query: Optional[str] = Query(None, description="Natural language query to search within case sections"),
-    court: Optional[Court] = Query(None, description="Filter by specific court (UKSC, EWCA, EWHC, etc.)"),
-    division: Optional[CourtDivision] = Query(None, description="Filter by court division (QBD, CH, COMM, etc.)"),
+    query: Optional[str] = Query(
+        None, description="Natural language query to search within case sections"
+    ),
+    court: Optional[Court] = Query(
+        None, description="Filter by specific court (UKSC, EWCA, EWHC, etc.)"
+    ),
+    division: Optional[CourtDivision] = Query(
+        None, description="Filter by court division (QBD, CH, COMM, etc.)"
+    ),
     year_from: Optional[int] = Query(None, description="Filter cases from this year onwards"),
     year_to: Optional[int] = Query(None, description="Filter cases up to this year"),
     limit: int = Query(10, description="Maximum number of results to return"),
@@ -153,10 +172,16 @@ async def search_caselaw_section_endpoint(
 async def search_caselaw_reference_endpoint(
     es_client: AsyncElasticsearch = Depends(get_es_client),
     reference_id: str = Query(..., description="Full ID of the document to find citing cases for"),
-    reference_type: ReferenceType = Query(..., description="Type of document: 'caselaw' or 'legislation'"),
+    reference_type: ReferenceType = Query(
+        ..., description="Type of document: 'caselaw' or 'legislation'"
+    ),
     court: Optional[Court] = Query(None, description="Filter citing cases by specific court"),
-    division: Optional[CourtDivision] = Query(None, description="Filter citing cases by court division"),
-    year_from: Optional[int] = Query(None, description="Filter citing cases from this year onwards"),
+    division: Optional[CourtDivision] = Query(
+        None, description="Filter citing cases by court division"
+    ),
+    year_from: Optional[int] = Query(
+        None, description="Filter citing cases from this year onwards"
+    ),
     year_to: Optional[int] = Query(None, description="Filter citing cases up to this year"),
     size: int = Query(20, description="Maximum number of results to return"),
 ):

@@ -29,7 +29,10 @@ class ExplanatoryNoteLookup(BaseModel):
     legislation_id: str = Field(
         description="Full legislation ID (e.g. http://www.legislation.gov.uk/id/ukpga/2018/12) to get explanatory notes for."
     )
-    limit: int = Field(default=1000, description="Maximum number of results to return. High default as explanatory notes are typically comprehensive.")
+    limit: int = Field(
+        default=1000,
+        description="Maximum number of results to return. High default as explanatory notes are typically comprehensive.",
+    )
 
 
 class ExplanatoryNoteSectionLookup(BaseModel):

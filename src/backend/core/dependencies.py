@@ -16,15 +16,17 @@ security = HTTPBearer()
 API_KEY = os.getenv("LEX_API_KEY")
 
 
-async def verify_api_key(credentials: Annotated[HTTPAuthorizationCredentials, Security(security)]) -> str:
+async def verify_api_key(
+    credentials: Annotated[HTTPAuthorizationCredentials, Security(security)],
+) -> str:
     """Verify the API key from the Authorization header.
-    
+
     Expects: Authorization: Bearer <api-key>
     """
     if not API_KEY:
         # If no API key is configured, allow all requests
         return credentials.credentials
-    
+
     if credentials.credentials != API_KEY:
         raise HTTPException(
             status_code=401,

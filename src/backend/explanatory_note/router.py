@@ -15,7 +15,11 @@ from backend.explanatory_note.search import (
     get_explanatory_note_by_section,
     search_explanatory_note,
 )
-from lex.explanatory_note.models import ExplanatoryNote, ExplanatoryNoteType, ExplanatoryNoteSectionType
+from lex.explanatory_note.models import (
+    ExplanatoryNote,
+    ExplanatoryNoteType,
+    ExplanatoryNoteSectionType,
+)
 
 router = APIRouter(
     prefix="/explanatory_note",
@@ -34,7 +38,9 @@ async def search_explanatory_note_endpoint(
     query: str = Query("", description="Natural language query to search explanatory notes"),
     legislation_id: Optional[str] = Query(None, description="Full legislation ID to search within"),
     note_type: Optional[ExplanatoryNoteType] = Query(None, description="Filter by note type"),
-    section_type: Optional[ExplanatoryNoteSectionType] = Query(None, description="Filter by section type"),
+    section_type: Optional[ExplanatoryNoteSectionType] = Query(
+        None, description="Filter by section type"
+    ),
     size: int = Query(20, description="Maximum number of results to return"),
 ):
     """
@@ -94,7 +100,9 @@ async def search_explanatory_note_endpoint(
 )
 async def get_explanatory_note_by_legislation_endpoint(
     es_client: AsyncElasticsearch = Depends(get_es_client),
-    legislation_id: str = Query(..., description="Full legislation ID to get explanatory notes for"),
+    legislation_id: str = Query(
+        ..., description="Full legislation ID to get explanatory notes for"
+    ),
     limit: int = Query(1000, description="Maximum number of results to return"),
 ):
     """

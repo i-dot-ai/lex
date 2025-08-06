@@ -21,14 +21,10 @@ def get_filters(
         filter.append({"term": {"legislation_id.keyword": legislation_id}})
 
     if note_type_filter:
-        filter.append(
-            {"term": {"note_type.keyword": note_type_filter.value}}
-        )
+        filter.append({"term": {"note_type.keyword": note_type_filter.value}})
 
     if section_type_filter:
-        filter.append(
-            {"term": {"section_type.keyword": section_type_filter.value}}
-        )
+        filter.append({"term": {"section_type.keyword": section_type_filter.value}})
 
     return filter
 

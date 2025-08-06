@@ -242,10 +242,7 @@ class ExplanatoryNoteParser(LexParser):
     ):
         self.base_url = base_url
 
-    def parse_content(
-        self, soup: BeautifulSoup
-    ) -> Iterator[ExplanatoryNote]:
-
+    def parse_content(self, soup: BeautifulSoup) -> Iterator[ExplanatoryNote]:
         url = self._extract_legislation_id(soup)
 
         explanatory_notes = self._parse_explanatory_note_from_legislation_soup(soup)
@@ -353,37 +350,49 @@ class ExplanatoryNoteParser(LexParser):
         )
         return sections
 
-    def _parse_explanatory_note_from_legislation_soup(self, soup: BeautifulSoup) -> list[ExplanatoryNote]:
+    def _parse_explanatory_note_from_legislation_soup(
+        self, soup: BeautifulSoup
+    ) -> list[ExplanatoryNote]:
         """Parse any explanatory notes directly from the legislation soup. This is most typical of Statutory Instruments."""
 
-        legislation_id = soup.find("Legislation").get("DocumentURI").replace("http:", "https:").replace("https://www.legislation.gov.uk/", "http://www.legislation.gov.uk/id/").replace("/made", "")
+        legislation_id = (
+            soup.find("Legislation")
+            .get("DocumentURI")
+            .replace("http:", "https:")
+            .replace("https://www.legislation.gov.uk/", "http://www.legislation.gov.uk/id/")
+            .replace("/made", "")
+        )
         explanatory_note_sections = []
 
         enacting_text = soup.find("Legislation").find("SecondaryPreamble")
         if enacting_text:
-            explanatory_note_sections.append(ExplanatoryNote(
-                id=legislation_id + f"_{len(explanatory_note_sections)}",
-                legislation_id=legislation_id,
-                note_type=ExplanatoryNoteType.ENACTING_TEXT,
-                route=["Enacting Text"],
-                section_type=ExplanatoryNoteSectionType.SECTION,
-                section_number=0,
-                order=0,
-                text="Legislation Enacting Text: \n\n" + enacting_text.text,
-            ))
+            explanatory_note_sections.append(
+                ExplanatoryNote(
+                    id=legislation_id + f"_{len(explanatory_note_sections)}",
+                    legislation_id=legislation_id,
+                    note_type=ExplanatoryNoteType.ENACTING_TEXT,
+                    route=["Enacting Text"],
+                    section_type=ExplanatoryNoteSectionType.SECTION,
+                    section_number=0,
+                    order=0,
+                    text="Legislation Enacting Text: \n\n" + enacting_text.text,
+                )
+            )
 
         explanatory_note_section = soup.find("Legislation").find("ExplanatoryNotes")
         if explanatory_note_section:
-            explanatory_note_sections.append(ExplanatoryNote(
-                id=legislation_id + f"_{len(explanatory_note_sections)}",
-                legislation_id=legislation_id,
-                note_type=ExplanatoryNoteType.OVERVIEW,
-                route=[],
-                section_type=ExplanatoryNoteSectionType.SECTION,
-                section_number=0,
-                order=0,
-                text=explanatory_note_section.text,
-            ))
+            explanatory_note_sections.append(
+                ExplanatoryNote(
+                    id=legislation_id + f"_{len(explanatory_note_sections)}",
+                    legislation_id=legislation_id,
+                    note_type=ExplanatoryNoteType.OVERVIEW,
+                    route=[],
+                    section_type=ExplanatoryNoteSectionType.SECTION,
+                    section_number=0,
+                    order=0,
+                    text=explanatory_note_section.text,
+                )
+            )
 
         if len(explanatory_note_sections) == 0:
             return None

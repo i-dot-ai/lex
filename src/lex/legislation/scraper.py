@@ -164,4 +164,3 @@ class LegislationScraper(LexScraper):
 
         # Return with /data.xml appended
         return f"{url}/data.xml"
-

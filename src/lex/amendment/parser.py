@@ -8,6 +8,7 @@ from .models import Amendment
 
 logger = logging.getLogger(__name__)
 
+
 class AmendmentParser(LexParser):
     """
     Parser for amendments to legislation. Takes a BeautifulSoup object and returns a list of Amendment objects.

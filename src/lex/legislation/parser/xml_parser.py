@@ -121,7 +121,9 @@ class XMLParser(ABC):
             logger.error(f"Unkown Extent Mapping Error: {e}")
             return [GeographicalExtent.NONE]
 
-    def parse(self, soup: BeautifulSoup) -> Tuple[Legislation, List[LegislationSection], List[LegislationSection]]:
+    def parse(
+        self, soup: BeautifulSoup
+    ) -> Tuple[Legislation, List[LegislationSection], List[LegislationSection]]:
         """Parse XML content into a Legislation object."""
 
         # Extract the standard metadata
@@ -179,6 +181,7 @@ class XMLParser(ABC):
         )
 
         return legislation, sections, schedules
+
 
 class EUXMLParser(XMLParser):
     """Parser for EU legislation XML format.
@@ -262,6 +265,7 @@ class EUXMLParser(XMLParser):
         )
 
         return schedule
+
 
 class UKXMLParser(XMLParser):
     """Parser for UK legislation XML format.
@@ -355,6 +359,7 @@ class UKXMLParser(XMLParser):
             current = current.parent
         return ""  # Return empty string if no Part parent found
 
+
 class LegislationParser:
     """Main interface for parsing legislation documents."""
 
@@ -366,7 +371,9 @@ class LegislationParser:
             return EUXMLParser()
         return UKXMLParser()
 
-    def parse(self, xml_content: str) -> Tuple[Legislation, List[LegislationSection], List[LegislationSection]]:
+    def parse(
+        self, xml_content: str
+    ) -> Tuple[Legislation, List[LegislationSection], List[LegislationSection]]:
         """Parse legislation XML content."""
         parser = self.create_parser(xml_content)
         return parser.parse(xml_content)
