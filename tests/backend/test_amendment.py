@@ -24,9 +24,9 @@ def test_search_amendments_endpoint(client):
     test_legislation_id = "https://www.legislation.gov.uk/id/asc/2022/1"
 
     # Test with search_amended=True
-    response = client.post(
+    response = client.get(
         "/amendment/search",
-        json={"legislation_id": test_legislation_id, "search_amended": True, "size": 10},
+        params={"legislation_id": test_legislation_id, "search_amended": True, "size": 10},
     )
 
     # Check response status
@@ -68,9 +68,9 @@ def test_search_amendments_made_by_endpoint(client):
     test_legislation_id = "https://www.legislation.gov.uk/id/wsi/2022/1318"
 
     # Test with search_amended=False
-    response = client.post(
+    response = client.get(
         "/amendment/search",
-        json={"legislation_id": test_legislation_id, "search_amended": False, "size": 10},
+        params={"legislation_id": test_legislation_id, "search_amended": False, "size": 10},
     )
 
     # Check response status
@@ -112,9 +112,9 @@ def test_search_amendment_sections_endpoint(client):
     test_provision_id = "https://www.legislation.gov.uk/id/asc/2022/1/schedule/1"
 
     # Test with search_amended=True
-    response = client.post(
+    response = client.get(
         "/amendment/section/search",
-        json={"provision_id": test_provision_id, "search_amended": True, "size": 10},
+        params={"provision_id": test_provision_id, "search_amended": True, "size": 10},
     )
 
     # Check response status
@@ -157,9 +157,9 @@ def test_search_amendment_sections_made_by_endpoint(client):
     test_provision_id = "https://www.legislation.gov.uk/id/wsi/2022/1318/article/2/c/viii"
 
     # Test with search_amended=False
-    response = client.post(
+    response = client.get(
         "/amendment/section/search",
-        json={"provision_id": test_provision_id, "search_amended": False, "size": 10},
+        params={"provision_id": test_provision_id, "search_amended": False, "size": 10},
     )
 
     # Check response status

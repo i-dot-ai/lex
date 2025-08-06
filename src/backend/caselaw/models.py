@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import List, Optional
+from typing import Optional
 
 from pydantic import BaseModel, Field
 
@@ -20,8 +20,8 @@ class CaselawSearch(BaseModel):
         default=True,
         description="Use semantic search for conceptually related results. Set to false for exact keyword matching.",
     )
-    court: Optional[List[Court]] = Field(default=None, description="Filter by specific courts (UKSC, EWCA, EWHC, etc.). Omit to include all courts.")
-    division: Optional[List[CourtDivision]] = Field(
+    court: Optional[Court] = Field(default=None, description="Filter by specific courts (UKSC, EWCA, EWHC, etc.). Omit to include all courts.")
+    division: Optional[CourtDivision] = Field(
         default=None, description="Filter by court division (QBD, CH, COMM, etc.). Omit to include all divisions."
     )
     year_from: Optional[int] = Field(
@@ -36,8 +36,8 @@ class CaselawSectionSearch(BaseModel):
         default=None,
         description="Natural language query to search within case section content (paragraphs, judgments). Omit to return results based on filters only.",
     )
-    court: Optional[List[Court]] = Field(default=None, description="Filter by specific courts (UKSC, EWCA, EWHC, etc.). Omit to include all courts.")
-    division: Optional[List[CourtDivision]] = Field(
+    court: Optional[Court] = Field(default=None, description="Filter by specific courts (UKSC, EWCA, EWHC, etc.). Omit to include all courts.")
+    division: Optional[CourtDivision] = Field(
         default=None, description="Filter by court division (QBD, CH, COMM, etc.). Omit to include all divisions."
     )
     year_from: Optional[int] = Field(
@@ -54,10 +54,10 @@ class CaselawReferenceSearch(BaseModel):
     reference_type: ReferenceType = Field(
         description="Type of document being referenced: 'caselaw' for cases, 'legislation' for Acts/SIs"
     )
-    court: Optional[List[Court]] = Field(
+    court: Optional[Court] = Field(
         default=None, description="Filter citing cases by specific courts (UKSC, EWCA, EWHC, etc.). Omit to include all courts."
     )
-    division: Optional[List[CourtDivision]] = Field(
+    division: Optional[CourtDivision] = Field(
         default=None, description="Filter citing cases by court division (QBD, CH, COMM, etc.). Omit to include all divisions."
     )
     year_from: Optional[int] = Field(

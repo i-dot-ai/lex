@@ -23,9 +23,9 @@ def test_search_explanatory_note_endpoint(client):
     # Simple search with a query that should return results in most environments
     search_query = "purpose of legislation"
 
-    response = client.post(
+    response = client.get(
         "/explanatory_note/section/search",
-        json={"query": search_query, "size": 5},
+        params={"query": search_query, "size": 5},
     )
 
     # Check response status
@@ -61,14 +61,11 @@ def test_search_explanatory_note_with_filters_endpoint(client):
     # Search for notes with specific types
     search_query = "generic legislation"
 
-    response = client.post(
+    response = client.get(
         "/explanatory_note/section/search",
-        json={
+        params={
             "query": search_query,
-            "note_type": [
-                ExplanatoryNoteType.OVERVIEW.value,
-                ExplanatoryNoteType.PROVISIONS.value,
-            ],
+            "note_type": ExplanatoryNoteType.OVERVIEW.value,
             "size": 5,
         },
     )
@@ -97,12 +94,9 @@ def test_search_explanatory_note_with_filters_endpoint(client):
             assert note.id, "id should not be empty"
             assert note.legislation_id, "legislation_id should not be empty"
 
-            # Check if note_type matches one of the requested types
+            # Check if note_type matches the requested type
             if note.note_type:
-                assert note.note_type in [
-                    ExplanatoryNoteType.OVERVIEW,
-                    ExplanatoryNoteType.PROVISIONS,
-                ], "note_type should match requested filter"
+                assert note.note_type == ExplanatoryNoteType.OVERVIEW, "note_type should match requested filter"
 
         except ValidationError as e:
             pytest.fail(f"Validation error: {e}")
@@ -113,9 +107,9 @@ def test_get_explanatory_note_by_legislation_endpoint(client):
     # Use a common legislation ID format that should exist in most environments
     test_legislation_id = "https://www.legislation.gov.uk/ukpga/2022/4"
 
-    response = client.post(
+    response = client.get(
         "/explanatory_note/legislation/lookup",
-        json={"legislation_id": test_legislation_id, "limit": 10},
+        params={"legislation_id": test_legislation_id, "limit": 10},
     )
 
     # Check response status
@@ -157,9 +151,9 @@ def test_get_explanatory_note_by_section_endpoint(client):
     test_legislation_id = "https://www.legislation.gov.uk/ukpga/2022/4"
     test_section_number = 1
 
-    response = client.post(
+    response = client.get(
         "/explanatory_note/section/lookup",
-        json={"legislation_id": test_legislation_id, "section_number": test_section_number},
+        params={"legislation_id": test_legislation_id, "section_number": test_section_number},
     )
 
     # Check response status

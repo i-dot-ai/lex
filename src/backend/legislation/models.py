@@ -15,11 +15,11 @@ class LegislationSectionSearch(BaseModel):
         default=None,
         description="Full legislation ID (e.g. http://www.legislation.gov.uk/id/ukpga/2006/46) to search within. Omit to search across all legislation.",
     )
-    legislation_category: list[LegislationCategory] | None = Field(
+    legislation_category: LegislationCategory | None = Field(
         default=None,
         description="Filter by legislation category (primary/secondary). Omit to include all categories.",
     )
-    legislation_type: list[LegislationType] | None = Field(
+    legislation_type: LegislationType | None = Field(
         default=None,
         description="Filter by legislation type (ukpga, uksi, asp, etc.). Omit to include all types.",
     )
@@ -49,7 +49,7 @@ class LegislationActSearch(BaseModel):
         default=None,
         description="Filter legislation up to this year. Omit for no year filtering.",
     )
-    legislation_type: list[LegislationType] | None = Field(
+    legislation_type: LegislationType | None = Field(
         default=None,
         description="Filter by legislation type (ukpga, uksi, asp, etc.). Omit to include all types.",
     )

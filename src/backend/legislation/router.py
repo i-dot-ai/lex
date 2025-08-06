@@ -1,8 +1,8 @@
 import traceback
-from typing import List
+from typing import List, Optional
 
 from elasticsearch import AsyncElasticsearch
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from backend.core.dependencies import get_es_client
 from backend.legislation.models import (
@@ -20,7 +20,7 @@ from backend.legislation.search import (
     legislation_lookup,
     legislation_section_search,
 )
-from lex.legislation.models import Legislation, LegislationSection
+from lex.legislation.models import Legislation, LegislationSection, LegislationCategory, LegislationType
 
 router = APIRouter(
     prefix="/legislation",
@@ -29,13 +29,20 @@ router = APIRouter(
 )
 
 
-@router.post(
+@router.get(
     "/section/search",
     response_model=List[LegislationSection],
     operation_id="search_for_legislation_sections",
 )
 async def search_for_legislation_sections(
-    search: LegislationSectionSearch, es_client: AsyncElasticsearch = Depends(get_es_client)
+    es_client: AsyncElasticsearch = Depends(get_es_client),
+    query: str = Query(..., description="Natural language query to search within legislation sections"),
+    legislation_id: Optional[str] = Query(None, description="Full legislation ID to search within"),
+    legislation_category: Optional[LegislationCategory] = Query(None, description="Filter by legislation category"),
+    legislation_type: Optional[LegislationType] = Query(None, description="Filter by legislation type"),
+    year_from: Optional[int] = Query(None, description="Filter legislation from this year onwards"),
+    year_to: Optional[int] = Query(None, description="Filter legislation up to this year"),
+    size: int = Query(10, description="Maximum number of results to return"),
 ):
     """
     Search for specific sections within legislation documents using natural language queries.
@@ -51,18 +58,33 @@ async def search_for_legislation_sections(
     - Broad discovery: Use empty query with filters to browse sections
 
     Examples:
-    - search_for_legislation_sections({"query": "data protection", "size": 20})  # "What sections of legislation deal with data protection?"
-    - search_for_legislation_sections({"query": "penalty", "legislation_id": "http://www.legislation.gov.uk/id/ukpga/2006/46", "size": 10})  # "Find provisions about penalties in the Companies Act 2006"
-    - search_for_legislation_sections({"query": "tax relief", "year_from": 2020, "year_to": 2024, "legislation_type": ["ukpga"]})  # "Show me all sections about tax relief from 2020-2024"
-    - search_for_legislation_sections({"query": "liability", "legislation_type": ["uksi"], "size": 50})  # "Search for liability clauses in all statutory instruments"
+    - search_for_legislation_sections(query="data protection", size=20)  # "What sections of legislation deal with data protection?"
+    - search_for_legislation_sections(query="penalty", legislation_id="http://www.legislation.gov.uk/id/ukpga/2006/46", size=10)  # "Find provisions about penalties in the Companies Act 2006"
+    - search_for_legislation_sections(query="tax relief", year_from=2020, year_to=2024, legislation_type="ukpga")  # "Show me all sections about tax relief from 2020-2024"
+    - search_for_legislation_sections(query="liability", legislation_type="uksi", size=50)  # "Search for liability clauses in all statutory instruments"
 
     Args:
-        search: Search parameters including query, filters, and result size
+        query: Natural language query to search within legislation sections
+        legislation_id: Full legislation ID to search within specific legislation
+        legislation_category: Filter by legislation category (primary/secondary)
+        legislation_type: Filter by legislation type (ukpga, uksi, asp, etc.)
+        year_from: Filter legislation from this year onwards
+        year_to: Filter legislation up to this year
+        size: Maximum number of results to return
 
     Returns:
         List of LegislationSection objects with matching content, ranked by relevance
     """
     try:
+        search = LegislationSectionSearch(
+            query=query,
+            legislation_id=legislation_id,
+            legislation_category=legislation_category,
+            legislation_type=legislation_type,
+            year_from=year_from,
+            year_to=year_to,
+            size=size,
+        )
         result = await legislation_section_search(search, es_client)
         return result
     except Exception as e:
@@ -74,13 +96,18 @@ async def search_for_legislation_sections(
         raise HTTPException(status_code=500, detail=error_detail)
 
 
-@router.post(
+@router.get(
     "/search",
     response_model=List[Legislation],
     operation_id="search_for_legislation_acts",
 )
 async def search_for_legislation_acts(
-    search: LegislationActSearch, es_client: AsyncElasticsearch = Depends(get_es_client)
+    es_client: AsyncElasticsearch = Depends(get_es_client),
+    query: str = Query(..., description="Search query for legislation titles and short titles"),
+    year_from: Optional[int] = Query(None, description="Filter legislation from this year onwards"),
+    year_to: Optional[int] = Query(None, description="Filter legislation up to this year"),
+    legislation_type: Optional[LegislationType] = Query(None, description="Filter by legislation type"),
+    limit: int = Query(10, description="Maximum number of results to return"),
 ):
     """
     Search for legislation documents by title and metadata with advanced filtering options.
@@ -96,18 +123,29 @@ async def search_for_legislation_acts(
     - Browse all: Use empty query with filters to discover legislation
 
     Examples:
-    - search_for_legislation_acts({"query": "Companies Act", "limit": 5})  # "Find the Companies Act"
-    - search_for_legislation_acts({"query": "climate change", "year_from": 2020, "limit": 10})  # "What legislation was passed about climate change?"
-    - search_for_legislation_acts({"query": "", "legislation_type": ["ukpga"], "year_from": 2020, "year_to": 2023, "limit": 20})  # "Show me all Acts from 2020-2023"
-    - search_for_legislation_acts({"query": "tax", "legislation_type": ["uksi"], "limit": 15})  # "List all Statutory Instruments about tax"
+    - search_for_legislation_acts(query="Companies Act", limit=5)  # "Find the Companies Act"
+    - search_for_legislation_acts(query="climate change", year_from=2020, limit=10)  # "What legislation was passed about climate change?"
+    - search_for_legislation_acts(legislation_type="ukpga", year_from=2020, year_to=2023, limit=20)  # "Show me all Acts from 2020-2023"
+    - search_for_legislation_acts(query="tax", legislation_type="uksi", limit=15)  # "List all Statutory Instruments about tax"
 
     Args:
-        search: Search parameters including query, year range, type filters, and result limit
+        query: Search query for legislation titles and short titles
+        year_from: Filter legislation from this year onwards
+        year_to: Filter legislation up to this year
+        legislation_type: Filter by legislation type
+        limit: Maximum number of results to return
 
     Returns:
         List of Legislation objects matching the search criteria, ranked by relevance
     """
     try:
+        search = LegislationActSearch(
+            query=query,
+            year_from=year_from,
+            year_to=year_to,
+            legislation_type=legislation_type,
+            limit=limit,
+        )
         result = await legislation_act_search(search, es_client)
         return result
     except Exception as e:
@@ -119,14 +157,17 @@ async def search_for_legislation_acts(
         raise HTTPException(status_code=500, detail=error_detail)
 
 
-@router.post(
+@router.get(
     "/lookup",
     response_model=Legislation,
     operation_id="lookup_legislation",
     responses={404: {"description": "Legislation not found"}},
 )
 async def lookup_legislation_endpoint(
-    lookup: LegislationLookup, es_client: AsyncElasticsearch = Depends(get_es_client)
+    es_client: AsyncElasticsearch = Depends(get_es_client),
+    legislation_type: LegislationType = Query(..., description="Legislation type (ukpga, uksi, asp, etc.)"),
+    year: int = Query(..., description="Year the legislation was enacted"),
+    number: int = Query(..., description="Legislation number"),
 ):
     """
     Retrieve a specific piece of legislation by its exact type, year, and number.
@@ -144,13 +185,15 @@ async def lookup_legislation_endpoint(
     - Metadata retrieval: Get complete information about a known piece of legislation
 
     Examples:
-    - lookup_legislation({"legislation_type": "ukpga", "year": 2006, "number": 46})  # "Get the Companies Act 2006 (c. 46)"
-    - lookup_legislation({"legislation_type": "uksi", "year": 2021, "number": 1074})  # "Retrieve SI 2021/1074 details"
-    - lookup_legislation({"legislation_type": "asp", "year": 2020, "number": 1})  # "Lookup the specific Scottish Act from a legal citation"
-    - lookup_legislation({"legislation_type": "wsi", "year": 2021, "number": 1428})  # "Get Welsh SI 2021/1428 metadata"
+    - lookup_legislation(legislation_type="ukpga", year=2006, number=46)  # "Get the Companies Act 2006 (c. 46)"
+    - lookup_legislation(legislation_type="uksi", year=2021, number=1074)  # "Retrieve SI 2021/1074 details"
+    - lookup_legislation(legislation_type="asp", year=2020, number=1)  # "Lookup the specific Scottish Act from a legal citation"
+    - lookup_legislation(legislation_type="wsi", year=2021, number=1428)  # "Get Welsh SI 2021/1428 metadata"
 
     Args:
-        lookup: Exact legislation identifiers (type, year, number)
+        legislation_type: Legislation type (ukpga, uksi, asp, etc.)
+        year: Year the legislation was enacted
+        number: Legislation number
 
     Returns:
         Single Legislation object with complete metadata
@@ -159,11 +202,16 @@ async def lookup_legislation_endpoint(
         404: If no legislation found with the specified type, year, and number
     """
     try:
+        lookup = LegislationLookup(
+            legislation_type=legislation_type,
+            year=year,
+            number=number,
+        )
         result = await legislation_lookup(lookup, es_client)
         if result is None:
             raise HTTPException(
                 status_code=404,
-                detail=f"Legislation not found: {lookup.legislation_type.value} {lookup.year} No. {lookup.number}",
+                detail=f"Legislation not found: {legislation_type.value} {year} No. {number}",
             )
         return result
     except HTTPException:
@@ -177,14 +225,16 @@ async def lookup_legislation_endpoint(
         raise HTTPException(status_code=500, detail=error_detail)
 
 
-@router.post(
+@router.get(
     "/section/lookup",
     response_model=List[LegislationSection],
     operation_id="get_legislation_sections",
     responses={404: {"description": "No sections found for the specified legislation title"}},
 )
 async def get_sections_by_id(
-    input: LegislationSectionLookup, es_client: AsyncElasticsearch = Depends(get_es_client)
+    es_client: AsyncElasticsearch = Depends(get_es_client),
+    legislation_id: str = Query(..., description="Full legislation ID"),
+    limit: int = Query(10, description="Maximum number of sections to return"),
 ):
     """
     Retrieve all sections from a specific piece of legislation by its ID.
@@ -200,13 +250,14 @@ async def get_sections_by_id(
     - Reference material: Get the full sectional content for legal research
 
     Examples:
-    - get_legislation_sections({"legislation_id": "http://www.legislation.gov.uk/id/ukpga/2006/46", "limit": 500})  # "Show me all sections of the Companies Act 2006"
-    - get_legislation_sections({"legislation_id": "http://www.legislation.gov.uk/id/uksi/2021/1074", "limit": 50})  # "Get the complete breakdown of this Statutory Instrument"
-    - get_legislation_sections({"legislation_id": "http://www.legislation.gov.uk/id/ukpga/2018/12", "limit": 200})  # "I need all provisions from the Data Protection Act 2018"
-    - get_legislation_sections({"legislation_id": "http://www.legislation.gov.uk/id/ukpga/1974/37", "limit": 100})  # "List every section in the Health and Safety at Work Act 1974"
+    - get_legislation_sections(legislation_id="http://www.legislation.gov.uk/id/ukpga/2006/46", limit=500)  # "Show me all sections of the Companies Act 2006"
+    - get_legislation_sections(legislation_id="http://www.legislation.gov.uk/id/uksi/2021/1074", limit=50)  # "Get the complete breakdown of this Statutory Instrument"
+    - get_legislation_sections(legislation_id="http://www.legislation.gov.uk/id/ukpga/2018/12", limit=200)  # "I need all provisions from the Data Protection Act 2018"
+    - get_legislation_sections(legislation_id="http://www.legislation.gov.uk/id/ukpga/1974/37", limit=100)  # "List every section in the Health and Safety at Work Act 1974"
 
     Args:
-        input: Legislation ID and optional limit for number of sections to return
+        legislation_id: Full legislation ID
+        limit: Maximum number of sections to return
 
     Returns:
         List of LegislationSection objects for the specified legislation, ordered by section number
@@ -215,10 +266,14 @@ async def get_sections_by_id(
         404: If no sections found for the specified legislation ID
     """
     try:
+        input = LegislationSectionLookup(
+            legislation_id=legislation_id,
+            limit=limit,
+        )
         sections = await get_legislation_sections(input, es_client)
         if not sections:
             raise HTTPException(
-                status_code=404, detail=f"No sections found for legislation title: {input.title}"
+                status_code=404, detail=f"No sections found for legislation ID: {legislation_id}"
             )
         return sections
     except HTTPException:
@@ -232,14 +287,16 @@ async def get_sections_by_id(
         raise HTTPException(status_code=500, detail=error_detail)
 
 
-@router.post(
+@router.get(
     "/text",
     response_model=LegislationFullText,
     operation_id="get_legislation_full_text",
     responses={404: {"description": "Legislation not found"}},
 )
 async def get_full_text_by_id(
-    input: LegislationFullTextLookup, es_client: AsyncElasticsearch = Depends(get_es_client)
+    es_client: AsyncElasticsearch = Depends(get_es_client),
+    legislation_id: str = Query(..., description="Full legislation ID"),
+    include_schedules: bool = Query(False, description="Include schedules in the full text"),
 ):
     """
     Retrieve the complete full text of a legislation document as a single concatenated string.
@@ -255,13 +312,14 @@ async def get_full_text_by_id(
     - Research: For comprehensive legal research requiring the entire document
 
     Examples:
-    - get_legislation_full_text({"legislation_id": "http://www.legislation.gov.uk/id/ukpga/2006/46", "include_schedules": false})  # "Give me the complete text of the Companies Act 2006"
-    - get_legislation_full_text({"legislation_id": "http://www.legislation.gov.uk/id/ukpga/2018/12", "include_schedules": true})  # "I need the full Data Protection Act 2018 with schedules for analysis"
-    - get_legislation_full_text({"legislation_id": "http://www.legislation.gov.uk/id/uksi/2021/1074", "include_schedules": false})  # "Get the entire text of this SI for review"
-    - get_legislation_full_text({"legislation_id": "http://www.legislation.gov.uk/id/wsi/2021/1428", "include_schedules": true})  # "Provide the complete Welsh SI with schedules for summary"
+    - get_legislation_full_text(legislation_id="http://www.legislation.gov.uk/id/ukpga/2006/46", include_schedules=False)  # "Give me the complete text of the Companies Act 2006"
+    - get_legislation_full_text(legislation_id="http://www.legislation.gov.uk/id/ukpga/2018/12", include_schedules=True)  # "I need the full Data Protection Act 2018 with schedules for analysis"
+    - get_legislation_full_text(legislation_id="http://www.legislation.gov.uk/id/uksi/2021/1074", include_schedules=False)  # "Get the entire text of this SI for review"
+    - get_legislation_full_text(legislation_id="http://www.legislation.gov.uk/id/wsi/2021/1428", include_schedules=True)  # "Provide the complete Welsh SI with schedules for summary"
 
     Args:
-        input: Legislation ID and whether to include schedules in the response
+        legislation_id: Full legislation ID
+        include_schedules: Whether to include schedules in the full text
 
     Returns:
         LegislationFullText object containing metadata and complete concatenated text
@@ -273,10 +331,14 @@ async def get_full_text_by_id(
         Only request schedules if you specifically need them, as they can significantly increase response size
     """
     try:
+        input = LegislationFullTextLookup(
+            legislation_id=legislation_id,
+            include_schedules=include_schedules,
+        )
         result = await get_legislation_full_text(input, es_client)
         if not result:
             raise HTTPException(
-                status_code=404, detail=f"Legislation not found: {input.legislation_id}"
+                status_code=404, detail=f"Legislation not found: {legislation_id}"
             )
         return result
     except HTTPException:

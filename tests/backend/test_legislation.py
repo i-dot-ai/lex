@@ -20,9 +20,9 @@ def test_search_legislation_sections_endpoint(client):
     # Simple search with a query that should return results in most environments
     search_query = "environmental protection"
 
-    response = client.post(
+    response = client.get(
         "/legislation/section/search",
-        json={"query": search_query, "size": 5},
+        params={"query": search_query, "size": 5},
     )
 
     # Check response status
@@ -60,11 +60,11 @@ def test_search_legislation_sections_with_filters_endpoint(client):
     # Search for primary legislation sections from 2020-2023
     search_query = "covid"
 
-    response = client.post(
+    response = client.get(
         "/legislation/section/search",
-        json={
+        params={
             "query": search_query,
-            "legislation_type": [LegislationType.UKPGA.value],
+            "legislation_type": LegislationType.UKPGA.value,
             "year_from": 2020,
             "year_to": 2023,
             "size": 5,
@@ -107,9 +107,9 @@ def test_search_legislation_acts_endpoint(client):
     # Simple search with a query that should return results in most environments
     search_query = "finance"
 
-    response = client.post(
+    response = client.get(
         "/legislation/search",
-        json={"query": search_query, "limit": 5},
+        params={"query": search_query, "limit": 5},
     )
 
     # Check response status
@@ -149,9 +149,9 @@ def test_lookup_legislation_endpoint(client):
     test_year = 2022
     test_number = 45  # Usually the first act of a year exists
 
-    response = client.post(
+    response = client.get(
         "/legislation/lookup",
-        json={"legislation_type": test_type.value, "year": test_year, "number": test_number},
+        params={"legislation_type": test_type.value, "year": test_year, "number": test_number},
     )
 
     # Check response status
@@ -191,9 +191,9 @@ def test_get_legislation_sections_endpoint(client):
     # Use a title that should exist in most environments
     test_id = "http://www.legislation.gov.uk/id/ukpga/2022/3"
 
-    response = client.post(
+    response = client.get(
         "/legislation/section/lookup",
-        json={"legislation_id": test_id, "limit": 10},
+        params={"legislation_id": test_id, "limit": 10},
     )
 
     # Check response status

@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Optional
 
 from pydantic import BaseModel, Field
 
@@ -14,11 +14,11 @@ class ExplanatoryNoteSearch(BaseModel):
         default=None,
         description="Full legislation ID (e.g. http://www.legislation.gov.uk/id/ukpga/2018/12) to search within. Omit to search across all legislation.",
     )
-    note_type: Optional[List[ExplanatoryNoteType]] = Field(
+    note_type: Optional[ExplanatoryNoteType] = Field(
         default=None,
         description="Filter by note type (overview, policy_background, legal_background, extent, provisions, commencement, related_documents). Omit to include all types.",
     )
-    section_type: Optional[List[ExplanatoryNoteSectionType]] = Field(
+    section_type: Optional[ExplanatoryNoteSectionType] = Field(
         default=None,
         description="Filter by section type (section, schedule, part). Omit to include all section types.",
     )

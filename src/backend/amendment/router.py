@@ -2,7 +2,7 @@ import traceback
 from typing import List
 
 from elasticsearch import AsyncElasticsearch
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from backend.amendment.models import AmendmentSearch, AmendmentSectionSearch
 from backend.amendment.search import search_amendment_sections, search_amendments
@@ -16,13 +16,16 @@ router = APIRouter(
 )
 
 
-@router.post(
+@router.get(
     "/search",
     response_model=List[Amendment],
     operation_id="search_amendments",
 )
 async def search_amendments_endpoint(
-    search: AmendmentSearch, es_client: AsyncElasticsearch = Depends(get_es_client)
+    es_client: AsyncElasticsearch = Depends(get_es_client),
+    legislation_id: str = Query(..., description="Full legislation ID to search amendments for"),
+    search_amended: bool = Query(..., description="True to search amendments TO this legislation, False to search amendments BY this legislation"),
+    size: int = Query(20, description="Maximum number of results to return"),
 ):
     """
     Search for amendments at the legislation level - either amendments made to or by specific legislation.
@@ -38,18 +41,25 @@ async def search_amendments_endpoint(
     - Cross-references: Find connections between different pieces of legislation
 
     Examples:
-    - search_amendments({"legislation_id": "http://www.legislation.gov.uk/id/ukpga/2018/12", "search_amended": true, "size": 50})  # "Find all amendments made to the Data Protection Act 2018"
-    - search_amendments({"legislation_id": "http://www.legislation.gov.uk/id/ukpga/2021/30", "search_amended": false, "size": 100})  # "Show me what other legislation the Environment Act 2021 has amended"
-    - search_amendments({"legislation_id": "http://www.legislation.gov.uk/id/ukpga/2006/46", "search_amended": true, "size": 200})  # "Get all amendments to the Companies Act 2006"
-    - search_amendments({"legislation_id": "http://www.legislation.gov.uk/id/uksi/2021/1074", "search_amended": false, "size": 25})  # "Find what this Statutory Instrument amends"
+    - search_amendments(legislation_id="http://www.legislation.gov.uk/id/ukpga/2018/12", search_amended=True, size=50)  # "Find all amendments made to the Data Protection Act 2018"
+    - search_amendments(legislation_id="http://www.legislation.gov.uk/id/ukpga/2021/30", search_amended=False, size=100)  # "Show me what other legislation the Environment Act 2021 has amended"
+    - search_amendments(legislation_id="http://www.legislation.gov.uk/id/ukpga/2006/46", search_amended=True, size=200)  # "Get all amendments to the Companies Act 2006"
+    - search_amendments(legislation_id="http://www.legislation.gov.uk/id/uksi/2021/1074", search_amended=False, size=25)  # "Find what this Statutory Instrument amends"
 
     Args:
-        search: Amendment search parameters including legislation ID, search direction, and result size
+        legislation_id: Full legislation ID to search amendments for
+        search_amended: True to search amendments TO this legislation, False to search amendments BY this legislation
+        size: Maximum number of results to return
 
     Returns:
         List of Amendment objects related to the specified legislation
     """
     try:
+        search = AmendmentSearch(
+            legislation_id=legislation_id,
+            search_amended=search_amended,
+            size=size,
+        )
         result = await search_amendments(search, es_client)
         return result
     except Exception as e:
@@ -61,14 +71,16 @@ async def search_amendments_endpoint(
         raise HTTPException(status_code=500, detail=error_detail)
 
 
-@router.post(
+@router.get(
     "/section/search",
     response_model=List[Amendment],
     operation_id="search_amendment_sections",
 )
 async def search_amendment_sections_endpoint(
-    search: AmendmentSectionSearch,
     es_client: AsyncElasticsearch = Depends(get_es_client),
+    provision_id: str = Query(..., description="Full provision ID to search amendments for"),
+    search_amended: bool = Query(..., description="True to search amendments TO this provision, False to search amendments BY this provision"),
+    size: int = Query(20, description="Maximum number of results to return"),
 ):
     """
     Search for amendments at the provision/section level - either amendments made to or by specific sections.
@@ -84,18 +96,25 @@ async def search_amendment_sections_endpoint(
     - Cross-provision references: Find connections between specific legislative provisions
 
     Examples:
-    - search_amendment_sections({"provision_id": "http://www.legislation.gov.uk/id/ukpga/2018/12/section/5", "search_amended": true, "size": 20})  # "Find amendments made to section 5 of the Data Protection Act 2018"
-    - search_amendment_sections({"provision_id": "http://www.legislation.gov.uk/id/ukpga/2021/30/section/12", "search_amended": false, "size": 15})  # "Show what section 12 of the Environment Act 2021 has amended"
-    - search_amendment_sections({"provision_id": "http://www.legislation.gov.uk/id/ukpga/2006/46/section/172", "search_amended": true, "size": 10})  # "Get amendments to section 172 of the Companies Act 2006"
-    - search_amendment_sections({"provision_id": "http://www.legislation.gov.uk/id/uksi/2021/1074/regulation/3", "search_amended": false, "size": 5})  # "Find what regulation 3 of this SI amends"
+    - search_amendment_sections(provision_id="http://www.legislation.gov.uk/id/ukpga/2018/12/section/5", search_amended=True, size=20)  # "Find amendments made to section 5 of the Data Protection Act 2018"
+    - search_amendment_sections(provision_id="http://www.legislation.gov.uk/id/ukpga/2021/30/section/12", search_amended=False, size=15)  # "Show what section 12 of the Environment Act 2021 has amended"
+    - search_amendment_sections(provision_id="http://www.legislation.gov.uk/id/ukpga/2006/46/section/172", search_amended=True, size=10)  # "Get amendments to section 172 of the Companies Act 2006"
+    - search_amendment_sections(provision_id="http://www.legislation.gov.uk/id/uksi/2021/1074/regulation/3", search_amended=False, size=5)  # "Find what regulation 3 of this SI amends"
 
     Args:
-        search: Amendment section search parameters including provision ID, search direction, and result size
+        provision_id: Full provision ID to search amendments for
+        search_amended: True to search amendments TO this provision, False to search amendments BY this provision
+        size: Maximum number of results to return
 
     Returns:
         List of Amendment objects related to the specified provision
     """
     try:
+        search = AmendmentSectionSearch(
+            provision_id=provision_id,
+            search_amended=search_amended,
+            size=size,
+        )
         result = await search_amendment_sections(search, es_client)
         return result
     except Exception as e:
