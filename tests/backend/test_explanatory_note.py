@@ -96,7 +96,9 @@ def test_search_explanatory_note_with_filters_endpoint(client):
 
             # Check if note_type matches the requested type
             if note.note_type:
-                assert note.note_type == ExplanatoryNoteType.OVERVIEW, "note_type should match requested filter"
+                assert note.note_type == ExplanatoryNoteType.OVERVIEW, (
+                    "note_type should match requested filter"
+                )
 
         except ValidationError as e:
             pytest.fail(f"Validation error: {e}")
