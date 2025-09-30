@@ -114,7 +114,7 @@ async def search_for_legislation_sections(
 )
 async def search_for_legislation_acts(
     es_client: AsyncElasticsearch = Depends(get_es_client),
-    query: str = Query(..., description="Search query for legislation titles and short titles"),
+    query: Optional[str] = Query(..., description="Search query for legislation titles and short titles"),
     year_from: Optional[int] = Query(None, description="Filter legislation from this year onwards"),
     year_to: Optional[int] = Query(None, description="Filter legislation up to this year"),
     legislation_type: Optional[LegislationType] = Query(

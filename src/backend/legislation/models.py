@@ -38,7 +38,8 @@ class LegislationSectionSearch(BaseModel):
 
 
 class LegislationActSearch(BaseModel):
-    query: str = Field(
+    query: str | None = Field(
+        default=None,
         description="Search query for legislation titles and short titles. Leave empty to return all legislation matching filters."
     )
     year_from: int | None = Field(
