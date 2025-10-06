@@ -83,7 +83,7 @@ def create_inference_endpoint(
     service: str = "azureopenai",
 ) -> dict:
     """
-    Create an inference endpoint in Elasticsearch.
+    Create an inference endpoint in Elasticsearch with rate limiting.
 
     Args:
         inference_id (str): The ID for the inference endpoint
@@ -101,6 +101,12 @@ def create_inference_endpoint(
         "deployment_id": os.getenv("AZURE_OPENAI_EMBEDDING_MODEL"),
         "api_version": os.getenv("OPENAI_API_VERSION"),
         "dimensions": 1024,
+        # Add rate limiting to prevent 429 errors
+        # Azure OpenAI S0 tier: 1440 requests per minute for embeddings
+        # Set conservative limit to avoid hitting Azure's rate limits
+        "rate_limit": {
+            "requests_per_minute": int(os.getenv("AZURE_OPENAI_RPM_LIMIT", "240"))  # Default to 240 rpm (4 per second)
+        }
     }
 
     chunking_settings = {
@@ -119,6 +125,7 @@ def create_inference_endpoint(
                 "chunking_settings": chunking_settings,
             },
         )
+        logger.info(f"Created inference endpoint with rate limit: {service_settings['rate_limit']['requests_per_minute']} rpm")
         return response
     except Exception as e:
         logger.error(f"Error creating inference endpoint: {e}")

@@ -102,12 +102,24 @@ def upload_documents(
 
                 # Check if there were any failures
                 if failed:
+                    # Extract detailed error information
+                    error_details = []
+                    for item in failed[:5]:  # Log first 5 failures
+                        if 'error' in item.get('index', {}):
+                            error = item['index']['error']
+                            error_details.append({
+                                'type': error.get('type'),
+                                'reason': error.get('reason'),
+                                'doc_id': item['index'].get('_id')
+                            })
+                    
                     logger.warning(
-                        f"Failed to upload {len(failed)} documents in batch {i}",
+                        f"Failed to upload {len(failed)} documents in batch {i}. Errors: {error_details}",
                         extra={
                             "batch_number": i,
                             "failed_count": len(failed),
-                            "first_error": failed[0] if failed else None,
+                            "errors": error_details,
+                            "first_full_error": failed[0] if failed else None,
                         },
                     )
 
