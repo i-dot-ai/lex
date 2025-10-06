@@ -227,7 +227,7 @@ def process_checkpoints_with_combined_scraper_parser(
     checkpoints: list[CheckpointCombination],
     scraper_parser: Any,
     document_type: Type[LexModel],
-    limit: int,
+    limit: int | None,
     wrap_result: bool = False,
 ) -> Iterator[LexModel]:
     """Abstract checkpoint processing for combined scraper-parser classes.
