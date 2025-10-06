@@ -1,256 +1,313 @@
-# Lex Backend
+# 🌐 Lex Backend
 
-This component provides the API interface for the Lex legislative platform, enabling search and retrieval of legislation, caselaw, explanatory notes, and amendments from Elasticsearch.
+Fast, modern API for UK legal data - search 2M+ laws, cases, and legal documents via REST or MCP.
 
-## Architecture Overview
+## 🚀 Quick Start
 
-The Lex backend follows a modular architecture based on FastAPI:
-
-1. **API Routers** - Define endpoints for each document type
-2. **Search Services** - Handle Elasticsearch queries and transformations
-3. **Models** - Define data structures for requests and responses
-4. **Core Configuration** - Manage shared services and settings
-
-### Key Components
-
-- **Routers**: Define API endpoints for each document type
-- **Search Services**: Handle Elasticsearch queries with text and vector search
-- **Models**: Pydantic models for request/response validation
-- **Core Config**: Centralized configuration and client management
-
-## Data Flow
-
-```
-                    ┌─────────┐          ┌───────────┐          ┌─────────────────┐
-                    │         │          │           │          │                 │
-API Request ───────► Router   ├──Params──► Search    ├──Query───► Elasticsearch    │
-                    │         │          │ Service   │          │                 │
-                    └─────────┘          └───────────┘          └────────┬────────┘
-                        │                                               │
-                        │                                               │
-                        │                Response                       │
-                    ┌───▼─────┐          ┌───────────┐          ┌───────▼────────┐
-                    │         │          │           │          │                 │
-JSON Response ◄─────┤ Router  ◄──Models──┤ Models    ◄──Results─┤ Elasticsearch   │
-                    │         │          │           │          │                 │
-                    └─────────┘          └───────────┘          └─────────────────┘
+```bash
+# API is available at
+http://localhost:8000       # Main API
+http://localhost:8000/docs  # Interactive docs (Swagger)
+http://localhost:8000/redoc # Alternative docs (ReDoc)
 ```
 
-For example, with legislation search processing:
+## 💻 API Examples (Copy & Paste Ready)
 
-1. An API request arrives at the `/legislation/section/search` endpoint
-2. The router validates the request parameters using the `LegislationSectionSearch` model
-3. The search service constructs an Elasticsearch query (text or vector-based)
-4. Elasticsearch returns matching results
-5. The results are transformed into `LegislationSection` models
-6. The API returns the models as a JSON response
+### 📚 Legislation
 
-## API Access and Documentation
-
-### API Endpoints
-
-The Lex backend provides a comprehensive REST API for accessing legal data:
-
-- **Base URL**: `http://localhost:8000`
-- **Interactive Documentation**: `http://localhost:8000/docs` (Swagger UI)
-- **Alternative Documentation**: `http://localhost:8000/redoc` (ReDoc)
-- **MCP Server Endpoint**: `http://localhost:8000/mcp`
-
-#### API Design Choices
-
-The API consistently uses POST requests even for read operations (search, lookup) rather than GET requests. This decision was made for several reasons:
-
-- **Complex Query Parameters**: The search queries often involve complex nested structures that would be unwieldy as URL parameters
-- **Request Body Support**: POST requests allow for structured JSON bodies that clearly represent the search parameters
-- **API Consistency**: Using POST for all endpoints provides a consistent interface pattern
-- **Cleaner API**: Complex filtering, pagination, and search parameters are more clearly organized in a JSON body
-
-#### Legislation Endpoints
-
-- `POST /legislation/section/search` - Search for legislation sections by content
-- `POST /legislation/search` - Search for legislation acts by title
-- `POST /legislation/lookup` - Look up legislation by type, year, and number
-- `POST /legislation/section/lookup` - Get sections for a specific legislation
-- `POST /legislation/text` - Get full text of legislation by ID
-
-#### Caselaw Endpoints
-
-- `POST /caselaw/search` - Search for caselaw documents
-- `POST /caselaw/section/search` - Search for specific sections within caselaw
-- `POST /caselaw/reference/search` - Search for cases that reference specific cases or legislation
-
-#### Explanatory Notes Endpoints
-
-- `POST /explanatory_note/section/search` - Search for explanatory notes
-- `POST /explanatory_note/legislation/lookup` - Get explanatory notes for specific legislation
-- `POST /explanatory_note/section/lookup` - Get specific explanatory note sections
-
-#### Amendments Endpoints
-
-- `POST /amendment/search` - Search for amendments to legislation
-- `POST /amendment/section/search` - Search for amendment sections
-
-## MCP Server Integration
-
-The Lex backend includes built-in support for the Model Context Protocol (MCP), allowing AI assistants and other tools to access legal data through a standardized interface. The MCP server hosts all the FastAPI endpoints.
-
-### MCP Configuration
-
-A sample MCP configuration file is provided in the project root as `mcp_config.json`:
-
-```json
-{
-  "mcpServers": {
-    "lex": {
-      "command": "uvx",
-      "args": [
-        "mcp-proxy",
-        "http://localhost:8000/mcp"
-      ]
-    }
-  }
-}
+#### Search by title
+```bash
+curl -X POST http://localhost:8000/legislation/search \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "data protection",
+    "year_from": 2015,
+    "limit": 5
+  }'
 ```
 
-### Setting Up MCP Client Access
+#### Lookup specific act
+```bash
+curl -X POST http://localhost:8000/legislation/lookup \
+  -H "Content-Type: application/json" \
+  -d '{
+    "legislation_type": "ukpga",
+    "year": 2018,
+    "number": 12
+  }'
+```
 
-1. **Start the Lex Backend**:
+#### Search sections (semantic)
+```bash
+curl -X POST http://localhost:8000/legislation/section/search \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "personal data processing",
+    "limit": 10
+  }'
+```
+
+#### Get full text
+```bash
+curl -X POST http://localhost:8000/legislation/text \
+  -H "Content-Type: application/json" \
+  -d '{
+    "legislation_id": "http://www.legislation.gov.uk/id/ukpga/2018/12",
+    "include_schedules": false
+  }'
+```
+
+### ⚖️ Caselaw
+
+#### Text search
+```bash
+curl -X POST http://localhost:8000/caselaw/search \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "negligence",
+    "court": ["uksc", "ewca"],
+    "is_semantic_search": false,
+    "limit": 5
+  }'
+```
+
+#### Semantic search (AI-powered)
+```bash
+curl -X POST http://localhost:8000/caselaw/search \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "employer liability for remote work injuries",
+    "is_semantic_search": true,
+    "year_from": 2020,
+    "limit": 5
+  }'
+```
+
+#### Find cases citing legislation
+```bash
+curl -X POST http://localhost:8000/caselaw/reference/search \
+  -H "Content-Type: application/json" \
+  -d '{
+    "reference_id": "http://www.legislation.gov.uk/id/ukpga/2018/12",
+    "reference_type": "legislation",
+    "size": 10
+  }'
+```
+
+### 📝 Explanatory Notes
+
+#### Search notes
+```bash
+curl -X POST http://localhost:8000/explanatory_note/section/search \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "GDPR implementation",
+    "size": 5
+  }'
+```
+
+#### Get notes for legislation
+```bash
+curl -X POST http://localhost:8000/explanatory_note/legislation/lookup \
+  -H "Content-Type: application/json" \
+  -d '{
+    "legislation_id": "http://www.legislation.gov.uk/id/ukpga/2018/12",
+    "limit": 10
+  }'
+```
+
+### 🔄 Amendments
+
+#### Find amendments to legislation
+```bash
+curl -X POST http://localhost:8000/amendment/search \
+  -H "Content-Type: application/json" \
+  -d '{
+    "legislation_id": "http://www.legislation.gov.uk/id/ukpga/1998/29",
+    "search_amended": true,
+    "size": 5
+  }'
+```
+
+## 📋 Complete Endpoint Reference
+
+| Endpoint | Method | Purpose | Key Parameters |
+|----------|---------|---------|----------------|
+| `/legislation/search` | POST | Search acts by title | `query`, `year_from`, `year_to`, `types` |
+| `/legislation/lookup` | POST | Get specific act | `legislation_type`, `year`, `number` |
+| `/legislation/section/search` | POST | Search law sections | `query`, `limit` |
+| `/legislation/section/lookup` | POST | Get act sections | `legislation_id`, `limit` |
+| `/legislation/text` | POST | Get full text | `legislation_id`, `include_schedules` |
+| `/caselaw/search` | POST | Search cases | `query`, `court`, `is_semantic_search` |
+| `/caselaw/reference/search` | POST | Find citing cases | `reference_id`, `reference_type` |
+| `/explanatory_note/section/search` | POST | Search notes | `query`, `size` |
+| `/explanatory_note/legislation/lookup` | POST | Get notes for act | `legislation_id` |
+| `/amendment/search` | POST | Find amendments | `legislation_id`, `search_amended` |
+| `/healthcheck` | GET | API health | - |
+
+## 🎯 Common Search Patterns
+
+### Find recent data protection laws
+```bash
+curl -X POST http://localhost:8000/legislation/search \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "data protection GDPR",
+    "year_from": 2018,
+    "types": ["ukpga", "uksi"]
+  }'
+```
+
+### Get Supreme Court precedents on contracts
+```bash
+curl -X POST http://localhost:8000/caselaw/search \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "breach of contract consideration",
+    "court": ["uksc"],
+    "is_semantic_search": true
+  }'
+```
+
+### Track legislative changes
+```bash
+# 1. Get the original act
+curl -X POST http://localhost:8000/legislation/lookup \
+  -H "Content-Type: application/json" \
+  -d '{"legislation_type": "ukpga", "year": 1998, "number": 29}'
+
+# 2. Find all amendments to it
+curl -X POST http://localhost:8000/amendment/search \
+  -H "Content-Type: application/json" \
+  -d '{
+    "legislation_id": "http://www.legislation.gov.uk/id/ukpga/1998/29",
+    "search_amended": true
+  }'
+```
+
+## 🔌 MCP Integration
+
+The backend includes built-in MCP support for AI assistants via `fastapi-mcp`.
+
+### Setup for Claude Desktop
+
+1. **Start the API server** (in a separate terminal):
    ```bash
-   # Docker (recommended)
-   docker compose up -d
-   
-   # OR local development
-   docker-compose up -d elasticsearch
-   python src/backend/main.py
+   make run
+   # or: uv run src/backend/main.py
    ```
 
-2. **Configure MCP Client**:
-   - Copy the `mcp_config.json` file to your MCP client's configuration directory
+2. **Find the full path to mcp-proxy**:
+   ```bash
+   which mcp-proxy
+   # Example output: /Users/username/.pyenv/shims/mcp-proxy
+   ```
 
-## Docker Deployment
+3. **Configure Claude Desktop** at `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS):
+   ```json
+   {
+     "mcpServers": {
+       "lex": {
+         "command": "/Users/username/.pyenv/shims/mcp-proxy",
+         "args": ["http://127.0.0.1:8000/mcp"]
+       }
+     }
+   }
+   ```
 
-The backend runs in a Docker container as part of the docker-compose setup. This is the recommended way to run the backend for both development and production.
+   **Important**: Use the **full absolute path** from `which mcp-proxy` - GUI apps like Claude Desktop don't inherit your terminal's PATH.
 
-### Running with Docker
+4. **Restart Claude Desktop completely**
 
+5. **Verify connection**: Look for the MCP server indicator in Claude Desktop
+
+### Example Queries
+
+Once connected, try asking Claude:
+- *"Find UK Supreme Court cases about employment law from 2020 onwards"*
+- *"Search for legislation about data protection passed after 2015"*
+- *"What cases cite the Data Protection Act 2018?"*
+
+## 🏗️ Architecture
+
+### Request Flow
+```
+Client Request → FastAPI Router → Search Service → Elasticsearch → Response
+```
+
+### Key Components
+- **Routers** (`*/router.py`) - API endpoint definitions
+- **Search Services** (`*/search.py`) - Query construction & execution  
+- **Models** (`*/models.py`) - Request/response validation
+- **Core** (`core/`) - Shared utilities & config
+
+### Search Types
+- **Text Search** - Traditional keyword matching
+- **Semantic Search** - AI embeddings for conceptual matching (requires Azure OpenAI)
+
+## ⚙️ Configuration
+
+### Environment Variables
 ```bash
-# Start all services (Elasticsearch, Kibana, Backend, Pipeline)
-docker compose up -d
+# Elasticsearch
+ELASTIC_HOST=http://localhost:9200
 
-# Start only the backend and its dependencies
-docker compose up -d elasticsearch backend
+# Azure OpenAI (for semantic search)
+AZURE_OPENAI_API_KEY=your_key
+AZURE_RESOURCE_NAME=your_resource
+AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/
 
-# View backend logs
-docker compose logs -f backend
-
-# Stop all services
-docker compose down
+# Indices (customizable)
+LEGISLATION_INDEX=lex-dev-legislation
+CASELAW_INDEX=lex-dev-caselaw
 ```
 
-### Docker Configuration
+### Index Naming
+- Default pattern: `lex-dev-{type}`
+- Types: `legislation`, `caselaw`, `explanatory-note`, `amendment`
 
-The backend Docker container:
-- Runs on port 8000 (mapped from container port 8080)
-- Automatically connects to Elasticsearch running in the `elasticsearch` container
-- Uses environment variables from `.env` file for configuration
-- Includes health checks for monitoring service status
+## 🧪 Testing
 
-## Development
-
-### Running the Backend
-
-**Docker (Recommended):**
+### Run tests
 ```bash
-# Start all services including the backend
-docker compose up -d
-
-# View backend logs
-docker compose logs -f backend
-
-# Restart just the backend after code changes
-docker compose restart backend
+uv run pytest tests/backend/
 ```
 
-**Local Development:**
+### Test specific endpoint
 ```bash
-# Start Elasticsearch dependency
-docker-compose up -d elasticsearch
-
-# Run the FastAPI server locally
-python src/backend/main.py
+# Use test script
+chmod +x test_all_endpoints.sh
+./test_all_endpoints.sh
 ```
 
-### API Documentation
+### Manual testing
+Use the Swagger UI at http://localhost:8000/docs for interactive testing.
 
-When the server is running, API documentation is available at:
-- Swagger UI: `http://localhost:8000/docs`
-- ReDoc: `http://localhost:8000/redoc`
+## 📈 Performance
 
-## Module Structure
+| Operation | Typical Response Time | Notes |
+|-----------|----------------------|--------|
+| Text search | <100ms | Keyword matching |
+| Semantic search | 200-500ms | Requires embedding generation |
+| Full text retrieval | <200ms | Single document |
+| Bulk operations | 1-5s | Depends on size |
 
-Each module in the backend follows a consistent structure:
+## 🐛 Troubleshooting
 
-- `router.py` - Defines API endpoints and request handling
-- `models.py` - Defines Pydantic models for requests and responses
-- `search.py` - Implements search logic and Elasticsearch queries
+### No search results
+- Check indices have data: `curl http://localhost:9200/_cat/indices?v`
+- Verify index names in environment variables
 
-## Search Capabilities
+### Semantic search errors
+- Check Azure OpenAI credentials in `.env`
+- Update inference endpoint (see [Troubleshooting Guide](../../docs/troubleshooting.md))
 
-The backend supports multiple search strategies:
+### Slow responses
+- Increase Elasticsearch heap size in `docker-compose.yaml`
+- Reduce result `limit` in queries
 
-- **Keyword Search**: Traditional text-based search
-- **Semantic Search**: Vector-based search using OpenAI embeddings
-- **Filtered Search**: Search with additional filters (year, type, etc.)
-- **Exact Lookup**: Direct retrieval by identifier
+## 📚 Further Reading
 
-## Core Configuration
-
-The core module provides:
-
-- **Client Management**: Elasticsearch and OpenAI clients
-- **Index Configuration**: Names of Elasticsearch indices
-- **Logging**: Structured logging with context
-
-## Usage Examples
-
-### Searching for Legislation Sections
-
-```python
-import requests
-
-url = "http://localhost:8000/legislation/section/search"
-
-payload = {
-    "query": "environmental protection requirements",
-    "legislation_category": ["PRIMARY"],
-    "year_from": 2020,
-    "size": 5
-}
-response = requests.post(url, json=payload)
-results = response.json()
-```
-
-### Looking Up Specific Legislation
-
-```python
-import requests
-
-url = "http://localhost:8000/legislation/lookup"
-
-payload = {
-    "legislation_type": "ukpga",
-    "year": 2022,
-    "number": 1
-}
-response = requests.post(url, json=payload)
-legislation = response.json()
-```
-
-## Extending the API
-
-To add new endpoints or functionality:
-
-1. Add new models to the appropriate `models.py` file
-2. Implement search logic in the `search.py` file
-3. Add new routes to the `router.py` file
-4. Register the router in `main.py` if needed 
+- [Ingestion Pipeline](../lex/README.md) - How data gets into the system
+- [Data Models](../../docs/data-models.md) - Structure of legal documents
+- [Troubleshooting](../../docs/troubleshooting.md) - Common issues & solutions
