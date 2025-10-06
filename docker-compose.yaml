@@ -5,14 +5,25 @@ services:
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=false
-      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+      - "ES_JAVA_OPTS=-Xms4g -Xmx4g"
       - "http.cors.enabled=true"
       - "http.cors.allow-origin=\"*\""
+      - "indices.memory.index_buffer_size=30%"
+      - "thread_pool.search.size=20"
+      - "thread_pool.search.queue_size=500"
     ports:
       - "9200:9200"
       - "9300:9300"
     volumes:
       - ./data/elasticsearch/data:/usr/share/elasticsearch/data
+    deploy:
+      resources:
+        limits:
+          memory: 6G
+          cpus: '4'
+        reservations:
+          memory: 4G
+          cpus: '2'
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9200"]
       interval: 10s
