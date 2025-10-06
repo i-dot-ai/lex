@@ -204,5 +204,8 @@ analysis/analysis/
 data/cache/
 data/checkpoints/
 
+# Export directories
+data/exports/
+
 CLAUDE.md
 .claude/settings.local.json
