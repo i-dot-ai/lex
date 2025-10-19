@@ -229,3 +229,4 @@ data/*_gap_analysis.json
 data/pdf_*.csv
 data/results_*.jsonl*
 data/*_sample_analysis.json
+CLAUDE.md

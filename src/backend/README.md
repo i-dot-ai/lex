@@ -232,7 +232,7 @@ Once connected, try asking Claude:
 
 ### Request Flow
 ```
-Client Request → FastAPI Router → Search Service → Elasticsearch → Response
+Client Request → FastAPI Router → Search Service → Qdrant → Response
 ```
 
 ### Key Components
@@ -249,22 +249,18 @@ Client Request → FastAPI Router → Search Service → Elasticsearch → Respo
 
 ### Environment Variables
 ```bash
-# Elasticsearch
-ELASTIC_HOST=http://localhost:9200
+# Qdrant
+QDRANT_URL=http://localhost:6333
 
-# Azure OpenAI (for semantic search)
+# Azure OpenAI (for embeddings)
 AZURE_OPENAI_API_KEY=your_key
 AZURE_RESOURCE_NAME=your_resource
 AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/
-
-# Indices (customizable)
-LEGISLATION_INDEX=lex-dev-legislation
-CASELAW_INDEX=lex-dev-caselaw
 ```
 
-### Index Naming
-- Default pattern: `lex-dev-{type}`
-- Types: `legislation`, `caselaw`, `explanatory-note`, `amendment`
+### Collection Naming
+- Pattern: `{type}` or `{type}_section`
+- Collections: `legislation`, `legislation_section`, `caselaw`, `caselaw_section`, `explanatory_note`, `amendment`
 
 ## 🧪 Testing
 
@@ -295,16 +291,17 @@ Use the Swagger UI at http://localhost:8000/docs for interactive testing.
 ## 🐛 Troubleshooting
 
 ### No search results
-- Check indices have data: `curl http://localhost:9200/_cat/indices?v`
-- Verify index names in environment variables
+- Check collections have data: `curl http://localhost:6333/collections/{collection_name}`
+- Verify Qdrant is running: `curl http://localhost:6333/health`
 
 ### Semantic search errors
 - Check Azure OpenAI credentials in `.env`
-- Update inference endpoint (see [Troubleshooting Guide](../../docs/troubleshooting.md))
+- Verify embeddings are being generated correctly
 
 ### Slow responses
-- Increase Elasticsearch heap size in `docker-compose.yaml`
 - Reduce result `limit` in queries
+- Check Qdrant timeout settings
+- Monitor batch sizes for large documents
 
 ## 📚 Further Reading
 

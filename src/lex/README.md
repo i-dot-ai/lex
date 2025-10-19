@@ -1,6 +1,6 @@
 # Lex Core
 
-This module provides the core functionality for processing legislation, explanatory notes, amendments and caselaw into Elasticsearch. This README will walk through how to use this functionality.
+This module provides the core functionality for processing legislation, explanatory notes, amendments and caselaw into Qdrant. This README will walk through how to use this functionality.
 
 ## Architecture Overview
 
@@ -9,21 +9,21 @@ Lex lets you process legislation, explanatory notes, amendments and caselaw. The
 Within each individual subdirectory Lex follows a clear data flow for most document types:
 
 1. **Scrapers** - Download and extract raw content (HTML/XML) from legislation websites. For legislation we also provide **Loaders** to process legislation directly from file.
-2. **Parsers** - Transform raw content into structured Pydantic models. These are defined in the `models.py` file in each 
-3. **Pipeline** - Process and upload models to Elasticsearch
-4. **Elasticsearch** - Indexes and provides vector embeddings for semantic search
+2. **Parsers** - Transform raw content into structured Pydantic models. These are defined in the `models.py` file in each
+3. **Pipeline** - Process and upload models to Qdrant with hybrid vectors (dense + sparse)
+4. **Qdrant** - Vector database providing hybrid search (semantic + BM25)
 
 ### Data Flow
 
 #### Standard Data Flow (Legislation, Amendments, Caselaw)
 
 ```
-                   ┌─────────┐          ┌─────────┐          ┌──────────┐          ┌─────────────────┐
-                   │         │          │         │          │          │          │                 │
-Raw Content ───────► Scraper ├──Soup───► Parser   ├──Models──► Pipeline ├──JSON────► Elasticsearch   │
-                   │         │          │         │          │          │          │ (with automatic │
-                   └─────────┘          └─────────┘          └──────────┘          │   embedding)    │
-                                                                                   └─────────────────┘
+                   ┌─────────┐          ┌─────────┐          ┌──────────┐          ┌─────────────┐
+                   │         │          │         │          │          │          │             │
+Raw Content ───────► Scraper ├──Soup───► Parser   ├──Models──► Pipeline ├──────────►   Qdrant    │
+                   │         │          │         │          │          │          │   (hybrid   │
+                   └─────────┘          └─────────┘          └──────────┘          │   vectors)  │
+                                                                                   └─────────────┘
 ```
 
 #### Explanatory Notes Data Flow
@@ -31,12 +31,12 @@ Raw Content ───────► Scraper ├──Soup───► Parser   
 Explanatory notes use a combined scraper-parser approach due to their multi-page structure:
 
 ```
-                   ┌───────────────────────────┐                ┌──────────┐          ┌─────────────────┐
-                   │                           │                │          │          │                 │
-Raw Content ───────► ExplanatoryNoteScraperAndParser ──Models──► Pipeline  ├──JSON────► Elasticsearch   │
-                   │                           │                │          │          │ (with automatic │
-                   └───────────────────────────┘                └──────────┘          │   embedding)    │
-                                                                                      └─────────────────┘
+                   ┌───────────────────────────┐                ┌──────────┐          ┌─────────────┐
+                   │                           │                │          │          │             │
+Raw Content ───────► ExplanatoryNoteScraperAndParser ──Models──► Pipeline  ├──────────►   Qdrant    │
+                   │                           │                │          │          │   (hybrid   │
+                   └───────────────────────────┘                └──────────┘          │   vectors)  │
+                                                                                      └─────────────┘
 ```
 
 ### Available Models
@@ -50,7 +50,7 @@ The system processes several types of legal documents:
 - **Caselaw**: Court judgments and decisions
 - **Caselaw Sections**: Individual sections of caselaw documents
 
-Each model is uploaded to its own Elasticsearch index.
+Each model is uploaded to its own Qdrant collection.
 
 ## Getting Started
 
@@ -204,31 +204,29 @@ docker compose exec pipeline uv run src/lex/main.py -m legislation-section --fro
 **Note**: The `--from-file` option is only available for `legislation` and `legislation-section` models. Other document types (caselaw, explanatory notes, amendments) still require web scraping.
 
 
-## Elasticsearch Setup
+## Qdrant Setup
 
-This project can be configured to use either a local Elasticsearch instance or Elastic Cloud.
+This project uses Qdrant as the vector database for all document storage and search.
 
-**Local Elasticsearch (Default)**
-- Run `docker-compose up` to start Elasticsearch and Kibana locally
-- Access Kibana at http://localhost:5601
-- Elasticsearch will be available at http://localhost:9200
+**Local Qdrant (Default)**
+- Run `docker-compose up` to start Qdrant locally
+- Access Qdrant dashboard at http://localhost:6333/dashboard
+- Qdrant API will be available at http://localhost:6333
 
-**Elastic Cloud**
-- Create a deployment on [Elastic Cloud](https://cloud.elastic.co)
-- Copy `.env-example` to `.env` and configure:
+**Environment Configuration**
+- Qdrant URL is configured in `.env`:
   ```
-  ELASTIC_MODE=cloud
-  ELASTIC_CLOUD_ID=your-deployment-id:region
-  ELASTIC_API_KEY=your-api-key
-  # Or use username/password instead
-  # ELASTIC_USERNAME=elastic
-  # ELASTIC_PASSWORD=your-password
+  QDRANT_URL=http://localhost:6333
   ```
-- Run `docker-compose up` (will not start local Elasticsearch)
 
 ### Embeddings
 
-Embedding is automatically handled by Elasticsearch. Any content uploaded to the `legislation-section`, `explanatory-note`, `caselaw`, and `caselaw-section` indices will be automatically indexed using the provided credentials. The `legislation` and `amendment` indices do not embed any text. Lex doesn't have any dependencies on OpenAI or other LLM packages. All this work is handled by Elasticsearch.
+Embeddings are generated during the ingestion pipeline using:
+- **Dense vectors**: Azure OpenAI text-embedding-3-large (1024 dimensions)
+- **Sparse vectors**: FastEmbed BM25 for keyword matching
+
+Collections with hybrid vectors: `legislation_section`, `explanatory_note`, `caselaw`, `caselaw_section`
+Collections with metadata only: `legislation`, `amendment`
 
 ## HTTP Caching
 
@@ -332,18 +330,18 @@ The pipeline orchestrates the data flow:
 For standard document types (Legislation, Amendments, Caselaw):
 1. Calls the appropriate scraper to get content (BeautifulSoup objects)
 2. Passes the content to the parser to create models
-3. Uploads the models to Elasticsearch using the document handling utilities
-4. Elasticsearch automatically handles embedding and indexing
+3. Generates embeddings (dense + sparse vectors)
+4. Uploads the models to Qdrant with hybrid vectors
 
 For explanatory notes:
 1. Calls the `ExplanatoryNoteScraperAndParser` which handles both scraping and parsing in one operation
 2. Receives models directly from the scraper-parser
-3. Uploads the models to Elasticsearch
-4. Elasticsearch automatically handles embedding and indexing
+3. Generates embeddings (dense + sparse vectors)
+4. Uploads the models to Qdrant with hybrid vectors
 
 #### Core Utilities
 
-- `document.py`: Manages batching, uploading, and updating documents
-- `clients.py`: Provides Elasticsearch client configuration
-- `index.py`: Handles index creation and management
+- `embeddings.py`: Generates dense (Azure OpenAI) and sparse (FastEmbed BM25) vectors
+- `qdrant_client.py`: Provides Qdrant client singleton
+- `pipeline_utils.py`: Manages batching and document processing
 
