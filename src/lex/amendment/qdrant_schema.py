@@ -2,6 +2,7 @@
 
 from qdrant_client.models import (
     Distance,
+    PayloadSchemaType,
     SparseIndexParams,
     SparseVectorParams,
     VectorParams,
@@ -20,6 +21,7 @@ def get_amendment_schema():
 
     Payload:
     - All Amendment fields from Pydantic model
+    - Indexed fields: changed_url, affecting_url, changed_provision_url, affecting_provision_url
     """
     return {
         "collection_name": AMENDMENT_COLLECTION,
@@ -35,5 +37,11 @@ def get_amendment_schema():
                     on_disk=False,  # Keep in memory for speed
                 )
             )
+        },
+        "payload_schema": {
+            "changed_url": PayloadSchemaType.KEYWORD,  # Filter amendments to legislation
+            "affecting_url": PayloadSchemaType.KEYWORD,  # Filter amendments by legislation
+            "changed_provision_url": PayloadSchemaType.KEYWORD,  # Filter amendments to provision
+            "affecting_provision_url": PayloadSchemaType.KEYWORD,  # Filter amendments by provision
         },
     }

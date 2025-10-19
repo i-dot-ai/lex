@@ -2,6 +2,7 @@
 
 from qdrant_client.models import (
     Distance,
+    PayloadSchemaType,
     SparseIndexParams,
     SparseVectorParams,
     VectorParams,
@@ -20,6 +21,7 @@ def get_caselaw_schema():
 
     Payload:
     - All Caselaw fields from Pydantic model
+    - Indexed fields: id, court, division, year (for fast filtering)
     """
     return {
         "collection_name": CASELAW_COLLECTION,
@@ -36,6 +38,12 @@ def get_caselaw_schema():
                 )
             )
         },
+        "payload_schema": {
+            "id": PayloadSchemaType.KEYWORD,  # Exact match lookups
+            "court": PayloadSchemaType.KEYWORD,  # Filter by court
+            "division": PayloadSchemaType.KEYWORD,  # Filter by division
+            "year": PayloadSchemaType.INTEGER,  # Range queries (year_from/year_to)
+        },
     }
 
 
@@ -49,6 +57,7 @@ def get_caselaw_section_schema():
 
     Payload:
     - All CaselawSection fields from Pydantic model
+    - Indexed fields: id, caselaw_id, court, division, year (for fast filtering)
     """
     return {
         "collection_name": CASELAW_SECTION_COLLECTION,
@@ -64,5 +73,12 @@ def get_caselaw_section_schema():
                     on_disk=False,  # Keep in memory for speed
                 )
             )
+        },
+        "payload_schema": {
+            "id": PayloadSchemaType.KEYWORD,  # Exact match for section lookups
+            "caselaw_id": PayloadSchemaType.KEYWORD,  # Filter by parent caselaw
+            "court": PayloadSchemaType.KEYWORD,  # Filter by court
+            "division": PayloadSchemaType.KEYWORD,  # Filter by division
+            "year": PayloadSchemaType.INTEGER,  # Range queries (year_from/year_to)
         },
     }

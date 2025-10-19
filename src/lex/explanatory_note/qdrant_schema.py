@@ -2,6 +2,7 @@
 
 from qdrant_client.models import (
     Distance,
+    PayloadSchemaType,
     SparseIndexParams,
     SparseVectorParams,
     VectorParams,
@@ -20,6 +21,7 @@ def get_explanatory_note_schema():
 
     Payload:
     - All ExplanatoryNote fields from Pydantic model
+    - Indexed fields: id, legislation_id, note_type, section_type, section_number
     """
     return {
         "collection_name": EXPLANATORY_NOTE_COLLECTION,
@@ -35,5 +37,12 @@ def get_explanatory_note_schema():
                     on_disk=False,  # Keep in memory for speed
                 )
             )
+        },
+        "payload_schema": {
+            "id": PayloadSchemaType.KEYWORD,  # Exact match lookups
+            "legislation_id": PayloadSchemaType.KEYWORD,  # Filter by parent legislation
+            "note_type": PayloadSchemaType.KEYWORD,  # Filter by note type (enum)
+            "section_type": PayloadSchemaType.KEYWORD,  # Filter by section type (enum)
+            "section_number": PayloadSchemaType.INTEGER,  # Exact match on section number
         },
     }

@@ -109,6 +109,13 @@ make ingest-caselaw-full         # 🌙 8 hrs - All cases (2001+)
 make ingest-all-full            # 🌙 24 hrs - Complete database
 ```
 
+### Optimize query performance
+After ingesting data, create payload indexes for fast filtering:
+```bash
+uv run python scripts/create_payload_indexes.py  # Creates indexes on filtered fields
+```
+This improves filter query performance from 60s → 10ms (6000x faster). Indexes build in background (~2-5 minutes).
+
 ## 🏗️ Architecture
 
 ```
