@@ -30,11 +30,12 @@ curl -X POST http://localhost:8000/legislation/search \
 ## 🎯 What You Get
 
 - **125K+** UK laws (1963-present)
-- **1.9M+** court cases (2001-present)
-- **900K+** law sections with semantic search
-- **188K+** explanatory notes and amendments
+- **2.4M+** case sections (2001-present)
+- **980K+** law sections with semantic search
+- **82K+** explanatory notes
+- **30K+** full court cases
 
-*📈 Stats from June 2025 - continuously growing with new legislation and cases*
+*📈 Stats from October 2025 - continuously growing with new legislation and cases*
 
 All searchable via:
 - 🔌 **REST API** - FastAPI with full OpenAPI docs
@@ -160,14 +161,32 @@ python tools/export_data.py export --index lex-dev-legislation --format parquet
 python tools/export_data.py export --index lex-dev-caselaw --format jsonl
 ```
 
-## 📊 Performance
+## 💾 Storage Requirements
 
-| Index | Documents | Size | Ingestion Time |
-|-------|-----------|------|----------------|
-| Legislation | 125K | 63MB | ~30 min |
-| Legislation Sections | 2.5M | 23GB | ~2 hrs |
-| Caselaw | 1.9M | 28GB | ~8 hrs |
-| Explanatory Notes | 188K | 1.4GB | ~1 hr |
+### Current Dataset Size: ~70GB (and growing)
+
+| Collection | Documents | Storage | Notes |
+|------------|-----------|---------|-------|
+| Caselaw Sections | ~2.4M | ~35GB | Largest - full case sections with hybrid vectors |
+| Legislation Sections | ~980K | ~18GB | Law sections with semantic search |
+| Caselaw (Full) | ~30K | ~10GB | Complete court judgments |
+| Explanatory Notes | ~82K | ~1.5GB | Legislative context documents |
+| Legislation (Metadata) | ~125K | ~850MB | Law metadata only |
+| Embedding Cache | ~220K | ~1.3GB | Performance optimization |
+| **Total** | **~3.8M** | **~70GB** | *Growing with new legislation & cases* |
+
+### Hosting Requirements
+- **Minimum**: 100GB disk space (allows for growth)
+- **Recommended**: 150GB+ disk space
+- **Memory**: 8GB RAM (Qdrant can use up to 8GB, backend ~2GB)
+- **Note**: Dataset grows continuously as new legislation is enacted and cases are published
+
+### Ingestion Times (Full Dataset)
+- Legislation: ~2-3 hours
+- Legislation Sections: ~2-3 days
+- Caselaw: ~1-2 days
+- Caselaw Sections: ~5-6 days
+- **Total**: ~10 days for complete dataset (3.8M+ documents with embeddings)
 
 ## 🐛 Troubleshooting
 
@@ -186,8 +205,8 @@ PIPELINE_BATCH_SIZE=50  # Lower for less memory
 
 ### API returns no results
 ```bash
-# Check indices are populated
-curl http://localhost:9200/_cat/indices?v
+# Check collections are populated
+curl http://localhost:6333/collections | jq '.result.collections[] | {name, points_count}'
 ```
 
 ## 📚 Documentation
