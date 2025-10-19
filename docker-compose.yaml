@@ -1,50 +1,28 @@
 services:
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.17.3
-    container_name: elasticsearch
-    environment:
-      - discovery.type=single-node
-      - xpack.security.enabled=false
-      - "ES_JAVA_OPTS=-Xms4g -Xmx4g"
-      - "http.cors.enabled=true"
-      - "http.cors.allow-origin=\"*\""
-      - "indices.memory.index_buffer_size=30%"
-      - "thread_pool.search.size=20"
-      - "thread_pool.search.queue_size=500"
+  qdrant:
+    image: qdrant/qdrant:v1.15.1
+    container_name: qdrant
     ports:
-      - "9200:9200"
-      - "9300:9300"
+      - "6333:6333"  # HTTP API
+      - "6334:6334"  # gRPC API
     volumes:
-      - ./data/elasticsearch/data:/usr/share/elasticsearch/data
+      - ./data/qdrant/storage:/qdrant/storage
+    environment:
+      - QDRANT__SERVICE__HTTP_PORT=6333
+      - QDRANT__SERVICE__GRPC_PORT=6334
     deploy:
       resources:
         limits:
-          memory: 6G
-          cpus: '4'
+          memory: 8G
+          cpus: '2'
         reservations:
           memory: 4G
-          cpus: '2'
+          cpus: '1'
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9200"]
+      test: ["CMD", "curl", "-f", "http://localhost:6333/healthz"]
       interval: 10s
       timeout: 5s
       retries: 3
-      
-  kibana:
-    image: docker.elastic.co/kibana/kibana:8.17.3
-    container_name: kibana
-    ports:
-      - "5601:5601"
-    environment:
-      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5601/api/status"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-    depends_on:
-      elasticsearch:
-        condition: service_healthy
 
   backend:
     build:
@@ -52,24 +30,13 @@ services:
       dockerfile: ./src/backend/Dockerfile
     container_name: backend
     ports:
-      - "8000:8080"
+      - "8000:8000"
     env_file:
       - .env
     environment:
-      - ELASTIC_MODE=${ELASTIC_MODE:-local}
-      - ELASTIC_CLOUD_ID=${ELASTIC_CLOUD_ID:-}
-      - ELASTIC_API_KEY=${ELASTIC_API_KEY:-}
-      - ELASTIC_USERNAME=${ELASTIC_USERNAME:-}
-      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD:-}
-      - ELASTIC_HOST=http://elasticsearch:9200
+      - QDRANT_HOST=http://qdrant:6333
+      - QDRANT_GRPC_PORT=6334
       - ENVIRONMENT=${ENVIRONMENT:-localhost}
-      - ELASTIC_LOGS_INDEX_PIPELINE=${ELASTIC_LOGS_INDEX_PIPELINE:-logs-pipeline}
-      - ELASTIC_LEGISLATION_INDEX=${ELASTIC_LEGISLATION_INDEX:-lex-dev-legislation}
-      - ELASTIC_LEGISLATION_SECTION_INDEX=${ELASTIC_LEGISLATION_SECTION_INDEX:-lex-dev-legislation-section}
-      - ELASTIC_CASELAW_INDEX=${ELASTIC_CASELAW_INDEX:-lex-dev-caselaw}
-      - ELASTIC_CASELAW_SECTION_INDEX=${ELASTIC_CASELAW_SECTION_INDEX:-lex-dev-caselaw-section}
-      - ELASTIC_EXPLANATORY_NOTE_INDEX=${ELASTIC_EXPLANATORY_NOTE_INDEX:-lex-dev-explanatory-note}
-      - ELASTIC_AMENDMENT_INDEX=${ELASTIC_AMENDMENT_INDEX:-lex-dev-amendment}
     volumes:
       - ./data:/app/data
     healthcheck:
@@ -78,9 +45,8 @@ services:
       timeout: 5s
       retries: 3
     depends_on:
-      elasticsearch:
-        condition: service_healthy
-    
+      - qdrant
+
   pipeline:
     build:
       context: .
@@ -89,20 +55,9 @@ services:
     env_file:
       - .env
     environment:
-      - ELASTIC_MODE=${ELASTIC_MODE:-local}
-      - ELASTIC_CLOUD_ID=${ELASTIC_CLOUD_ID:-}
-      - ELASTIC_API_KEY=${ELASTIC_API_KEY:-}
-      - ELASTIC_USERNAME=${ELASTIC_USERNAME:-}
-      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD:-}
-      - ELASTIC_HOST=http://elasticsearch:9200
+      - QDRANT_HOST=http://qdrant:6333
+      - QDRANT_GRPC_PORT=6334
       - ENVIRONMENT=${ENVIRONMENT:-localhost}
-      - ELASTIC_LOGS_INDEX_PIPELINE=${ELASTIC_LOGS_INDEX_PIPELINE:-logs-pipeline}
-      - ELASTIC_LEGISLATION_INDEX=${ELASTIC_LEGISLATION_INDEX:-lex-dev-legislation}
-      - ELASTIC_LEGISLATION_SECTION_INDEX=${ELASTIC_LEGISLATION_SECTION_INDEX:-lex-dev-legislation-section}
-      - ELASTIC_CASELAW_INDEX=${ELASTIC_CASELAW_INDEX:-lex-dev-caselaw}
-      - ELASTIC_CASELAW_SECTION_INDEX=${ELASTIC_CASELAW_SECTION_INDEX:-lex-dev-caselaw-section}
-      - ELASTIC_EXPLANATORY_NOTE_INDEX=${ELASTIC_EXPLANATORY_NOTE_INDEX:-lex-dev-explanatory-note}
-      - ELASTIC_AMENDMENT_INDEX=${ELASTIC_AMENDMENT_INDEX:-lex-dev-amendment}
     volumes:
       - ./data:/app/data
     # Keep container running for executing commands
@@ -116,6 +71,4 @@ services:
         reservations:
           memory: 1G
     depends_on:
-      elasticsearch:
-        condition: service_healthy
-
+      - qdrant

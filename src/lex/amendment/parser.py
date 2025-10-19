@@ -2,14 +2,12 @@ import logging
 
 from bs4 import BeautifulSoup
 
-from lex.core.parser import LexParser
-
 from .models import Amendment
 
 logger = logging.getLogger(__name__)
 
 
-class AmendmentParser(LexParser):
+class AmendmentParser:
     """
     Parser for amendments to legislation. Takes a BeautifulSoup object and returns a list of Amendment objects.
     """

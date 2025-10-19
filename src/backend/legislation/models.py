@@ -33,40 +33,55 @@ class LegislationSectionSearch(BaseModel):
         default=None,
         description="The ending year for the legislation to filter by. If not provided, no filtering will be applied.",
     )
+    offset: int = Field(
+        default=0,
+        ge=0,
+        description="The number of results to skip (for pagination).",
+    )
     size: int = Field(
         default=10,
         description="The number of results to return.",
     )
+    include_text: bool = Field(
+        default=True,
+        description="Whether to include full text in results. Set to False for faster performance when only metadata is needed.",
+    )
 
 
 class LegislationActSearch(BaseModel):
-    """Search for legislation by title with additional filtering options.
+    """Search for legislation using semantic hybrid search.
 
-    This model provides more control over the title search by allowing:
-    - Year range filtering
-    - Type filtering
-    - Choice of search algorithm
-    - Custom result limit
+    Searches section content using dense (semantic) + sparse (BM25) embeddings,
+    then returns parent legislation ranked by best matching sections.
     """
 
     query: str = Field(
-        description="The title of the legislation to search for, if empty will return all matching legislation."
+        description="The search query - can be a concept, question, or keywords."
     )
     year_from: int | None = Field(
         default=None,
-        description="The starting year for the legislation to filter by. If not provided, no filtering will be applied.",
+        description="Starting year filter (optional).",
     )
     year_to: int | None = Field(
         default=None,
-        description="The ending year for the legislation to filter by. If not provided, no filtering will be applied.",
+        description="Ending year filter (optional).",
     )
     legislation_type: list[LegislationType] | None = Field(
         default=None,
-        description="List of legislation types to filter by. If not provided, all subtypes will be included.",
+        description="List of legislation types to filter by (optional).",
+    )
+    offset: int = Field(
+        default=0,
+        ge=0,
+        description="Number of results to skip (pagination).",
     )
     limit: int = Field(
         default=10,
-        description="The number of results to return.",
+        description="Number of results to return.",
+    )
+    include_text: bool = Field(
+        default=True,
+        description="Whether to include full section text in results. Set to False for faster performance when only metadata is needed.",
     )
 
 
@@ -118,3 +133,12 @@ class LegislationFullText(BaseModel):
     full_text: str = Field(
         description="The full text of the legislation, concatenated from all sections."
     )
+
+
+class LegislationSearchResponse(BaseModel):
+    """Response model for legislation search with pagination metadata."""
+
+    results: list[dict] = Field(description="List of legislation results (may include sections array)")
+    total: int = Field(description="Total number of results available")
+    offset: int = Field(description="Current offset")
+    limit: int = Field(description="Number of results per page")

@@ -5,7 +5,6 @@ from bs4 import BeautifulSoup
 
 from lex.caselaw.models import Court
 from lex.core.http import HttpClient
-from lex.core.scraper import LexScraper
 
 logger = logging.getLogger(__name__)
 # Create a more resilient HTTP client for caselaw scraping
@@ -32,7 +31,7 @@ http_client = HttpClient(
 http_client.rate_limiter = rate_limiter
 
 
-class CaselawScraper(LexScraper):
+class CaselawScraper:
     """Scraper for caselaw content from the National Archives."""
 
     def __init__(self):

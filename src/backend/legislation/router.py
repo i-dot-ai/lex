@@ -1,10 +1,10 @@
 import traceback
 from typing import List
 
-from elasticsearch import AsyncElasticsearch
-from fastapi import APIRouter, Depends, HTTPException
+import httpx
+from fastapi import APIRouter, HTTPException
+from fastapi.responses import Response
 
-from backend.core.dependencies import get_es_client
 from backend.legislation.models import (
     LegislationActSearch,
     LegislationFullText,
@@ -12,6 +12,7 @@ from backend.legislation.models import (
     LegislationLookup,
     LegislationSectionLookup,
     LegislationSectionSearch,
+    LegislationSearchResponse,
 )
 from backend.legislation.search import (
     get_legislation_full_text,
@@ -35,10 +36,9 @@ router = APIRouter(
     operation_id="search_for_legislation_sections",
 )
 async def search_for_legislation_sections(
-    search: LegislationSectionSearch, es_client: AsyncElasticsearch = Depends(get_es_client)
-):
+    search: LegislationSectionSearch):
     try:
-        result = await legislation_section_search(search, es_client)
+        result = await legislation_section_search(search)
         return result
     except Exception as e:
         error_detail = {
@@ -51,14 +51,13 @@ async def search_for_legislation_sections(
 
 @router.post(
     "/search",
-    response_model=List[Legislation],
+    response_model=LegislationSearchResponse,
     operation_id="search_for_legislation_acts",
 )
 async def search_for_legislation_acts(
-    search: LegislationActSearch, es_client: AsyncElasticsearch = Depends(get_es_client)
-):
+    search: LegislationActSearch):
     try:
-        result = await legislation_act_search(search, es_client)
+        result = await legislation_act_search(search)
         return result
     except Exception as e:
         error_detail = {
@@ -76,10 +75,9 @@ async def search_for_legislation_acts(
     responses={404: {"description": "Legislation not found"}},
 )
 async def lookup_legislation_endpoint(
-    lookup: LegislationLookup, es_client: AsyncElasticsearch = Depends(get_es_client)
-):
+    lookup: LegislationLookup):
     try:
-        result = await legislation_lookup(lookup, es_client)
+        result = await legislation_lookup(lookup)
         if result is None:
             raise HTTPException(
                 status_code=404,
@@ -104,10 +102,9 @@ async def lookup_legislation_endpoint(
     responses={404: {"description": "No sections found for the specified legislation title"}},
 )
 async def get_sections_by_id(
-    input: LegislationSectionLookup, es_client: AsyncElasticsearch = Depends(get_es_client)
-):
+    input: LegislationSectionLookup):
     try:
-        sections = await get_legislation_sections(input, es_client)
+        sections = await get_legislation_sections(input)
         if not sections:
             raise HTTPException(
                 status_code=404, detail=f"No sections found for legislation title: {input.title}"
@@ -131,15 +128,65 @@ async def get_sections_by_id(
     responses={404: {"description": "Legislation not found"}},
 )
 async def get_full_text_by_id(
-    input: LegislationFullTextLookup, es_client: AsyncElasticsearch = Depends(get_es_client)
-):
+    input: LegislationFullTextLookup):
     try:
-        result = await get_legislation_full_text(input, es_client)
+        result = await get_legislation_full_text(input)
         if not result:
             raise HTTPException(
                 status_code=404, detail=f"Legislation not found: {input.legislation_id}"
             )
         return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        error_detail = {
+            "error_type": type(e).__name__,
+            "error_message": str(e),
+            "traceback": traceback.format_exc(),
+        }
+        raise HTTPException(status_code=500, detail=error_detail)
+
+
+@router.get(
+    "/proxy/{legislation_id:path}",
+    operation_id="proxy_legislation_data",
+    responses={404: {"description": "Legislation not found"}, 502: {"description": "External API error"}},
+)
+async def proxy_legislation_data(legislation_id: str):
+    """Proxy endpoint to fetch enriched metadata from legislation.gov.uk.
+
+    Args:
+        legislation_id: The legislation ID (e.g., "ukpga/2018/12")
+
+    Returns:
+        HTML content from legislation.gov.uk with CORS headers
+    """
+    try:
+        # Build URL to legislation.gov.uk
+        url = f"https://www.legislation.gov.uk/{legislation_id}"
+
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.get(url, follow_redirects=True)
+
+            if response.status_code == 404:
+                raise HTTPException(status_code=404, detail=f"Legislation not found: {legislation_id}")
+
+            response.raise_for_status()
+
+            # Return the HTML content with appropriate headers
+            return Response(
+                content=response.content,
+                media_type=response.headers.get("content-type", "text/html"),
+                headers={
+                    "Access-Control-Allow-Origin": "*",
+                    "Cache-Control": "public, max-age=3600",  # Cache for 1 hour
+                }
+            )
+
+    except httpx.HTTPStatusError as e:
+        raise HTTPException(status_code=502, detail=f"External API error: {str(e)}")
+    except httpx.RequestError as e:
+        raise HTTPException(status_code=502, detail=f"Request failed: {str(e)}")
     except HTTPException:
         raise
     except Exception as e:

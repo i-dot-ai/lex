@@ -3,26 +3,21 @@ import os
 from typing import Optional
 
 from bs4 import BeautifulSoup
-from elasticsearch import Elasticsearch, NotFoundError
 
-from lex.core.clients import es_client
+from lex.core.qdrant_client import qdrant_client
 
 logger = logging.getLogger(__name__)
 
 
 def set_logging_level(
     level: int,
-    elastic_client: Optional[Elasticsearch] = None,
-    elastic_index: Optional[str] = None,
     service_name: Optional[str] = None,
     environment: Optional[str] = None,
 ) -> None:
-    """Set logging level for all lex loggers and optionally set up Elasticsearch logging.
+    """Set logging level for all lex loggers.
 
     Args:
         level: The logging level to set
-        elastic_client: Optional Elasticsearch client for logging to Elasticsearch
-        elastic_index: Name of the Elasticsearch index to use for logs
         service_name: Name of the service (e.g., "frontend", "pipeline")
         environment: Environment name (e.g., "localhost", "dev", "prod")
     """
@@ -35,220 +30,43 @@ def set_logging_level(
     # Configure basic logging format
     logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
-    # Set up Elasticsearch logging if client is provided
-    if elastic_client and elastic_index and service_name and environment:
-        from backend.core.logging import setup_elasticsearch_logging
 
-        setup_elasticsearch_logging(
-            es_client=elastic_client,
-            index_name=elastic_index,
-            service_name=service_name,
-            environment=environment,
-            log_level=level,
-        )
-
-
-def create_index_if_none(
-    index_name: str,
-    mappings: dict | str = None,
-    es_client: Elasticsearch = es_client,
+def create_collection_if_none(
+    collection_name: str,
+    schema: dict = None,
     non_interactive: bool = False,
 ):
-    "Creates an index in Elasticsearch if it does not already exist"
+    """Creates a collection in Qdrant if it does not already exist.
 
-    logger.info(f"Creating index {index_name}")
+    Args:
+        collection_name: Name of the Qdrant collection
+        schema: Collection schema dict with vectors_config and sparse_vectors_config
+        non_interactive: If True, skip user confirmation for existing collections
+    """
+    logger.info(f"Checking if collection {collection_name} exists")
 
-    if not es_client.indices.exists(index=index_name):
-        # If the mapping is a string, get the mapping of the index it points towards
-        if isinstance(mappings, str):
-            mappings = es_client.indices.get_mapping(index=mappings)[mappings]["mappings"]
-            logger.info(f"Using mapping from index {mappings}")
+    # Check if collection exists
+    collections = qdrant_client.get_collections().collections
+    exists = any(c.name == collection_name for c in collections)
 
-        es_client.indices.create(index=index_name, body=mappings)
-        logger.info(f"Created index {index_name}")
+    if not exists:
+        if schema is None:
+            logger.error(f"Cannot create collection {collection_name}: schema is required")
+            raise ValueError(f"Schema required to create collection {collection_name}")
+
+        logger.info(f"Creating collection {collection_name}")
+        qdrant_client.create_collection(**schema)
+        logger.info(f"Created collection {collection_name}")
     elif not non_interactive:
-        logger.info(f"Index {index_name} already exists")
+        logger.info(f"Collection {collection_name} already exists")
         user_input = input("Do you want to continue? [y/N] ")
         if user_input.lower() != "y":
             logger.info("Exiting")
             exit(0)
     else:
-        logger.info(f"Index {index_name} already exists. Continuing")
+        logger.info(f"Collection {collection_name} already exists. Continuing")
 
 
-def create_inference_endpoint(
-    inference_id: str,
-    es_client: Elasticsearch = es_client,
-    task_type: str = "text_embedding",
-    service: str = "azureopenai",
-) -> dict:
-    """
-    Create an inference endpoint in Elasticsearch with rate limiting.
-
-    Args:
-        inference_id (str): The ID for the inference endpoint
-        task_type (str): The type of task (default: "text_embedding")
-        service (str): The service to use (default: "azureopenai")
-        service_settings (dict): Configuration for the service
-
-    Returns:
-        dict: The response from Elasticsearch
-    """
-
-    service_settings = {
-        "api_key": os.getenv("AZURE_OPENAI_API_KEY"),
-        "resource_name": os.getenv("AZURE_RESOURCE_NAME"),
-        "deployment_id": os.getenv("AZURE_OPENAI_EMBEDDING_MODEL"),
-        "api_version": os.getenv("OPENAI_API_VERSION"),
-        "dimensions": 1024,
-        # Add rate limiting to prevent 429 errors
-        # Azure OpenAI S0 tier: 1440 requests per minute for embeddings
-        # Set conservative limit to avoid hitting Azure's rate limits
-        "rate_limit": {
-            "requests_per_minute": int(os.getenv("AZURE_OPENAI_RPM_LIMIT", "240"))  # Default to 240 rpm (4 per second)
-        }
-    }
-
-    chunking_settings = {
-        "max_chunk_size": 300,
-        "sentence_overlap": 0,
-        "strategy": "sentence",
-    }
-
-    try:
-        response = es_client.inference.put(
-            inference_id=inference_id,
-            task_type=task_type,
-            inference_config={
-                "service": service,
-                "service_settings": service_settings,
-                "chunking_settings": chunking_settings,
-            },
-        )
-        logger.info(f"Created inference endpoint with rate limit: {service_settings['rate_limit']['requests_per_minute']} rpm")
-        return response
-    except Exception as e:
-        logger.error(f"Error creating inference endpoint: {e}")
-        raise
-
-
-def create_inference_endpoint_if_none(
-    inference_id: str,
-    task_type: str = "text_embedding",
-    es_client: Elasticsearch = es_client,
-    service: str = "azureopenai",
-) -> dict:
-    """
-    Create an inference endpoint in Elasticsearch if it does not already exist.
-
-    Args:
-        es_client (Elasticsearch): The Elasticsearch client
-        inference_id (str): The ID for the inference endpoint
-        task_type (str): The type of task (default: "text_embedding")
-        service (str): The service to use (default: "azureopenai")
-        non_interactive (bool): If True, skip user confirmation (default: False)
-
-    Returns:
-        dict: The response from Elasticsearch
-    """
-    logger.info(f"Creating inference endpoint {inference_id}")
-
-    # Check for required Azure OpenAI environment variables
-    required_vars = ["AZURE_RESOURCE_NAME", "AZURE_OPENAI_EMBEDDING_MODEL", "AZURE_OPENAI_API_KEY"]
-    missing_vars = [var for var in required_vars if not os.getenv(var)]
-
-    if missing_vars:
-        logger.warning(
-            f"Skipping inference endpoint creation because the following environment variables are missing: {', '.join(missing_vars)}. "
-            f"Please set these variables in your environment or .env file."
-        )
-        return None
-
-    try:
-        # Check if the inference endpoint exists
-        es_client.inference.get(inference_id=inference_id)
-        logger.info(f"Inference endpoint {inference_id} already exists")
-        return es_client.inference.get(inference_id=inference_id)
-    except NotFoundError:
-        # Endpoint doesn't exist, create it
-        try:
-            return create_inference_endpoint(
-                es_client=es_client,
-                inference_id=inference_id,
-                task_type=task_type,
-                service=service,
-            )
-        except Exception as e:
-            logger.error(f"Failed to create inference endpoint: {e}")
-            logger.warning(
-                "Continuing without inference endpoint. Some features may not work properly."
-            )
-            return None
-
-
-def delete_inference_endpoint(inference_id: str, es_client: Elasticsearch = es_client) -> dict:
-    """
-    Delete an inference endpoint by its ID.
-
-    Args:
-        inference_id (str): The ID of the inference endpoint to delete
-
-    Returns:
-        dict: The response from Elasticsearch
-    """
-    try:
-        response = es_client.inference.delete(inference_id=inference_id)
-        return response
-    except NotFoundError as e:
-        logger.info(f"Inference endpoint {inference_id} not found: {e}")
-
-
-def scroll_index(
-    es_client: Elasticsearch,
-    index_name: str,
-    fields: list[str] = None,
-    scroll_size: int = 1000,
-    scroll_time: str = "1m",
-):
-    """
-    Generator function to iterate through all documents in an Elasticsearch index using the scroll API.
-    """
-    # Initial search request
-
-    if not fields:
-        body = {"query": {"match_all": {}}, "size": scroll_size}
-    else:
-        body = {"query": {"match_all": {}}, "size": scroll_size, "_source": fields}
-
-    resp = es_client.search(
-        index=index_name,
-        body=body,
-        scroll=scroll_time,
-    )
-
-    # Get the scroll ID
-    scroll_id = resp["_scroll_id"]
-    hits = resp["hits"]["hits"]
-
-    # Yield the initial batch of documents
-    for hit in hits:
-        yield hit
-
-    # Continue scrolling until no more hits are returned
-    count = len(hits)
-    while len(hits) > 0:
-        logger.info(f"Scrolling {len(hits)} hits, total hits: {count}")
-        resp = es_client.scroll(scroll_id=scroll_id, scroll=scroll_time)
-        scroll_id = resp["_scroll_id"]
-        hits = resp["hits"]["hits"]
-
-        for hit in hits:
-            yield hit
-
-        count += len(hits)
-
-    # Clear the scroll context when done
-    es_client.clear_scroll(scroll_id=scroll_id)
 
 
 def load_xml_file_to_soup(filepath: str) -> BeautifulSoup:

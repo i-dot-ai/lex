@@ -81,6 +81,17 @@ ingest-all-full: ingest-legislation-full ingest-legislation-section-full ingest-
 	@echo "All full data types have been ingested."
 .PHONY: ingest-all-full
 
+# Pipeline data ingestion commands - HISTORICAL (pre-1963 legislation using regnal year numbering)
+# Uses Atom feed discovery with year-level caching for efficiency
+ingest-legislation-section-historical:
+	docker compose exec pipeline uv run src/lex/main.py -m legislation-section --non-interactive --years 1267-1962 --batch-size 50
+.PHONY: ingest-legislation-section-historical
+
+# Ingest complete legislation dataset (1267 to present)
+ingest-legislation-section-complete:
+	docker compose exec pipeline uv run src/lex/main.py -m legislation-section --non-interactive --years 1267-$(CURRENT_YEAR) --batch-size 50
+.PHONY: ingest-legislation-section-complete
+
 # Start Docker environment
 docker-up:
 	@echo "Starting Docker environment..."

@@ -10,42 +10,34 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from lex.amendment.mappings import amendment_mappings
 from lex.amendment.pipeline import pipe_amendments
-from lex.caselaw.mappings import caselaw_mappings, caselaw_section_mappings
+from lex.amendment.qdrant_schema import get_amendment_schema
 from lex.caselaw.models import Court
 from lex.caselaw.pipeline import pipe_caselaw, pipe_caselaw_sections, pipe_caselaw_unified
-from lex.core import create_index_if_none, upload_documents
-from lex.core.clients import get_elasticsearch_client
-from lex.core.utils import create_inference_endpoint_if_none, parse_years, set_logging_level
-from lex.explanatory_note.mappings import explanatory_note_mappings
+from lex.caselaw.qdrant_schema import get_caselaw_schema, get_caselaw_section_schema
+from lex.core import create_collection_if_none, upload_documents
+from lex.core.utils import parse_years, set_logging_level
 from lex.explanatory_note.pipeline import pipe_explanatory_note
-from lex.legislation.mappings import legislation_mappings, legislation_section_mappings
+from lex.explanatory_note.qdrant_schema import get_explanatory_note_schema
 from lex.legislation.models import LegislationType
 from lex.legislation.pipeline import pipe_legislation, pipe_legislation_sections
+from lex.legislation.qdrant_schema import get_legislation_schema, get_legislation_section_schema
 from lex.settings import (
-    AMENDMENT_INDEX,
-    CASELAW_INDEX,
-    CASELAW_SECTION_INDEX,
-    EXPLANATORY_NOTE_INDEX,
-    INFERENCE_ID,
-    LEGISLATION_INDEX,
-    LEGISLATION_SECTION_INDEX,
+    AMENDMENT_COLLECTION,
+    CASELAW_COLLECTION,
+    CASELAW_SECTION_COLLECTION,
+    EXPLANATORY_NOTE_COLLECTION,
+    LEGISLATION_COLLECTION,
+    LEGISLATION_SECTION_COLLECTION,
     YEARS,
 )
 
 # Environment settings
 ENVIRONMENT = os.getenv("ENVIRONMENT", "localhost")
-LOGS_INDEX = os.getenv("ELASTIC_LOGS_INDEX_PIPELINE", "logs-pipeline")
 
-# Initialize Elasticsearch client
-es_client = get_elasticsearch_client()
-
-# Set up logging with Elasticsearch
+# Set up logging
 set_logging_level(
     logging.INFO,
-    elastic_client=es_client,
-    elastic_index=LOGS_INDEX,
     service_name="pipeline",
     environment=ENVIRONMENT,
 )
@@ -53,44 +45,44 @@ set_logging_level(
 # Initialize logger
 logger = logging.getLogger(__name__)
 
-# Mapping of model to index name, document iterator, model class, and alternative text generator
-IndexMapping = namedtuple("IndexMapping", ["index", "pipe", "mappings"])
+# Mapping of model to collection name, document iterator, and schema
+CollectionMapping = namedtuple("CollectionMapping", ["collection", "pipe", "schema"])
 
-index_mapping = {
-    "caselaw": IndexMapping(
-        CASELAW_INDEX,
-        pipe_caselaw,
-        caselaw_mappings,
-    ),
-    "caselaw-section": IndexMapping(
-        CASELAW_SECTION_INDEX,
-        pipe_caselaw_sections,
-        caselaw_section_mappings,
-    ),
-    "caselaw-unified": IndexMapping(
-        None,  # Special case - uses multiple indices
-        pipe_caselaw_unified,
-        None,  # Mappings handled per index type
-    ),
-    "legislation": IndexMapping(
-        LEGISLATION_INDEX,
+collection_mapping = {
+    "legislation": CollectionMapping(
+        LEGISLATION_COLLECTION,
         pipe_legislation,
-        legislation_mappings,
+        get_legislation_schema,
     ),
-    "legislation-section": IndexMapping(
-        LEGISLATION_SECTION_INDEX,
+    "legislation-section": CollectionMapping(
+        LEGISLATION_SECTION_COLLECTION,
         pipe_legislation_sections,
-        legislation_section_mappings,
+        get_legislation_section_schema,
     ),
-    "explanatory-note": IndexMapping(
-        EXPLANATORY_NOTE_INDEX,
+    "caselaw": CollectionMapping(
+        CASELAW_COLLECTION,
+        pipe_caselaw,
+        get_caselaw_schema,
+    ),
+    "caselaw-section": CollectionMapping(
+        CASELAW_SECTION_COLLECTION,
+        pipe_caselaw_sections,
+        get_caselaw_section_schema,
+    ),
+    "caselaw-unified": CollectionMapping(
+        None,  # Special case - uses multiple collections
+        pipe_caselaw_unified,
+        None,  # Schemas handled per collection type
+    ),
+    "explanatory-note": CollectionMapping(
+        EXPLANATORY_NOTE_COLLECTION,
         pipe_explanatory_note,
-        explanatory_note_mappings,
+        get_explanatory_note_schema,
     ),
-    "amendment": IndexMapping(
-        AMENDMENT_INDEX,
+    "amendment": CollectionMapping(
+        AMENDMENT_COLLECTION,
         pipe_amendments,
-        amendment_mappings,
+        get_amendment_schema,
     ),
 }
 
@@ -138,21 +130,21 @@ def process_single_checkpoint(year: int, court_type: str, limit: int = None, bat
             caselaw_batch.append(doc)
             caselaw_count += 1
             if len(caselaw_batch) >= batch_size:
-                upload_documents(index_name=CASELAW_INDEX, documents=caselaw_batch)
+                upload_documents(collection_name=CASELAW_COLLECTION, documents=caselaw_batch)
                 caselaw_batch = []
-                
+
         elif index_type == "caselaw-section":
             section_batch.append(doc)
             section_count += 1
             if len(section_batch) >= batch_size:
-                upload_documents(index_name=CASELAW_SECTION_INDEX, documents=section_batch)
+                upload_documents(collection_name=CASELAW_SECTION_COLLECTION, documents=section_batch)
                 section_batch = []
     
     # Upload remaining batches
     if caselaw_batch:
-        upload_documents(index_name=CASELAW_INDEX, documents=caselaw_batch)
+        upload_documents(collection_name=CASELAW_INDEX, documents=caselaw_batch)
     if section_batch:
-        upload_documents(index_name=CASELAW_SECTION_INDEX, documents=section_batch)
+        upload_documents(collection_name=CASELAW_SECTION_INDEX, documents=section_batch)
     
     process_logger.info(f"Completed {court_type} {year}: {caselaw_count} cases, {section_count} sections")
     return caselaw_count, section_count
@@ -160,14 +152,19 @@ def process_single_checkpoint(year: int, court_type: str, limit: int = None, bat
 
 def process_unified_caselaw(args):
     """
-    Process unified caselaw pipeline that outputs to multiple indices
+    Process unified caselaw pipeline that outputs to multiple collections
     """
-    # Create both indices if they don't exist
-    create_index_if_none(index_name=CASELAW_INDEX, non_interactive=args.non_interactive, mappings=caselaw_mappings)
-    create_index_if_none(index_name=CASELAW_SECTION_INDEX, non_interactive=args.non_interactive, mappings=caselaw_section_mappings)
-    
-    # Create the inference endpoint if it doesn't exist
-    create_inference_endpoint_if_none(inference_id=INFERENCE_ID)
+    # Create both collections if they don't exist
+    create_collection_if_none(
+        collection_name=CASELAW_COLLECTION,
+        schema=get_caselaw_schema(),
+        non_interactive=args.non_interactive,
+    )
+    create_collection_if_none(
+        collection_name=CASELAW_SECTION_COLLECTION,
+        schema=get_caselaw_section_schema(),
+        non_interactive=args.non_interactive,
+    )
     
     # Check if parallel processing is requested
     parallel_workers = getattr(args, 'parallel_workers', 1)
@@ -233,15 +230,15 @@ def process_unified_caselaw(args):
                 caselaw_batch.append(doc)
                 caselaw_count += 1
                 if len(caselaw_batch) >= batch_size:
-                    upload_documents(index_name=CASELAW_INDEX, documents=caselaw_batch)
+                    upload_documents(collection_name=CASELAW_COLLECTION, documents=caselaw_batch)
                     logger.info(f"Uploaded batch of {len(caselaw_batch)} caselaw documents (total: {caselaw_count})")
                     caselaw_batch = []
-                    
+
             elif index_type == "caselaw-section":
                 section_batch.append(doc)
                 section_count += 1
                 if len(section_batch) >= batch_size:
-                    upload_documents(index_name=CASELAW_SECTION_INDEX, documents=section_batch)
+                    upload_documents(collection_name=CASELAW_SECTION_COLLECTION, documents=section_batch)
                     logger.info(f"Uploaded batch of {len(section_batch)} section documents (total: {section_count})")
                     section_batch = []
             
@@ -252,11 +249,11 @@ def process_unified_caselaw(args):
         
         # Upload any remaining documents
         if caselaw_batch:
-            upload_documents(index_name=CASELAW_INDEX, documents=caselaw_batch)
+            upload_documents(collection_name=CASELAW_INDEX, documents=caselaw_batch)
             logger.info(f"Uploaded final caselaw batch of {len(caselaw_batch)} (total: {caselaw_count})")
-        
+
         if section_batch:
-            upload_documents(index_name=CASELAW_SECTION_INDEX, documents=section_batch)
+            upload_documents(collection_name=CASELAW_SECTION_INDEX, documents=section_batch)
             logger.info(f"Uploaded final section batch of {len(section_batch)} (total: {section_count})")
         
         logger.info(f"Unified pipeline complete: {caselaw_count} cases, {section_count} sections")
@@ -269,20 +266,21 @@ def process_documents(args):
     # Special handling for unified pipeline
     if args.model == "caselaw-unified":
         return process_unified_caselaw(args)
-    
-    index, documents_iterator, mappings = index_mapping[args.model]
 
-    # Update the index if provided
-    if args.index:
-        index = args.index
+    collection, documents_iterator, schema_func = collection_mapping[args.model]
+
+    # Update the collection if provided
+    if hasattr(args, "collection") and args.collection:
+        collection = args.collection
     else:
-        args.index = index
+        args.collection = collection
 
-    # Create the index if it does not exist
-    create_index_if_none(index_name=index, non_interactive=args.non_interactive, mappings=mappings)
-
-    # Create the inference endpoint if it doesn't exist
-    create_inference_endpoint_if_none(inference_id=INFERENCE_ID)
+    # Create the collection if it does not exist
+    create_collection_if_none(
+        collection_name=collection,
+        schema=schema_func(),
+        non_interactive=args.non_interactive,
+    )
 
     # Process documents in batches to reduce memory usage
     documents = documents_iterator(**vars(args))
@@ -291,6 +289,12 @@ def process_documents(args):
     batch_size = args.batch_size if hasattr(args, "batch_size") else 50
     logger.info(f"Processing documents with batch size: {batch_size}")
 
+    # Determine embedding fields based on collection type
+    embedding_fields = None  # Default: uses "text" field
+    if collection == LEGISLATION_COLLECTION:
+        # Legislation metadata collection: embed from title + type + description + year
+        embedding_fields = ["title", "description", "type", "year"]
+
     batch = []
     doc_count = 0
 
@@ -298,7 +302,7 @@ def process_documents(args):
         batch.append(doc)
         doc_count += 1
         if len(batch) >= batch_size:
-            upload_documents(index_name=index, documents=batch)
+            upload_documents(collection_name=collection, documents=batch, embedding_fields=embedding_fields)
             logger.info(f"Uploaded batch of {len(batch)} documents (total: {doc_count})")
             batch = []  # Clear batch after upload
 
@@ -309,7 +313,7 @@ def process_documents(args):
 
     # Upload any remaining documents
     if batch:
-        upload_documents(index_name=index, documents=batch)
+        upload_documents(collection_name=collection, documents=batch, embedding_fields=embedding_fields)
         logger.info(f"Uploaded final batch of {len(batch)} documents (total: {doc_count})")
 
 
@@ -319,18 +323,18 @@ def main():
     """
     parser = argparse.ArgumentParser(description="Run the Lex Pipeline for any document type")
 
-    # Add model argument with choices from the index_mapping
+    # Add model argument with choices from the collection_mapping
     parser.add_argument(
         "-m",
         "--model",
         type=str,
-        choices=index_mapping.keys(),
+        choices=collection_mapping.keys(),
         required=True,
-        help="Model name to process (caselaw, caselaw-section, caselaw-unified, legislation, legislation-section, explanatory-note, amendment)",
+        help="Model name to process (legislation, legislation-section, caselaw, caselaw-section, caselaw-unified, explanatory-note, amendment)",
     )
 
     parser.add_argument(
-        "-i", "--index", type=str, default=None, help="Override the default index name"
+        "-c", "--collection", type=str, default=None, help="Override the default collection name"
     )
 
     # Add non-interactive flag

@@ -30,7 +30,7 @@ curl -X POST http://localhost:8000/legislation/search \
 ## 🎯 What You Get
 
 - **125K+** UK laws (1963-present)
-- **1.9M+** court cases (2001-present)  
+- **1.9M+** court cases (2001-present)
 - **900K+** law sections with semantic search
 - **188K+** explanatory notes and amendments
 
@@ -101,7 +101,7 @@ make ingest-caselaw-sample         # ⚡ 5 min - Recent cases
 make ingest-all-sample            # ⚡ 15 min - Everything sampled
 ```
 
-### Full datasets 
+### Full datasets
 ```bash
 make ingest-legislation-full      # ☕ 2 hrs - All laws (1963+)
 make ingest-caselaw-full         # 🌙 8 hrs - All cases (2001+)
@@ -121,7 +121,7 @@ lex/
 
 Each component handles 4 document types:
 - **Legislation** - Primary & secondary laws
-- **Caselaw** - Court judgments  
+- **Caselaw** - Court judgments
 - **Explanatory Notes** - Legislative context
 - **Amendments** - Changes over time
 
@@ -138,7 +138,7 @@ Each component handles 4 document types:
 # Install dependencies
 make install
 
-# Run tests  
+# Run tests
 make test
 
 # Format code
@@ -171,11 +171,11 @@ python tools/export_data.py export --index lex-dev-caselaw --format jsonl
 
 ## 🐛 Troubleshooting
 
-### Elasticsearch won't start
+### Qdrant or services won't start
 ```bash
-# Check memory limits
+# Check memory limits and clean up
 docker system prune
-sudo sysctl -w vm.max_map_count=262144  # Linux only
+docker compose down && docker compose up -d
 ```
 
 ### Slow ingestion
@@ -204,8 +204,7 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 ## ⚠️ Limitations
 
 - Alpha release - APIs may change
-- PDF-only legislation not yet supported (~10% pre-1970s content)
-- Requires Azure OpenAI (OpenAI direct support planned)
+- PDF-only legislation digitisation is WIP
 
 ## 🙏 Acknowledgements
 

@@ -1,8 +1,8 @@
 import logging
+import uuid
 from typing import Iterator
 
-from lex.core.checkpoint import get_checkpoints
-from lex.core.pipeline_utils import PipelineMonitor, process_checkpoints
+from lex.core.pipeline_utils import PipelineMonitor, process_documents
 
 from .models import Amendment
 from .parser import AmendmentParser
@@ -15,14 +15,20 @@ logger = logging.getLogger(__name__)
 def pipe_amendments(years: list[int], limit: int, **kwargs) -> Iterator[Amendment]:
     scraper = AmendmentScraper()
     parser = AmendmentParser()
+    run_id = str(uuid.uuid4())
 
-    checkpoints = get_checkpoints(years, None, "amendment", kwargs.get("clear_checkpoint", False))
+    logger.info(f"Starting amendment pipeline: run_id={run_id}")
 
-    yield from process_checkpoints(
-        checkpoints=checkpoints,
+    # Amendment doesn't have types, pass None
+    yield from process_documents(
+        years=years,
+        types=[None],
         loader_or_scraper=scraper,
         parser=parser,
         document_type=Amendment,
         limit=limit,
         wrap_result=False,
+        doc_type_name="amendment",
+        run_id=run_id,
+        clear_tracking=kwargs.get("clear_checkpoint", False),
     )

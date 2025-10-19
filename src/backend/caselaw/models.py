@@ -3,7 +3,7 @@ from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
-from lex.caselaw.models import Court, CourtDivision
+from lex.caselaw.models import Caselaw, Court, CourtDivision
 
 
 class ReferenceType(str, Enum):
@@ -32,6 +32,11 @@ class CaselawSearch(BaseModel):
         default=None, description="Filter by cases from this year onwards."
     )
     year_to: Optional[int] = Field(default=None, description="Filter by cases up to this year.")
+    offset: int = Field(
+        default=0,
+        ge=0,
+        description="The number of results to skip (for pagination).",
+    )
     size: int = Field(default=20, description="Maximum number of results to return.")
 
 
@@ -50,6 +55,11 @@ class CaselawSectionSearch(BaseModel):
         default=None, description="Filter by cases from this year onwards."
     )
     year_to: Optional[int] = Field(default=None, description="Filter by cases up to this year.")
+    offset: int = Field(
+        default=0,
+        ge=0,
+        description="The number of results to skip (for pagination).",
+    )
     limit: int = Field(default=10, description="Maximum number of results to return.")
 
 
@@ -78,3 +88,12 @@ class CaselawReferenceSearch(BaseModel):
         default=None, description="Filter by citing cases up to this year."
     )
     size: int = Field(default=20, description="Maximum number of results to return.")
+
+
+class CaselawSearchResponse(BaseModel):
+    """Response model for caselaw search with pagination metadata."""
+
+    results: list[Caselaw] = Field(description="List of caselaw results")
+    total: int = Field(description="Total number of results available")
+    offset: int = Field(description="Current offset")
+    size: int = Field(description="Number of results per page")

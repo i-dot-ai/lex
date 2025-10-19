@@ -1,12 +1,10 @@
 import traceback
 from typing import List
 
-from elasticsearch import AsyncElasticsearch
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, HTTPException
 
 from backend.amendment.models import AmendmentSearch, AmendmentSectionSearch
 from backend.amendment.search import search_amendment_sections, search_amendments
-from backend.core.dependencies import get_es_client
 from lex.amendment.models import Amendment
 
 router = APIRouter(
@@ -21,11 +19,9 @@ router = APIRouter(
     response_model=List[Amendment],
     operation_id="search_amendments",
 )
-async def search_amendments_endpoint(
-    search: AmendmentSearch, es_client: AsyncElasticsearch = Depends(get_es_client)
-):
+async def search_amendments_endpoint(search: AmendmentSearch):
     try:
-        result = await search_amendments(search, es_client)
+        result = await search_amendments(search)
         return result
     except Exception as e:
         error_detail = {
@@ -41,12 +37,9 @@ async def search_amendments_endpoint(
     response_model=List[Amendment],
     operation_id="search_amendment_sections",
 )
-async def search_amendment_sections_endpoint(
-    search: AmendmentSectionSearch,
-    es_client: AsyncElasticsearch = Depends(get_es_client),
-):
+async def search_amendment_sections_endpoint(search: AmendmentSectionSearch):
     try:
-        result = await search_amendment_sections(search, es_client)
+        result = await search_amendment_sections(search)
         return result
     except Exception as e:
         error_detail = {

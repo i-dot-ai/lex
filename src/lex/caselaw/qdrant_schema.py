@@ -1,0 +1,68 @@
+"""Qdrant collection schemas for caselaw."""
+
+from qdrant_client.models import (
+    Distance,
+    SparseIndexParams,
+    SparseVectorParams,
+    VectorParams,
+)
+
+from lex.settings import CASELAW_COLLECTION, CASELAW_SECTION_COLLECTION, EMBEDDING_DIMENSIONS
+
+
+def get_caselaw_schema():
+    """
+    Schema for caselaw (full judgments) collection.
+
+    Vectors:
+    - dense: 1024D OpenAI embeddings (COSINE distance)
+    - sparse: BM25 term weights (DOT product for BM25 scoring)
+
+    Payload:
+    - All Caselaw fields from Pydantic model
+    """
+    return {
+        "collection_name": CASELAW_COLLECTION,
+        "vectors_config": {
+            "dense": VectorParams(
+                size=EMBEDDING_DIMENSIONS,
+                distance=Distance.COSINE,
+            )
+        },
+        "sparse_vectors_config": {
+            "sparse": SparseVectorParams(
+                index=SparseIndexParams(
+                    on_disk=False,  # Keep in memory for speed
+                )
+            )
+        },
+    }
+
+
+def get_caselaw_section_schema():
+    """
+    Schema for caselaw_section collection.
+
+    Vectors:
+    - dense: 1024D OpenAI embeddings (COSINE distance)
+    - sparse: BM25 term weights (DOT product for BM25 scoring)
+
+    Payload:
+    - All CaselawSection fields from Pydantic model
+    """
+    return {
+        "collection_name": CASELAW_SECTION_COLLECTION,
+        "vectors_config": {
+            "dense": VectorParams(
+                size=EMBEDDING_DIMENSIONS,
+                distance=Distance.COSINE,
+            )
+        },
+        "sparse_vectors_config": {
+            "sparse": SparseVectorParams(
+                index=SparseIndexParams(
+                    on_disk=False,  # Keep in memory for speed
+                )
+            )
+        },
+    }

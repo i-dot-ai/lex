@@ -6,12 +6,11 @@ from bs4 import BeautifulSoup, Tag
 
 from lex.caselaw.models import Caselaw, CaselawSection
 from lex.core.exceptions import LexParsingError
-from lex.core.parser import LexParser
 
 logger = logging.getLogger(__name__)
 
 
-class CaselawAndCaselawSectionsParser(LexParser):
+class CaselawAndCaselawSectionsParser:
     """Parser for caselaw content from the National Archives."""
 
     def parse_content(self, soup: BeautifulSoup) -> Tuple[Caselaw, list[CaselawSection]]:
@@ -415,7 +414,7 @@ class CaselawAndCaselawSectionsParser(LexParser):
         return quote_p is not None
 
 
-class CaselawSectionParser(LexParser):
+class CaselawSectionParser:
     """Parser for caselaw sections."""
 
     def parse_content(self, soup: BeautifulSoup) -> list[CaselawSection]:
@@ -439,7 +438,7 @@ class CaselawSectionParser(LexParser):
         return sections
 
 
-class CaselawParser(LexParser):
+class CaselawParser:
     """Parser for caselaw metadata."""
 
     def parse_content(self, soup: BeautifulSoup) -> Caselaw:

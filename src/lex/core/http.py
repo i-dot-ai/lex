@@ -4,7 +4,7 @@ import time
 from typing import Any, Dict, Optional, Type, Union
 
 import requests
-from diskcache import Cache
+from diskcache import FanoutCache
 from tenacity import (
     before_sleep_log,
     retry,
@@ -24,16 +24,16 @@ class HttpClient:
 
     def __init__(
         self,
-        max_retries: int = 5,
+        max_retries: int = 30,
         initial_delay: float = 1.0,
-        max_delay: float = 60.0,
-        timeout: Optional[Union[float, tuple]] = 10,
+        max_delay: float = 600.0,
+        timeout: Optional[Union[float, tuple]] = 30,
         session: Optional[requests.Session] = None,
         retry_exceptions: Optional[tuple[Type[Exception], ...]] = None,
         enable_cache: bool = True,
         cache_dir: Optional[str] = None,
         cache_size_limit: int = 1_000_000_000,  # 1GB default
-        cache_ttl: int = 3600,  # 1 hour in seconds
+        cache_ttl: int = 28800,  # 8 hours in seconds
     ):
         """
         Initialize the HTTP client.
@@ -92,11 +92,15 @@ class HttpClient:
             # Ensure cache directory exists
             os.makedirs(cache_dir, exist_ok=True)
 
-            self._cache = Cache(
+            # Use FanoutCache for better concurrency (shards across multiple SQLite files)
+            # timeout=60 prevents immediate failures on lock contention
+            self._cache = FanoutCache(
                 directory=cache_dir,
                 size_limit=cache_size_limit,
+                timeout=60,  # Wait up to 60s for locks instead of failing immediately
+                shards=8,    # Distribute across 8 SQLite files for better concurrency
             )
-            logger.debug(f"Cache initialized at {cache_dir}")
+            logger.debug(f"FanoutCache initialized at {cache_dir} with 8 shards")
 
         # Initialize rate limiter and circuit breaker
         self.rate_limiter = AdaptiveRateLimiter()
@@ -105,10 +109,7 @@ class HttpClient:
         )
 
     def _make_request(self, method: str, url: str, **kwargs: Any) -> requests.Response:
-        """
-        Internal method that makes the actual request.
-        This is decorated with retry logic.
-        """
+        """Make request with retry logic."""
         response = self.session.request(method=method, url=url, timeout=self.timeout, **kwargs)
 
         # Check for rate limiting
@@ -257,11 +258,13 @@ class HttpClient:
 
             # Recreate cache
             os.makedirs(cache_dir, exist_ok=True)
-            self._cache = Cache(
+            self._cache = FanoutCache(
                 directory=cache_dir,
                 size_limit=self.cache_size_limit,
+                timeout=60,
+                shards=8,
             )
-            logger.info("Cache recreated successfully")
+            logger.info("FanoutCache recreated successfully")
 
     def get_cache_info(self) -> Dict[str, Any]:
         """

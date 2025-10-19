@@ -4,7 +4,6 @@ from typing import Iterator, Optional, Tuple
 from bs4 import BeautifulSoup
 
 from lex.core.http import HttpClient
-from lex.core.scraper import LexScraper
 
 from .models import Amendment
 
@@ -13,7 +12,7 @@ http_client = HttpClient()
 logger = logging.getLogger(__name__)
 
 
-class AmendmentScraper(LexScraper):
+class AmendmentScraper:
     """Scraper for legislation amendments."""
 
     def __init__(
