@@ -294,6 +294,9 @@ def process_documents(args):
     if collection == LEGISLATION_COLLECTION:
         # Legislation metadata collection: embed from title + type + description + year
         embedding_fields = ["title", "description", "type", "year"]
+    elif collection == AMENDMENT_COLLECTION:
+        # Amendment metadata collection: embed from legislation names + type of effect
+        embedding_fields = ["changed_legislation", "affecting_legislation", "type_of_effect", "changed_provision", "affecting_provision"]
 
     batch = []
     doc_count = 0

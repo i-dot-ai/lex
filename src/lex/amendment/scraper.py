@@ -25,6 +25,7 @@ class AmendmentScraper:
         self,
         years: list[int],
         limit: int = 200,
+        types: list = None,  # Not used for amendments, but required for pipeline compatibility
         year_made_by: Optional[int] = None,
         page: int = 1,
         results_count: int = 100,
