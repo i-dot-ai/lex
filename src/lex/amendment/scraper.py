@@ -52,7 +52,7 @@ class AmendmentScraper:
 
             while True:
                 # Check if we've reached the limit, if so, break. Otherwise, fetch the next page.
-                if count >= limit:
+                if limit is not None and count >= limit:
                     break
 
                 url = self._get_url_legislation_changes(
@@ -72,7 +72,7 @@ class AmendmentScraper:
                 count += results_count
                 page += 1
 
-            if count >= limit:
+            if limit is not None and count >= limit:
                 break
 
     def _get_year_number(self, text: str) -> Tuple[Optional[str], Optional[str]]:

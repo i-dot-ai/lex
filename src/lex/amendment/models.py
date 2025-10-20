@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pydantic import BaseModel, Field
 
 
@@ -20,3 +22,17 @@ class Amendment(BaseModel):
     affecting_provision_url: str | None = Field(default=None)
     type_of_effect: str | None = Field(default=None)
     id: str
+
+    # AI-generated explanation fields
+    ai_explanation: str | None = Field(
+        default=None,
+        description="AI-generated plain English explanation of what this amendment does"
+    )
+    ai_explanation_model: str | None = Field(
+        default=None,
+        description="Model used to generate explanation (e.g., 'gpt-5-mini')"
+    )
+    ai_explanation_timestamp: datetime | None = Field(
+        default=None,
+        description="When the explanation was generated"
+    )

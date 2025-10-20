@@ -295,8 +295,8 @@ def process_documents(args):
         # Legislation metadata collection: embed from title + type + description + year
         embedding_fields = ["title", "description", "type", "year"]
     elif collection == AMENDMENT_COLLECTION:
-        # Amendment metadata collection: embed from legislation names + type of effect
-        embedding_fields = ["changed_legislation", "affecting_legislation", "type_of_effect", "changed_provision", "affecting_provision"]
+        # Amendment metadata collection: embed from legislation names + type of effect + AI explanation
+        embedding_fields = ["changed_legislation", "affecting_legislation", "type_of_effect", "changed_provision", "affecting_provision", "ai_explanation"]
 
     batch = []
     doc_count = 0
@@ -396,6 +396,12 @@ def main():
         "--clear-checkpoint",
         action="store_true",
         help="[Legislation] Clear the checkpoint file",
+    )
+
+    parser.add_argument(
+        "--generate-explanations",
+        action="store_true",
+        help="[Amendment] Generate AI explanations for amendments using GPT-5",
     )
 
     # Set environment variables for local run
