@@ -23,11 +23,23 @@ def get_http_client() -> HttpClient:
     """Lazy load HTTP client with caching."""
     global _http_client
     if _http_client is None:
+        # Custom retry exceptions - don't retry HTTP errors (esp. 404s)
+        from requests.exceptions import ConnectionError, Timeout
+        from lex.core.exceptions import RateLimitException
+
+        retry_exceptions = (
+            ConnectionError,  # Network connection issues
+            Timeout,  # Request timeouts
+            RateLimitException,  # Rate limiting
+        )
+        # Note: HTTPError and RequestException excluded so 404s fail fast
+
         _http_client = HttpClient(
             cache_ttl=28800,  # 8 hours - provisions are relatively stable
             max_retries=30,
             max_delay=600.0,
             timeout=30,
+            retry_exceptions=retry_exceptions,
         )
         logger.info("HTTP client initialized for amendment explanation generation")
     return _http_client
@@ -88,10 +100,11 @@ def fetch_provision_text(provision_url: str) -> Optional[str]:
         return full_text if full_text else None
 
     except HTTPError as e:
+        # HTTP errors (including 404) won't be retried by our custom client
         if e.response.status_code == 404:
-            logger.warning(f"Provision not found (404): {xml_url}")
-            return None  # Don't retry 404s - provision doesn't exist
-        logger.warning(f"HTTP error fetching provision from {xml_url}: {e}")
+            logger.info(f"Provision not found (404): {xml_url}")
+        else:
+            logger.warning(f"HTTP error {e.response.status_code} fetching provision from {xml_url}")
         return None
     except Exception as e:
         logger.warning(f"Failed to fetch provision text from {xml_url}: {e}")
