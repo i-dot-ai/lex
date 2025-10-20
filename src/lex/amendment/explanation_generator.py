@@ -7,6 +7,7 @@ from datetime import datetime
 from typing import Optional
 
 from openai import AzureOpenAI
+from requests.exceptions import HTTPError
 
 from lex.amendment.models import Amendment
 from lex.core.http import HttpClient
@@ -86,6 +87,12 @@ def fetch_provision_text(provision_url: str) -> Optional[str]:
 
         return full_text if full_text else None
 
+    except HTTPError as e:
+        if e.response.status_code == 404:
+            logger.warning(f"Provision not found (404): {xml_url}")
+            return None  # Don't retry 404s - provision doesn't exist
+        logger.warning(f"HTTP error fetching provision from {xml_url}: {e}")
+        return None
     except Exception as e:
         logger.warning(f"Failed to fetch provision text from {xml_url}: {e}")
         return None
@@ -112,7 +119,7 @@ def generate_explanation(amendment: Amendment, model: str = "gpt-5-mini") -> tup
         affecting_text = fetch_provision_text(amendment.affecting_provision_url)
 
     # Build prompt
-    prompt = f"""Analyze this UK legislative amendment and explain what it does in 2-3 clear sentences.
+    prompt = f"""Analyze this UK legislative amendment concisely and clearly.
 
 Amendment Details:
 - Changed Legislation: {amendment.changed_legislation}
@@ -127,7 +134,12 @@ Changed Provision Text (current version):
 Affecting Provision Text (the instruction that makes the change):
 {affecting_text if affecting_text else '[Not available]'}
 
-Explain: (1) what legal change this makes, (2) the practical impact, (3) use plain language suitable for non-lawyers."""
+Provide a 3-part explanation:
+(1) Legal change - what was added, removed, or modified (be specific and brief)
+(2) Practical impact - real-world consequences for courts, agencies, or individuals (focus on key effects)
+(3) Plain language - restate for non-lawyers (use clear language, expand acronyms on first use, avoid unnecessary jargon)
+
+Write densely and efficiently. Favor clarity over length. Keep each part to 1-2 concise sentences."""
 
     try:
         openai_client = get_openai_client()
@@ -139,7 +151,7 @@ Explain: (1) what legal change this makes, (2) the practical impact, (3) use pla
             model=deployment,
             input=prompt,
             reasoning={"effort": "low"},  # GPT-5 reasoning control
-            text={"verbosity": "medium"},  # GPT-5 output control
+            text={"verbosity": "low"},  # GPT-5 output control - favor brevity
         )
 
         explanation = response.output_text.strip()
