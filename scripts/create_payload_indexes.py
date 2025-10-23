@@ -45,7 +45,9 @@ def create_index(collection_name: str, field_name: str, field_type: PayloadSchem
             field_schema=field_type,
             wait=False,  # Don't wait for completion - return immediately
         )
-        logger.info(f"✓ Initiated index on {collection_name}.{field_name} (operation_id: {result.operation_id})")
+        logger.info(
+            f"✓ Initiated index on {collection_name}.{field_name} (operation_id: {result.operation_id})"
+        )
         return True
     except Exception as e:
         if "already exists" in str(e).lower():
@@ -94,7 +96,9 @@ def apply_payload_indexes():
         logger.warning(f"⚠ {total_indexes - successful_indexes} indexes failed (may already exist)")
 
     logger.info("\n📊 Monitoring index build progress...")
-    logger.info("Use: curl http://localhost:6333/collections/<collection_name> | jq '.result.payload_schema'")
+    logger.info(
+        "Use: curl http://localhost:6333/collections/<collection_name> | jq '.result.payload_schema'"
+    )
 
 
 def main():

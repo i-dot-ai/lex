@@ -52,8 +52,7 @@ from lex.settings import (
 )
 
 logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
@@ -176,7 +175,7 @@ def scroll_es_documents(
                 logger.error(f"Failed to start scroll after {max_retries} attempts: {e}")
                 raise
             logger.warning(f"Search timeout (attempt {attempt + 1}/{max_retries}), retrying...")
-            time.sleep(2 ** attempt)  # Exponential backoff
+            time.sleep(2**attempt)  # Exponential backoff
 
     scroll_id = response.get("_scroll_id")
 
@@ -211,7 +210,7 @@ def scroll_es_documents(
                     logger.error(f"Failed to scroll after {max_retries} attempts: {e}")
                     raise
                 logger.warning(f"Scroll timeout (attempt {attempt + 1}/{max_retries}), retrying...")
-                time.sleep(2 ** attempt)  # Exponential backoff
+                time.sleep(2**attempt)  # Exponential backoff
 
     # Clear scroll context
     if scroll_id:
@@ -302,10 +301,14 @@ def migrate_collection(
 
     # Check if already complete
     if qdrant_count >= es_total:
-        logger.info(f"✓ Collection {collection_name} already complete ({qdrant_count:,} >= {es_total:,}), skipping")
+        logger.info(
+            f"✓ Collection {collection_name} already complete ({qdrant_count:,} >= {es_total:,}), skipping"
+        )
         return
 
-    logger.info(f"Need to migrate: {es_total - qdrant_count:,} documents (will process all {es_total:,} relying on UUID idempotency)")
+    logger.info(
+        f"Need to migrate: {es_total - qdrant_count:,} documents (will process all {es_total:,} relying on UUID idempotency)"
+    )
 
     # Determine if we extract or generate embeddings
     if collection_name == LEGISLATION_COLLECTION:
@@ -328,7 +331,6 @@ def migrate_collection(
 
     try:
         for batch_docs in scroll_es_documents(es_client, index_name, batch_size):
-
             # Process batch - different strategies based on collection type
             if collection_name == LEGISLATION_COLLECTION:
                 # PARALLEL PROCESSING for legislation (generate new embeddings)
@@ -361,11 +363,13 @@ def migrate_collection(
                     logger.info(f"Generating {len(texts_to_embed)} embeddings in parallel...")
                     hybrid_embeddings = generate_hybrid_embeddings_batch(
                         texts_to_embed,
-                        max_workers=50  # 50 workers for 7200 RPM = ~120 req/s
+                        max_workers=50,  # 50 workers for 7200 RPM = ~120 req/s
                     )
 
                     # Build points with generated embeddings
-                    for (doc, doc_id, point_id), (dense, sparse) in zip(doc_metadata, hybrid_embeddings):
+                    for (doc, doc_id, point_id), (dense, sparse) in zip(
+                        doc_metadata, hybrid_embeddings
+                    ):
                         point = PointStruct(
                             id=point_id,
                             vector={"dense": dense, "sparse": sparse},
@@ -423,7 +427,9 @@ def migrate_collection(
                     sparse_embeddings = generate_sparse_embeddings_batch(texts_for_sparse)
 
                     # Build points
-                    for (doc, doc_id, point_id, dense), sparse in zip(doc_with_dense, sparse_embeddings):
+                    for (doc, doc_id, point_id, dense), sparse in zip(
+                        doc_with_dense, sparse_embeddings
+                    ):
                         point = PointStruct(
                             id=point_id,
                             vector={"dense": dense, "sparse": sparse},
@@ -473,26 +479,30 @@ def migrate_collection(
                         error_type = type(e).__name__
                         error_str = str(e).lower()
                         is_timeout = (
-                            'timeout' in error_str or
-                            'WriteTimeout' in error_type or
-                            'ResponseHandlingException' in error_type or
-                            'timed out' in error_str
+                            "timeout" in error_str
+                            or "WriteTimeout" in error_type
+                            or "ResponseHandlingException" in error_type
+                            or "timed out" in error_str
                         )
 
                         if attempt < max_retries - 1 and is_timeout:
                             wait_time = (attempt + 1) * 5  # 5s, 10s, 15s
-                            logger.warning(f"Timeout uploading batch (attempt {attempt + 1}/{max_retries}), retrying in {wait_time}s...")
+                            logger.warning(
+                                f"Timeout uploading batch (attempt {attempt + 1}/{max_retries}), retrying in {wait_time}s..."
+                            )
                             time.sleep(wait_time)
                             continue
 
                         # Final failure or non-timeout error
                         logger.error(f"Error uploading batch: {error_type}: {e}")
-                        if hasattr(e, 'response'):
+                        if hasattr(e, "response"):
                             logger.error(f"Response: {e.response}")
-                        if hasattr(e, '__dict__'):
+                        if hasattr(e, "__dict__"):
                             logger.error(f"Error details: {e.__dict__}")
                         if batch_points:
-                            logger.error(f"First point in failed batch: id={batch_points[0].id}, payload keys={list(batch_points[0].payload.keys())}")
+                            logger.error(
+                                f"First point in failed batch: id={batch_points[0].id}, payload keys={list(batch_points[0].payload.keys())}"
+                            )
 
                         error_count += len(batch_points)
                         batch_points = []
@@ -523,15 +533,17 @@ def migrate_collection(
                     error_type = type(e).__name__
                     error_str = str(e).lower()
                     is_timeout = (
-                        'timeout' in error_str or
-                        'WriteTimeout' in error_type or
-                        'ResponseHandlingException' in error_type or
-                        'timed out' in error_str
+                        "timeout" in error_str
+                        or "WriteTimeout" in error_type
+                        or "ResponseHandlingException" in error_type
+                        or "timed out" in error_str
                     )
 
                     if attempt < max_retries - 1 and is_timeout:
                         wait_time = (attempt + 1) * 5
-                        logger.warning(f"Timeout uploading final batch (attempt {attempt + 1}/{max_retries}), retrying in {wait_time}s...")
+                        logger.warning(
+                            f"Timeout uploading final batch (attempt {attempt + 1}/{max_retries}), retrying in {wait_time}s..."
+                        )
                         time.sleep(wait_time)
                         continue
 
@@ -608,7 +620,7 @@ def main():
         logger.info("-" * 80)
 
     total_elapsed = time.time() - total_start
-    logger.info(f"Total migration time: {total_elapsed:.1f}s ({total_elapsed/60:.1f}m)")
+    logger.info(f"Total migration time: {total_elapsed:.1f}s ({total_elapsed / 60:.1f}m)")
 
 
 if __name__ == "__main__":

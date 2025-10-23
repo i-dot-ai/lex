@@ -55,9 +55,7 @@ class LegislationActSearch(BaseModel):
     then returns parent legislation ranked by best matching sections.
     """
 
-    query: str = Field(
-        description="The search query - can be a concept, question, or keywords."
-    )
+    query: str = Field(description="The search query - can be a concept, question, or keywords.")
     year_from: int | None = Field(
         default=None,
         description="Starting year filter (optional).",
@@ -138,7 +136,9 @@ class LegislationFullText(BaseModel):
 class LegislationSearchResponse(BaseModel):
     """Response model for legislation search with pagination metadata."""
 
-    results: list[dict] = Field(description="List of legislation results (may include sections array)")
+    results: list[dict] = Field(
+        description="List of legislation results (may include sections array)"
+    )
     total: int = Field(description="Total number of results available")
     offset: int = Field(description="Current offset")
     limit: int = Field(description="Number of results per page")

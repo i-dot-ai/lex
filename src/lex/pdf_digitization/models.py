@@ -14,7 +14,9 @@ class ExtractionProvenance(BaseModel):
     source: Literal["llm_ocr"] = "llm_ocr"
     model: str = Field(..., description="LLM model used (e.g., gpt-5-mini)")
     prompt_version: str = Field(..., description="Prompt version identifier (e.g., v1.0)")
-    timestamp: datetime = Field(default_factory=datetime.utcnow, description="When extraction occurred")
+    timestamp: datetime = Field(
+        default_factory=datetime.utcnow, description="When extraction occurred"
+    )
     processing_time_seconds: float = Field(..., description="Time taken to process")
     input_tokens: int = Field(..., description="Number of input tokens")
     output_tokens: int = Field(..., description="Number of output tokens")
@@ -30,8 +32,12 @@ class ExtractionResult(BaseModel):
     success: bool = Field(default=True, description="Whether extraction succeeded")
     error: Optional[str] = Field(default=None, description="Error message if failed")
     pdf_source: str = Field(default="", description="Source PDF URL or path")
-    legislation_type: Optional[str] = Field(default=None, description="Legislation type (e.g., ukpga)")
-    identifier: Optional[str] = Field(default=None, description="Legislation identifier (e.g., Edw7/6/19)")
+    legislation_type: Optional[str] = Field(
+        default=None, description="Legislation type (e.g., ukpga)"
+    )
+    identifier: Optional[str] = Field(
+        default=None, description="Legislation identifier (e.g., Edw7/6/19)"
+    )
 
 
 class PDFMetadata(BaseModel):

@@ -202,12 +202,14 @@ def process_documents(
                 logger.info(f"Document limit reached at type {doc_type.value}, year {year}")
                 break
 
-            type_value = doc_type.value if hasattr(doc_type, 'value') else str(doc_type)
+            type_value = doc_type.value if hasattr(doc_type, "value") else str(doc_type)
             tracker = URLTracker(doc_type_name, year, type_value, run_id) if doc_type_name else None
 
             if tracker:
                 stats = tracker.get_stats()
-                logger.info(f"Processing {type_value} for year {year}: {stats['success']} done, {stats['failures']} failed")
+                logger.info(
+                    f"Processing {type_value} for year {year}: {stats['success']} done, {stats['failures']} failed"
+                )
             else:
                 logger.info(f"Processing {type_value} for year {year}")
 
@@ -234,7 +236,7 @@ def process_documents(
                             if tracker:
                                 doc_uuid = uri_to_uuid(doc.id)
                                 doc_date = None
-                                if hasattr(doc, 'date') and doc.date:
+                                if hasattr(doc, "date") and doc.date:
                                     doc_date = str(doc.date)
                                 tracker.record_success(url, doc_uuid, doc_date)
 

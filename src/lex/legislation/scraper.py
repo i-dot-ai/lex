@@ -314,9 +314,7 @@ class LegislationScraper:
 
         # Cache the results for this year
         self._historical_year_cache[year] = all_urls
-        logger.info(
-            f"Cached {len(all_urls)} URLs for year {year} across {page} page(s)"
-        )
+        logger.info(f"Cached {len(all_urls)} URLs for year {year} across {page} page(s)")
 
         # Now filter and yield URLs matching requested types
         filtered_count = 0

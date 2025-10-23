@@ -32,7 +32,9 @@ def get_filters(
     conditions = []
 
     if legislation_id:
-        conditions.append(FieldCondition(key="legislation_id", match=MatchValue(value=legislation_id)))
+        conditions.append(
+            FieldCondition(key="legislation_id", match=MatchValue(value=legislation_id))
+        )
 
     if note_type_filter and len(note_type_filter) > 0:
         note_type_values = [nt.value for nt in note_type_filter]
@@ -40,7 +42,9 @@ def get_filters(
 
     if section_type_filter and len(section_type_filter) > 0:
         section_type_values = [st.value for st in section_type_filter]
-        conditions.append(FieldCondition(key="section_type", match=MatchAny(any=section_type_values)))
+        conditions.append(
+            FieldCondition(key="section_type", match=MatchAny(any=section_type_values))
+        )
 
     return conditions
 

@@ -1,4 +1,5 @@
 """URL-level tracking with run IDs and document dates for full audit trail."""
+
 import json
 import logging
 import os
@@ -41,7 +42,11 @@ class URLTracker:
     """Track successful and failed URLs with append-only JSONL logs."""
 
     def __init__(
-        self, doc_type: str, year: int, type_value: Optional[str] = None, run_id: Optional[str] = None
+        self,
+        doc_type: str,
+        year: int,
+        type_value: Optional[str] = None,
+        run_id: Optional[str] = None,
     ):
         self.doc_type = doc_type
         self.year = year
@@ -130,7 +135,11 @@ class URLTracker:
             with open(self.failure_file) as f:
                 failure_count = sum(1 for line in f if line.strip())
 
-        return {"success": success_count, "failures": failure_count, "total": success_count + failure_count}
+        return {
+            "success": success_count,
+            "failures": failure_count,
+            "total": success_count + failure_count,
+        }
 
 
 def clear_tracking(doc_type: str):

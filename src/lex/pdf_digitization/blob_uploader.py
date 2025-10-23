@@ -41,7 +41,7 @@ class LegislationBlobUploader:
         container_name: Optional[str] = None,
         max_concurrent: int = 10,
         timeout_seconds: int = 900,  # 15 minutes for large PDFs
-        sas_expiry_hours: int = 720  # 30 days
+        sas_expiry_hours: int = 720,  # 30 days
     ):
         """
         Initialize blob uploader.
@@ -54,7 +54,9 @@ class LegislationBlobUploader:
             sas_expiry_hours: SAS token expiry in hours (default 720 = 30 days)
         """
         self.connection_string = connection_string or os.getenv("AZURE_STORAGE_CONNECTION_STRING")
-        self.container_name = container_name or os.getenv("AZURE_STORAGE_CONTAINER_NAME", "historical-legislation-pdfs")
+        self.container_name = container_name or os.getenv(
+            "AZURE_STORAGE_CONTAINER_NAME", "historical-legislation-pdfs"
+        )
         self.max_concurrent = max_concurrent
         self.timeout = aiohttp.ClientTimeout(total=timeout_seconds)
         self.sas_expiry_hours = sas_expiry_hours
@@ -116,18 +118,14 @@ class LegislationBlobUploader:
             blob_name=blob_name,
             account_key=self.account_key,
             permission=BlobSasPermissions(read=True),
-            expiry=datetime.utcnow() + timedelta(hours=self.sas_expiry_hours)
+            expiry=datetime.utcnow() + timedelta(hours=self.sas_expiry_hours),
         )
 
         sas_url = f"https://{self.account_name}.blob.core.windows.net/{self.container_name}/{blob_name}?{sas_token}"
         return sas_url
 
     async def process_pdf(
-        self,
-        session: aiohttp.ClientSession,
-        pdf_url: str,
-        legislation_type: str,
-        identifier: str
+        self, session: aiohttp.ClientSession, pdf_url: str, legislation_type: str, identifier: str
     ) -> Tuple[bool, str, Optional[str], Optional[str]]:
         """
         Download PDF and upload to Azure Blob Storage (or reuse existing).
@@ -189,7 +187,7 @@ class LegislationBlobUploader:
         pdf_urls: List[str],
         legislation_types: List[str],
         identifiers: List[str],
-        show_progress: bool = True
+        show_progress: bool = True,
     ) -> List[Tuple[bool, str, Optional[str], Optional[str]]]:
         """
         Process multiple PDFs concurrently: download + upload + generate SAS URLs.
@@ -209,10 +207,7 @@ class LegislationBlobUploader:
         semaphore = asyncio.Semaphore(self.max_concurrent)
 
         async def process_with_semaphore(
-            session: aiohttp.ClientSession,
-            url: str,
-            leg_type: str,
-            ident: str
+            session: aiohttp.ClientSession, url: str, leg_type: str, ident: str
         ) -> Tuple[bool, str, Optional[str], Optional[str]]:
             async with semaphore:
                 return await self.process_pdf(session, url, leg_type, ident)
@@ -228,7 +223,9 @@ class LegislationBlobUploader:
             # Execute with progress bar
             if show_progress:
                 results = []
-                for task in tqdm(asyncio.as_completed(tasks), total=len(tasks), desc="Processing PDFs"):
+                for task in tqdm(
+                    asyncio.as_completed(tasks), total=len(tasks), desc="Processing PDFs"
+                ):
                     result = await task
                     results.append(result)
             else:

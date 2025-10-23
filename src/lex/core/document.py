@@ -127,7 +127,11 @@ def upload_documents(
                     if not text:
                         logger.warning(
                             f"Document {doc_id} has no content in embedding fields {embedding_fields}, skipping",
-                            extra={"doc_id": doc_id, "collection": collection_name, "embedding_fields": embedding_fields},
+                            extra={
+                                "doc_id": doc_id,
+                                "collection": collection_name,
+                                "embedding_fields": embedding_fields,
+                            },
                         )
                         continue
 
@@ -148,7 +152,9 @@ def upload_documents(
                 # Batch upload to Qdrant
                 if points:
                     qdrant_client.upsert(
-                        collection_name=collection_name, points=points, wait=True  # Wait for indexing
+                        collection_name=collection_name,
+                        points=points,
+                        wait=True,  # Wait for indexing
                     )
                     docs_uploaded += len(points)
 

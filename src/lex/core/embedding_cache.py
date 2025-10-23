@@ -47,7 +47,7 @@ def _query_hash(query: str) -> str:
 
 
 def get_cached_embeddings(query: str) -> Optional[Tuple[list[float], SparseVector]]:
-    """Retrieve cached embeddings for a query using hash-based exact match.
+    """Retrieve cached embeddings for a query using direct point ID lookup.
 
     Returns:
         Tuple of (dense_vector, sparse_vector) if cached, None otherwise
@@ -56,17 +56,16 @@ def get_cached_embeddings(query: str) -> Optional[Tuple[list[float], SparseVecto
         _ensure_cache_collection()
 
         query_hash = _query_hash(query)
+        # Generate the same deterministic ID used when caching
+        point_id = str(uuid.uuid5(uuid.NAMESPACE_DNS, query_hash))
 
-        # Exact match via hash
-        points = qdrant_client.scroll(
+        # Direct point retrieval by ID (O(1) instead of O(n) filtered scan)
+        points = qdrant_client.retrieve(
             collection_name=CACHE_COLLECTION,
-            scroll_filter=Filter(
-                must=[FieldCondition(key="query_hash", match=MatchValue(value=query_hash))]
-            ),
-            limit=1,
+            ids=[point_id],
             with_payload=True,
             with_vectors=True,
-        )[0]
+        )
 
         if points:
             point = points[0]

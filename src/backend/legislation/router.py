@@ -35,8 +35,7 @@ router = APIRouter(
     response_model=List[LegislationSection],
     operation_id="search_for_legislation_sections",
 )
-async def search_for_legislation_sections(
-    search: LegislationSectionSearch):
+async def search_for_legislation_sections(search: LegislationSectionSearch):
     try:
         result = await legislation_section_search(search)
         return result
@@ -54,8 +53,7 @@ async def search_for_legislation_sections(
     response_model=LegislationSearchResponse,
     operation_id="search_for_legislation_acts",
 )
-async def search_for_legislation_acts(
-    search: LegislationActSearch):
+async def search_for_legislation_acts(search: LegislationActSearch):
     try:
         result = await legislation_act_search(search)
         return result
@@ -74,8 +72,7 @@ async def search_for_legislation_acts(
     operation_id="lookup_legislation",
     responses={404: {"description": "Legislation not found"}},
 )
-async def lookup_legislation_endpoint(
-    lookup: LegislationLookup):
+async def lookup_legislation_endpoint(lookup: LegislationLookup):
     try:
         result = await legislation_lookup(lookup)
         if result is None:
@@ -101,8 +98,7 @@ async def lookup_legislation_endpoint(
     operation_id="get_legislation_sections",
     responses={404: {"description": "No sections found for the specified legislation title"}},
 )
-async def get_sections_by_id(
-    input: LegislationSectionLookup):
+async def get_sections_by_id(input: LegislationSectionLookup):
     try:
         sections = await get_legislation_sections(input)
         if not sections:
@@ -127,8 +123,7 @@ async def get_sections_by_id(
     operation_id="get_legislation_full_text",
     responses={404: {"description": "Legislation not found"}},
 )
-async def get_full_text_by_id(
-    input: LegislationFullTextLookup):
+async def get_full_text_by_id(input: LegislationFullTextLookup):
     try:
         result = await get_legislation_full_text(input)
         if not result:
@@ -150,7 +145,10 @@ async def get_full_text_by_id(
 @router.get(
     "/proxy/{legislation_id:path}",
     operation_id="proxy_legislation_data",
-    responses={404: {"description": "Legislation not found"}, 502: {"description": "External API error"}},
+    responses={
+        404: {"description": "Legislation not found"},
+        502: {"description": "External API error"},
+    },
 )
 async def proxy_legislation_data(legislation_id: str):
     """Proxy endpoint to fetch enriched metadata from legislation.gov.uk.
@@ -169,7 +167,9 @@ async def proxy_legislation_data(legislation_id: str):
             response = await client.get(url, follow_redirects=True)
 
             if response.status_code == 404:
-                raise HTTPException(status_code=404, detail=f"Legislation not found: {legislation_id}")
+                raise HTTPException(
+                    status_code=404, detail=f"Legislation not found: {legislation_id}"
+                )
 
             response.raise_for_status()
 
@@ -180,7 +180,7 @@ async def proxy_legislation_data(legislation_id: str):
                 headers={
                     "Access-Control-Allow-Origin": "*",
                     "Cache-Control": "public, max-age=3600",  # Cache for 1 hour
-                }
+                },
             )
 
     except httpx.HTTPStatusError as e:

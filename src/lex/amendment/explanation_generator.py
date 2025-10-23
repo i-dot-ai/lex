@@ -111,7 +111,9 @@ def fetch_provision_text(provision_url: str) -> Optional[str]:
         return None
 
 
-def generate_explanation(amendment: Amendment, model: str = "gpt-5-mini") -> tuple[str, str, datetime]:
+def generate_explanation(
+    amendment: Amendment, model: str = "gpt-5-mini"
+) -> tuple[str, str, datetime]:
     """
     Generate AI explanation for an amendment.
 
@@ -136,16 +138,16 @@ def generate_explanation(amendment: Amendment, model: str = "gpt-5-mini") -> tup
 
 Amendment Details:
 - Changed Legislation: {amendment.changed_legislation}
-- Changed Provision: {amendment.changed_provision or 'N/A'}
-- Affecting Legislation: {amendment.affecting_legislation or 'N/A'}
-- Affecting Provision: {amendment.affecting_provision or 'N/A'}
-- Type of Effect: {amendment.type_of_effect or 'N/A'}
+- Changed Provision: {amendment.changed_provision or "N/A"}
+- Affecting Legislation: {amendment.affecting_legislation or "N/A"}
+- Affecting Provision: {amendment.affecting_provision or "N/A"}
+- Type of Effect: {amendment.type_of_effect or "N/A"}
 
 Changed Provision Text (current version):
-{changed_text if changed_text else '[Not available - provision may not exist or have been repealed]'}
+{changed_text if changed_text else "[Not available - provision may not exist or have been repealed]"}
 
 Affecting Provision Text (the instruction that makes the change):
-{affecting_text if affecting_text else '[Not available]'}
+{affecting_text if affecting_text else "[Not available]"}
 
 Provide a 3-part explanation:
 (1) Legal change - what was added, removed, or modified (be specific and brief)
@@ -181,7 +183,9 @@ Write densely and efficiently. Favor clarity over length. Keep each part to 1-2 
         return error_msg, model, datetime.utcnow()
 
 
-def add_explanations_to_amendments(amendments: list[Amendment], model: str = "gpt-5-mini") -> list[Amendment]:
+def add_explanations_to_amendments(
+    amendments: list[Amendment], model: str = "gpt-5-mini"
+) -> list[Amendment]:
     """
     Generate AI explanations for a list of amendments.
 
@@ -197,7 +201,9 @@ def add_explanations_to_amendments(amendments: list[Amendment], model: str = "gp
     for i, amendment in enumerate(amendments, 1):
         # Skip if already has explanation
         if amendment.ai_explanation:
-            logger.info(f"[{i}/{len(amendments)}] Skipping {amendment.id} - already has explanation")
+            logger.info(
+                f"[{i}/{len(amendments)}] Skipping {amendment.id} - already has explanation"
+            )
             continue
 
         # Skip commencement orders (not substantive changes)

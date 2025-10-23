@@ -1,4 +1,5 @@
 """Profile search endpoint performance with varied queries."""
+
 import asyncio
 import time
 from statistics import mean, median, stdev
@@ -36,9 +37,9 @@ async def time_request(client: httpx.AsyncClient, url: str, payload: dict) -> fl
 
 async def profile_endpoint(endpoint: str, endpoint_name: str, payload_builder) -> dict:
     """Profile a single endpoint with all test queries."""
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"🔍 Profiling: {endpoint_name}")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
 
     times = []
 
@@ -74,9 +75,9 @@ async def profile_endpoint(endpoint: str, endpoint_name: str, payload_builder) -
 
 async def main():
     """Run profiling on all endpoints."""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("🚀 Search Endpoint Performance Profiling")
-    print("="*60)
+    print("=" * 60)
     print(f"Testing {len(TEST_QUERIES)} queries per endpoint")
     print(f"API: {API_URL}")
 
@@ -84,27 +85,27 @@ async def main():
     sections_result = await profile_endpoint(
         "/legislation/section/search",
         "Legislation Sections Search",
-        lambda q: {"query": q, "size": 10}
+        lambda q: {"query": q, "size": 10},
     )
 
     # Profile legislation acts search
     acts_result = await profile_endpoint(
         "/legislation/search",
         "Legislation Acts Search",
-        lambda q: {"query": q, "limit": 10, "use_semantic_search": True}
+        lambda q: {"query": q, "limit": 10, "use_semantic_search": True},
     )
 
     # Profile caselaw search
     caselaw_result = await profile_endpoint(
         "/caselaw/search",
         "Caselaw Search",
-        lambda q: {"query": q, "size": 10, "is_semantic_search": True}
+        lambda q: {"query": q, "size": 10, "is_semantic_search": True},
     )
 
     # Summary report
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("📊 PERFORMANCE SUMMARY")
-    print("="*60)
+    print("=" * 60)
 
     results = [sections_result, acts_result, caselaw_result]
 
@@ -122,12 +123,12 @@ async def main():
         print(f"  StdDev: {result['stdev']:.3f}s")
 
     # Ranking
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("🏆 RANKING (by median response time)")
-    print("="*60)
+    print("=" * 60)
 
     valid_results = [r for r in results if "error" not in r]
-    ranked = sorted(valid_results, key=lambda x: x['median'])
+    ranked = sorted(valid_results, key=lambda x: x["median"])
 
     for i, result in enumerate(ranked, 1):
         print(f"{i}. {result['endpoint']}: {result['median']:.3f}s median")

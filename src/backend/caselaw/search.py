@@ -191,10 +191,7 @@ async def caselaw_reference_search(input: CaselawReferenceSearch) -> list[Casela
 
     # Add reference filter using MatchAny (checks if reference_id is in the array)
     filter_conditions.append(
-        FieldCondition(
-            key=reference_field,
-            match=MatchAny(any=[input.reference_id])
-        )
+        FieldCondition(key=reference_field, match=MatchAny(any=[input.reference_id]))
     )
 
     query_filter = Filter(must=filter_conditions)

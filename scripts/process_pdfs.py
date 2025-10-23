@@ -25,8 +25,7 @@ load_dotenv(override=True)
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 
 logger = logging.getLogger(__name__)
@@ -42,35 +41,22 @@ async def main():
     parser.add_argument(
         "--csv",
         type=Path,
-        help="Process all PDFs from CSV file (columns: pdf_url, legislation_type, identifier)"
+        help="Process all PDFs from CSV file (columns: pdf_url, legislation_type, identifier)",
     )
+    parser.add_argument("--url", help="Process single PDF from URL")
     parser.add_argument(
-        "--url",
-        help="Process single PDF from URL"
+        "--type", dest="legislation_type", help="Legislation type (e.g., ukpga, aep, ukla)"
     )
-    parser.add_argument(
-        "--type",
-        dest="legislation_type",
-        help="Legislation type (e.g., ukpga, aep, ukla)"
-    )
-    parser.add_argument(
-        "--id",
-        dest="identifier",
-        help="Identifier (e.g., Edw7/6/19, Geo3/41/90)"
-    )
+    parser.add_argument("--id", dest="identifier", help="Identifier (e.g., Edw7/6/19, Geo3/41/90)")
 
     # Options
     parser.add_argument(
         "--max-concurrent",
         type=int,
         default=10,
-        help="Maximum concurrent PDF processing (default: 10)"
+        help="Maximum concurrent PDF processing (default: 10)",
     )
-    parser.add_argument(
-        "--output",
-        type=Path,
-        help="Output file for results (JSONL format)"
-    )
+    parser.add_argument("--output", type=Path, help="Output file for results (JSONL format)")
 
     args = parser.parse_args()
 
@@ -87,27 +73,25 @@ async def main():
     try:
         if args.csv:
             # Batch processing from CSV
-            print(f"\n{'='*80}")
+            print(f"\n{'=' * 80}")
             print(f"BATCH PDF PROCESSING")
-            print(f"{'='*80}")
+            print(f"{'=' * 80}")
             print(f"CSV: {args.csv}")
             print(f"Max Concurrent: {args.max_concurrent}")
             print(f"Output: {args.output or '(none - results logged only)'}")
-            print(f"{'='*80}\n")
+            print(f"{'=' * 80}\n")
 
             # Open output file if specified (append mode for resume capability)
             output_file = None
             if args.output:
-                output_file = open(args.output, 'a')
+                output_file = open(args.output, "a")
 
             processed = 0
             successful = 0
             failed = 0
 
             async for result in process_pdf_batch_from_csv(
-                args.csv,
-                max_concurrent=args.max_concurrent,
-                output_path=args.output
+                args.csv, max_concurrent=args.max_concurrent, output_path=args.output
             ):
                 processed += 1
 
@@ -130,33 +114,29 @@ async def main():
             if output_file:
                 output_file.close()
 
-            print(f"\n{'='*80}")
+            print(f"\n{'=' * 80}")
             print(f"BATCH COMPLETE")
-            print(f"{'='*80}")
+            print(f"{'=' * 80}")
             print(f"Processed: {processed}")
             print(f"Successful: {successful}")
             print(f"Failed: {failed}")
-            print(f"{'='*80}\n")
+            print(f"{'=' * 80}\n")
 
         else:
             # Single PDF processing
-            print(f"\n{'='*80}")
+            print(f"\n{'=' * 80}")
             print(f"SINGLE PDF PROCESSING")
-            print(f"{'='*80}")
+            print(f"{'=' * 80}")
             print(f"Type: {args.legislation_type}")
             print(f"Identifier: {args.identifier}")
             print(f"URL: {args.url}")
-            print(f"{'='*80}\n")
+            print(f"{'=' * 80}\n")
 
-            result = await process_single_pdf(
-                args.url,
-                args.legislation_type,
-                args.identifier
-            )
+            result = await process_single_pdf(args.url, args.legislation_type, args.identifier)
 
-            print(f"\n{'='*80}")
+            print(f"\n{'=' * 80}")
             print(f"RESULTS")
-            print(f"{'='*80}")
+            print(f"{'=' * 80}")
             print(f"Success: {result.success}")
             print(f"Model: {result.provenance.model}")
             print(f"Input Tokens: {result.provenance.input_tokens:,}")
@@ -168,15 +148,19 @@ async def main():
             if result.success:
                 print(f"\nExtracted Data (first 500 chars):")
                 print(f"-" * 80)
-                print(result.extracted_data[:500] + "..." if len(result.extracted_data) > 500 else result.extracted_data)
+                print(
+                    result.extracted_data[:500] + "..."
+                    if len(result.extracted_data) > 500
+                    else result.extracted_data
+                )
             else:
                 print(f"\nError: {result.error}")
 
-            print(f"{'='*80}\n")
+            print(f"{'=' * 80}\n")
 
             # Write to output if specified
             if args.output:
-                with open(args.output, 'w') as f:
+                with open(args.output, "w") as f:
                     json.dump(result.model_dump(), f, default=str, indent=2)
                 print(f"Results written to: {args.output}\n")
 

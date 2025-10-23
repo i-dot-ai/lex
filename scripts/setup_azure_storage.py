@@ -51,7 +51,9 @@ def create_container():
             raise
 
     # Get container URL
-    container_url = f"https://{blob_service_client.account_name}.blob.core.windows.net/{container_name}"
+    container_url = (
+        f"https://{blob_service_client.account_name}.blob.core.windows.net/{container_name}"
+    )
     logger.info(f"   Container URL: {container_url}")
 
     # List existing blobs (if any)

@@ -61,9 +61,7 @@ def cached_search(func):
     async def wrapper(*args, **kwargs):
         # Generate cache key from function and input model
         if args and hasattr(args[0], "model_dump"):
-            cache_key = _request_cache._cache_key(
-                func.__name__, **args[0].model_dump()
-            )
+            cache_key = _request_cache._cache_key(func.__name__, **args[0].model_dump())
         else:
             return await func(*args, **kwargs)
 

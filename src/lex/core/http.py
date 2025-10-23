@@ -98,7 +98,7 @@ class HttpClient:
                 directory=cache_dir,
                 size_limit=cache_size_limit,
                 timeout=60,  # Wait up to 60s for locks instead of failing immediately
-                shards=8,    # Distribute across 8 SQLite files for better concurrency
+                shards=8,  # Distribute across 8 SQLite files for better concurrency
             )
             logger.debug(f"FanoutCache initialized at {cache_dir} with 8 shards")
 

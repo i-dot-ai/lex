@@ -35,8 +35,8 @@ def fetch_pdf_metadata(pdf_url: str) -> Optional[PDFMetadata]:
             return None
 
         file_size = None
-        if 'content-length' in response.headers:
-            file_size = int(response.headers['content-length'])
+        if "content-length" in response.headers:
+            file_size = int(response.headers["content-length"])
 
         # Note: Page count requires downloading/parsing PDF which is expensive
         # We'll leave it as None for now - could be added from blob metadata later
@@ -44,7 +44,7 @@ def fetch_pdf_metadata(pdf_url: str) -> Optional[PDFMetadata]:
         return PDFMetadata(
             file_size_bytes=file_size,
             page_count=None,  # TODO: Could extract from blob metadata if needed
-            pdf_url=pdf_url
+            pdf_url=pdf_url,
         )
 
     except Exception as e:
@@ -123,12 +123,12 @@ def fetch_xml_metadata(legislation_type: str, identifier: str) -> Optional[Legis
 
         logger.info(
             f"Fetched metadata for {legislation_type}/{identifier}: {metadata.title} "
-            f"(PDF: {pdf_metadata.file_size_bytes / 1024:.0f}KB)" if pdf_metadata and pdf_metadata.file_size_bytes else ""
+            f"(PDF: {pdf_metadata.file_size_bytes / 1024:.0f}KB)"
+            if pdf_metadata and pdf_metadata.file_size_bytes
+            else ""
         )
         return metadata
 
     except Exception as e:
-        logger.warning(
-            f"Could not fetch XML metadata for {legislation_type}/{identifier}: {e}"
-        )
+        logger.warning(f"Could not fetch XML metadata for {legislation_type}/{identifier}: {e}")
         return None

@@ -20,7 +20,9 @@ async def search_amendments(input: AmendmentSearch) -> list[Amendment]:
         # Search for amendments made by the legislation
         field = "affecting_url"
 
-    query_filter = Filter(must=[FieldCondition(key=field, match=MatchValue(value=input.legislation_id))])
+    query_filter = Filter(
+        must=[FieldCondition(key=field, match=MatchValue(value=input.legislation_id))]
+    )
 
     # Use scroll to get matching documents
     results, _ = qdrant_client.scroll(
@@ -46,7 +48,9 @@ async def search_amendment_sections(input: AmendmentSectionSearch) -> list[Amend
         # Search for amendments made by the provision
         field = "affecting_provision_url"
 
-    query_filter = Filter(must=[FieldCondition(key=field, match=MatchValue(value=input.provision_id))])
+    query_filter = Filter(
+        must=[FieldCondition(key=field, match=MatchValue(value=input.provision_id))]
+    )
 
     # Use scroll to get matching documents
     results, _ = qdrant_client.scroll(

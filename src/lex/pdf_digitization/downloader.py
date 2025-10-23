@@ -32,10 +32,7 @@ class LegislationPDFDownloader:
     """
 
     def __init__(
-        self,
-        cache_dir: str = "data/pdfs",
-        max_concurrent: int = 10,
-        timeout_seconds: int = 60
+        self, cache_dir: str = "data/pdfs", max_concurrent: int = 10, timeout_seconds: int = 60
     ):
         """
         Initialize PDF downloader.
@@ -78,7 +75,7 @@ class LegislationPDFDownloader:
         pdf_url: str,
         legislation_type: str,
         identifier: str,
-        force: bool = False
+        force: bool = False,
     ) -> Tuple[bool, str, Optional[str]]:
         """
         Download a single PDF file.
@@ -137,7 +134,7 @@ class LegislationPDFDownloader:
         legislation_types: List[str],
         identifiers: List[str],
         force: bool = False,
-        show_progress: bool = True
+        show_progress: bool = True,
     ) -> List[Tuple[bool, str, Optional[str]]]:
         """
         Download multiple PDFs concurrently.
@@ -159,10 +156,7 @@ class LegislationPDFDownloader:
         results = []
 
         async def download_with_semaphore(
-            session: aiohttp.ClientSession,
-            url: str,
-            leg_type: str,
-            ident: str
+            session: aiohttp.ClientSession, url: str, leg_type: str, ident: str
         ) -> Tuple[bool, str, Optional[str]]:
             async with semaphore:
                 return await self.download_pdf(session, url, leg_type, ident, force)
@@ -178,7 +172,9 @@ class LegislationPDFDownloader:
             # Execute with progress bar
             if show_progress:
                 results = []
-                for task in tqdm(asyncio.as_completed(tasks), total=len(tasks), desc="Downloading PDFs"):
+                for task in tqdm(
+                    asyncio.as_completed(tasks), total=len(tasks), desc="Downloading PDFs"
+                ):
                     result = await task
                     results.append(result)
             else:
@@ -196,7 +192,7 @@ async def download_from_csv(
     csv_path: str,
     cache_dir: str = "data/pdfs",
     max_concurrent: int = 10,
-    limit: Optional[int] = None
+    limit: Optional[int] = None,
 ) -> List[Tuple[bool, str, Optional[str]]]:
     """
     Download PDFs from CSV file containing pdf_url, legislation_type, identifier.
@@ -216,14 +212,14 @@ async def download_from_csv(
     legislation_types = []
     identifiers = []
 
-    with open(csv_path, 'r') as f:
+    with open(csv_path, "r") as f:
         reader = csv.DictReader(f)
         for i, row in enumerate(reader):
             if limit and i >= limit:
                 break
-            pdf_urls.append(row['pdf_url'])
-            legislation_types.append(row['legislation_type'])
-            identifiers.append(row['identifier'])
+            pdf_urls.append(row["pdf_url"])
+            legislation_types.append(row["legislation_type"])
+            identifiers.append(row["identifier"])
 
     logger.info(f"Loaded {len(pdf_urls)} PDFs from {csv_path}")
 

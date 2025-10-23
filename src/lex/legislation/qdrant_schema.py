@@ -8,7 +8,11 @@ from qdrant_client.models import (
     VectorParams,
 )
 
-from lex.settings import EMBEDDING_DIMENSIONS, LEGISLATION_COLLECTION, LEGISLATION_SECTION_COLLECTION
+from lex.settings import (
+    EMBEDDING_DIMENSIONS,
+    LEGISLATION_COLLECTION,
+    LEGISLATION_SECTION_COLLECTION,
+)
 
 
 def get_legislation_schema():

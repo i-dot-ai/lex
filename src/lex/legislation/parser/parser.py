@@ -37,7 +37,9 @@ def construct_pdf_url(legislation_id: str) -> str:
         # Look for atom:link with type="application/pdf" and title="Original PDF"
         # <atom:link rel="alternate" href="http://www.legislation.gov.uk/ukpga/Geo5/6-7/38/pdfs/ukpga_19160038_en.pdf"
         #            type="application/pdf" title="Original PDF"/>
-        pdf_link = soup.find("atom:link", attrs={"type": "application/pdf", "title": "Original PDF"})
+        pdf_link = soup.find(
+            "atom:link", attrs={"type": "application/pdf", "title": "Original PDF"}
+        )
 
         if pdf_link and pdf_link.get("href"):
             pdf_url = pdf_link.get("href")
@@ -90,7 +92,9 @@ class LegislationParser:
             )
 
             legislation = Legislation(
-                **legislation_with_content.model_dump(exclude={"sections", "schedules", "commentaries"})
+                **legislation_with_content.model_dump(
+                    exclude={"sections", "schedules", "commentaries"}
+                )
             )
 
             return legislation

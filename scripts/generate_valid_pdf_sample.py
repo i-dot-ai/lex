@@ -44,7 +44,9 @@ def extract_pdf_url_from_xml(legislation_id: str) -> tuple[bool, str, str]:
         soup = BeautifulSoup(response.content, "xml")
 
         # Look for atom:link with type="application/pdf" and title="Original PDF"
-        pdf_link = soup.find("atom:link", attrs={"type": "application/pdf", "title": "Original PDF"})
+        pdf_link = soup.find(
+            "atom:link", attrs={"type": "application/pdf", "title": "Original PDF"}
+        )
 
         if pdf_link and pdf_link.get("href"):
             pdf_url = pdf_link.get("href")
@@ -84,10 +86,10 @@ def main():
 
     # Read all valid entries from CSV
     valid_entries = []
-    with open(input_csv, 'r') as f:
+    with open(input_csv, "r") as f:
         reader = csv.DictReader(f)
         for row in reader:
-            url = row['pdf_url']
+            url = row["pdf_url"]
 
             # Skip error messages and invalid entries
             if "database disk image is malformed" in url:
@@ -110,23 +112,25 @@ def main():
     print("\nExtracting PDF URLs from XML metadata...")
 
     for row in tqdm(sample):
-        legislation_id = extract_legislation_id_from_url(row['pdf_url'])
+        legislation_id = extract_legislation_id_from_url(row["pdf_url"])
         success, pdf_url, error = extract_pdf_url_from_xml(legislation_id)
 
         if success:
-            results.append({
-                'pdf_url': pdf_url,
-                'legislation_type': row['legislation_type'],
-                'identifier': row['identifier']
-            })
+            results.append(
+                {
+                    "pdf_url": pdf_url,
+                    "legislation_type": row["legislation_type"],
+                    "identifier": row["identifier"],
+                }
+            )
         else:
             print(f"  Failed to extract PDF URL for {legislation_id}: {error}")
 
     print(f"\nSuccessfully extracted {len(results)}/{len(sample)} PDF URLs")
 
     # Write to output CSV
-    with open(output_csv, 'w', newline='') as f:
-        writer = csv.DictWriter(f, fieldnames=['pdf_url', 'legislation_type', 'identifier'])
+    with open(output_csv, "w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=["pdf_url", "legislation_type", "identifier"])
         writer.writeheader()
         writer.writerows(results)
 

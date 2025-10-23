@@ -1,3 +1,4 @@
+import logging
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -8,6 +9,13 @@ from backend.amendment.router import router as amendment_router
 from backend.caselaw.router import router as caselaw_router
 from backend.explanatory_note.router import router as explanatory_note_router
 from backend.legislation.router import router as legislation_router
+
+# Configure logging to show all INFO level logs
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
+# Ensure lex.core.embeddings logger shows INFO logs
+logging.getLogger("lex.core.embeddings").setLevel(logging.INFO)
 
 app = FastAPI(
     title="Lex API",
@@ -50,7 +58,7 @@ async def health_check():
             info = qdrant_client.get_collection(coll.name)
             collection_info[coll.name] = {
                 "points": info.points_count,
-                "status": info.status.value if hasattr(info.status, 'value') else str(info.status)
+                "status": info.status.value if hasattr(info.status, "value") else str(info.status),
             }
 
         return JSONResponse(
@@ -59,17 +67,11 @@ async def health_check():
                 "status": "healthy",
                 "database": "qdrant",
                 "collections": len(collections.collections),
-                "collection_details": collection_info
-            }
+                "collection_details": collection_info,
+            },
         )
     except Exception as e:
-        return JSONResponse(
-            status_code=503,
-            content={
-                "status": "unhealthy",
-                "error": str(e)
-            }
-        )
+        return JSONResponse(status_code=503, content={"status": "unhealthy", "error": str(e)})
 
 
 mcp = FastApiMCP(app)

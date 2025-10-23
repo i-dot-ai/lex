@@ -126,9 +126,7 @@ async def legislation_act_search(input: LegislationActSearch) -> dict:
     leg_by_id = {}
     points = qdrant_client.scroll(
         collection_name=LEGISLATION_COLLECTION,
-        scroll_filter=Filter(
-            must=[FieldCondition(key="id", match=MatchAny(any=unique_leg_ids))]
-        ),
+        scroll_filter=Filter(must=[FieldCondition(key="id", match=MatchAny(any=unique_leg_ids))]),
         limit=len(unique_leg_ids),
         with_payload=True,
         with_vectors=False,
@@ -159,7 +157,9 @@ async def legislation_act_search(input: LegislationActSearch) -> dict:
             results.append(leg_dict)
 
     total_time = time.time() - start_time
-    logger.info(f"Search completed in {total_time:.3f}s (sections:{section_search_time:.3f}s, lookup:{lookup_time:.3f}s)")
+    logger.info(
+        f"Search completed in {total_time:.3f}s (sections:{section_search_time:.3f}s, lookup:{lookup_time:.3f}s)"
+    )
 
     return {
         "results": results,
@@ -212,9 +212,7 @@ def get_filters(
         )
 
     if year_from:
-        conditions.append(
-            FieldCondition(key="legislation_year", range=Range(gte=year_from))
-        )
+        conditions.append(FieldCondition(key="legislation_year", range=Range(gte=year_from)))
 
     if year_to:
         conditions.append(FieldCondition(key="legislation_year", range=Range(lte=year_to)))
@@ -253,10 +251,21 @@ async def qdrant_search(
 
     # Determine which payload fields to retrieve
     # When include_text=False, exclude large text field for 60% faster retrieval
-    payload_fields = True if include_text else [
-        "id", "uri", "legislation_id", "title", "provision_type",
-        "legislation_type", "legislation_year", "legislation_number", "extent"
-    ]
+    payload_fields = (
+        True
+        if include_text
+        else [
+            "id",
+            "uri",
+            "legislation_id",
+            "title",
+            "provision_type",
+            "legislation_type",
+            "legislation_year",
+            "legislation_number",
+            "extent",
+        ]
+    )
 
     if is_semantic_search and search_query:
         # Generate hybrid embeddings

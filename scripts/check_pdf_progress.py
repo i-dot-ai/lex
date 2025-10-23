@@ -9,6 +9,7 @@ import json
 import sys
 from pathlib import Path
 
+
 def check_progress(jsonl_path: Path):
     """Check progress statistics from JSONL output file."""
 
@@ -60,23 +61,23 @@ def check_progress(jsonl_path: Path):
                 continue
 
     # Print summary
-    print(f"\n{'='*80}")
+    print(f"\n{'=' * 80}")
     print(f"PDF DIGITIZATION PROGRESS")
-    print(f"{'='*80}")
+    print(f"{'=' * 80}")
     print(f"File: {jsonl_path}")
     print(f"\nTotal Processed: {total:,}")
-    print(f"✅ Successful: {successful:,} ({successful/total*100:.1f}%)")
-    print(f"❌ Failed: {failed:,} ({failed/total*100:.1f}%)")
+    print(f"✅ Successful: {successful:,} ({successful / total * 100:.1f}%)")
+    print(f"❌ Failed: {failed:,} ({failed / total * 100:.1f}%)")
 
     if successful > 0:
-        print(f"\n{'='*80}")
+        print(f"\n{'=' * 80}")
         print(f"TOKEN USAGE (Successful Only)")
-        print(f"{'='*80}")
+        print(f"{'=' * 80}")
         print(f"Input Tokens: {total_input_tokens:,}")
         print(f"Output Tokens: {total_output_tokens:,}")
         print(f"Cached Tokens: {total_cached_tokens:,}")
-        print(f"\nTotal Processing Time: {total_time/3600:.2f} hours")
-        print(f"Average Time per PDF: {total_time/successful:.1f}s")
+        print(f"\nTotal Processing Time: {total_time / 3600:.2f} hours")
+        print(f"Average Time per PDF: {total_time / successful:.1f}s")
 
         # Cost estimate
         input_cost = total_input_tokens / 1_000_000 * 0.15
@@ -84,24 +85,26 @@ def check_progress(jsonl_path: Path):
         cached_cost = total_cached_tokens / 1_000_000 * 0.075
         total_cost = input_cost + output_cost + cached_cost
 
-        print(f"\n{'='*80}")
+        print(f"\n{'=' * 80}")
         print(f"COST ESTIMATE (GPT-5-mini)")
-        print(f"{'='*80}")
+        print(f"{'=' * 80}")
         print(f"Input Cost: ${input_cost:.2f}")
         print(f"Output Cost: ${output_cost:.2f}")
         print(f"Cached Cost: ${cached_cost:.2f}")
         print(f"Total Cost: ${total_cost:.2f}")
 
     if by_type:
-        print(f"\n{'='*80}")
+        print(f"\n{'=' * 80}")
         print(f"BREAKDOWN BY LEGISLATION TYPE")
-        print(f"{'='*80}")
+        print(f"{'=' * 80}")
         for leg_type in sorted(by_type.keys()):
             stats = by_type[leg_type]
             success_rate = stats["successful"] / stats["total"] * 100
-            print(f"{leg_type.upper():8s}: {stats['total']:6,} total, {stats['successful']:6,} success ({success_rate:.1f}%), {stats['failed']:6,} failed")
+            print(
+                f"{leg_type.upper():8s}: {stats['total']:6,} total, {stats['successful']:6,} success ({success_rate:.1f}%), {stats['failed']:6,} failed"
+            )
 
-    print(f"{'='*80}\n")
+    print(f"{'=' * 80}\n")
 
 
 if __name__ == "__main__":

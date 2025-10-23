@@ -26,13 +26,11 @@ class Amendment(BaseModel):
     # AI-generated explanation fields
     ai_explanation: str | None = Field(
         default=None,
-        description="AI-generated plain English explanation of what this amendment does"
+        description="AI-generated plain English explanation of what this amendment does",
     )
     ai_explanation_model: str | None = Field(
-        default=None,
-        description="Model used to generate explanation (e.g., 'gpt-5-mini')"
+        default=None, description="Model used to generate explanation (e.g., 'gpt-5-mini')"
     )
     ai_explanation_timestamp: datetime | None = Field(
-        default=None,
-        description="When the explanation was generated"
+        default=None, description="When the explanation was generated"
     )

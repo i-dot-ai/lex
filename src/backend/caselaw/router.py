@@ -110,7 +110,7 @@ async def proxy_caselaw_data(case_id: str):
                 headers={
                     "Access-Control-Allow-Origin": "*",
                     "Cache-Control": "public, max-age=3600",  # Cache for 1 hour
-                }
+                },
             )
 
     except httpx.HTTPStatusError as e:

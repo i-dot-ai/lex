@@ -113,30 +113,29 @@ async def process_pdf_batch_from_csv(
             nonlocal completed
 
             async with semaphore:
-                pdf_url = row['pdf_url']
-                legislation_type = row['legislation_type']
-                identifier = row['identifier']
+                pdf_url = row["pdf_url"]
+                legislation_type = row["legislation_type"]
+                identifier = row["identifier"]
 
                 try:
                     # Timeout wrapper: max 20 minutes per PDF to prevent hanging
                     async with asyncio.timeout(1200):  # 20 minutes
                         # Step 1: Fetch metadata from legislation.gov.uk XML
-                        logger.info(f"[{completed + 1}/{remaining}] Processing: {legislation_type}/{identifier}")
+                        logger.info(
+                            f"[{completed + 1}/{remaining}] Processing: {legislation_type}/{identifier}"
+                        )
                         metadata = fetch_xml_metadata(legislation_type, identifier)
 
                         # Step 2: Upload to Azure Blob (or reuse existing)
                         async with aiohttp.ClientSession(
                             timeout=aiohttp.ClientTimeout(
-                                total=900,      # 15 min total per request
-                                connect=60,     # 60s to establish connection
-                                sock_read=120   # 120s between socket reads
+                                total=900,  # 15 min total per request
+                                connect=60,  # 60s to establish connection
+                                sock_read=120,  # 120s between socket reads
                             )
                         ) as session:
                             success, sas_url, blob_name, error = await uploader.process_pdf(
-                                session,
-                                pdf_url,
-                                legislation_type,
-                                identifier
+                                session, pdf_url, legislation_type, identifier
                             )
 
                         if not success:
@@ -150,7 +149,7 @@ async def process_pdf_batch_from_csv(
                             legislation_type=legislation_type,
                             identifier=identifier,
                             metadata=metadata,
-                            trace_name=f"batch_{legislation_type}_{identifier.replace('/', '_')}"
+                            trace_name=f"batch_{legislation_type}_{identifier.replace('/', '_')}",
                         )
 
                         completed += 1
@@ -164,12 +163,16 @@ async def process_pdf_batch_from_csv(
 
                 except asyncio.TimeoutError:
                     completed += 1
-                    logger.error(f"Timeout processing {legislation_type}/{identifier} (exceeded 20 minutes)")
+                    logger.error(
+                        f"Timeout processing {legislation_type}/{identifier} (exceeded 20 minutes)"
+                    )
                     return None
 
                 except Exception as e:
                     completed += 1
-                    logger.error(f"Error processing {legislation_type}/{identifier}: {e}", exc_info=True)
+                    logger.error(
+                        f"Error processing {legislation_type}/{identifier}: {e}", exc_info=True
+                    )
                     return None
 
         # Process all PDFs concurrently
@@ -186,9 +189,7 @@ async def process_pdf_batch_from_csv(
 
 
 async def process_single_pdf(
-    pdf_url: str,
-    legislation_type: str,
-    identifier: str
+    pdf_url: str, legislation_type: str, identifier: str
 ) -> ExtractionResult:
     """
     Process a single PDF: fetch metadata, upload to blob, OCR.
@@ -210,10 +211,7 @@ async def process_single_pdf(
     uploader = LegislationBlobUploader()
     async with aiohttp.ClientSession() as session:
         success, sas_url, blob_name, error = await uploader.process_pdf(
-            session,
-            pdf_url,
-            legislation_type,
-            identifier
+            session, pdf_url, legislation_type, identifier
         )
 
     if not success:
@@ -227,7 +225,7 @@ async def process_single_pdf(
             legislation_type=legislation_type,
             identifier=identifier,
             metadata=metadata,
-            trace_name=f"single_{legislation_type}_{identifier.replace('/', '_')}"
+            trace_name=f"single_{legislation_type}_{identifier.replace('/', '_')}",
         )
         return result
     finally:

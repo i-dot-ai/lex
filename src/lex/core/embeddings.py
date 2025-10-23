@@ -32,7 +32,7 @@ def get_openai_client():
             api_key=os.environ.get("AZURE_OPENAI_API_KEY"),
             api_version="2024-02-01",
             azure_endpoint=os.environ.get("AZURE_OPENAI_ENDPOINT"),
-            max_retries=0  # We handle retries manually
+            max_retries=0,  # We handle retries manually
         )
         logger.info("Azure OpenAI client initialized")
     return _openai_client
@@ -71,9 +71,7 @@ def generate_dense_embedding_with_retry(text: str, max_retries: int = MAX_RETRIE
     for attempt in range(max_retries):
         try:
             response = client.embeddings.create(
-                model=EMBEDDING_DEPLOYMENT,
-                input=text,
-                dimensions=EMBEDDING_DIMENSIONS
+                model=EMBEDDING_DEPLOYMENT, input=text, dimensions=EMBEDDING_DIMENSIONS
             )
             return response.data[0].embedding
 
@@ -83,8 +81,10 @@ def generate_dense_embedding_with_retry(text: str, max_retries: int = MAX_RETRIE
                 raise
 
             # Exponential backoff with jitter
-            backoff = BASE_BACKOFF * (2 ** attempt)
-            logger.warning(f"Rate limited, retrying in {backoff:.1f}s (attempt {attempt + 1}/{max_retries})")
+            backoff = BASE_BACKOFF * (2**attempt)
+            logger.warning(
+                f"Rate limited, retrying in {backoff:.1f}s (attempt {attempt + 1}/{max_retries})"
+            )
             time.sleep(backoff)
 
         except Exception as e:
@@ -108,9 +108,7 @@ def generate_dense_embedding(text: str) -> List[float]:
 
 
 def generate_dense_embeddings_batch(
-    texts: List[str],
-    max_workers: int = 50,
-    progress_callback=None
+    texts: List[str], max_workers: int = 50, progress_callback=None
 ) -> List[List[float]]:
     """Generate dense embeddings for multiple texts in parallel with rate limit handling.
 
@@ -178,7 +176,7 @@ def generate_sparse_embedding(text: str) -> SparseVector:
         # Convert to SparseVector format Qdrant expects
         return SparseVector(
             indices=[int(idx) for idx in embedding.indices],
-            values=[float(val) for val in embedding.values]
+            values=[float(val) for val in embedding.values],
         )
     except Exception as e:
         logger.error(f"Failed to generate sparse embedding: {e}")
@@ -204,8 +202,7 @@ def generate_sparse_embeddings_batch(texts: List[str]) -> List[SparseVector]:
 
         return [
             SparseVector(
-                indices=[int(idx) for idx in emb.indices],
-                values=[float(val) for val in emb.values]
+                indices=[int(idx) for idx in emb.indices], values=[float(val) for val in emb.values]
             )
             for emb in embeddings
         ]
@@ -226,23 +223,49 @@ def generate_hybrid_embeddings(text: str) -> Tuple[List[float], SparseVector]:
     Example:
         ([0.1, 0.2, ...], SparseVector(indices=[12, 45], values=[0.8, 0.6]))
     """
+    start_time = time.time()
     from lex.core.embedding_cache import get_cached_embeddings, cache_embeddings
 
+    # Check cache
+    cache_start = time.time()
     cached = get_cached_embeddings(text)
+    cache_time = time.time() - cache_start
+
     if cached is not None:
+        total_time = time.time() - start_time
+        logger.info(f"✓ Cache HIT - Total: {total_time:.3f}s (cache lookup: {cache_time:.3f}s)")
         return cached
 
+    logger.info(f"✗ Cache MISS - Generating embeddings (cache lookup: {cache_time:.3f}s)")
+
+    # Generate dense embedding
+    dense_start = time.time()
     dense = generate_dense_embedding(text)
+    dense_time = time.time() - dense_start
+    logger.info(f"  Dense embedding generated in {dense_time:.3f}s")
+
+    # Generate sparse embedding
+    sparse_start = time.time()
     sparse = generate_sparse_embedding(text)
+    sparse_time = time.time() - sparse_start
+    logger.info(f"  Sparse embedding generated in {sparse_time:.3f}s")
+
+    # Cache for future use
+    cache_write_start = time.time()
     cache_embeddings(text, dense, sparse)
+    cache_write_time = time.time() - cache_write_start
+    logger.info(f"  Cached embeddings in {cache_write_time:.3f}s")
+
+    total_time = time.time() - start_time
+    logger.info(
+        f"  Total embedding time: {total_time:.3f}s (dense: {dense_time:.3f}s, sparse: {sparse_time:.3f}s, cache: {cache_write_time:.3f}s)"
+    )
 
     return dense, sparse
 
 
 def generate_hybrid_embeddings_batch(
-    texts: List[str],
-    max_workers: int = 50,
-    progress_callback=None
+    texts: List[str], max_workers: int = 50, progress_callback=None
 ) -> List[Tuple[List[float], SparseVector]]:
     """
     Generate hybrid embeddings for multiple texts in parallel.
@@ -259,9 +282,7 @@ def generate_hybrid_embeddings_batch(
         return []
 
     dense_embeddings = generate_dense_embeddings_batch(
-        texts,
-        max_workers=max_workers,
-        progress_callback=progress_callback
+        texts, max_workers=max_workers, progress_callback=progress_callback
     )
     sparse_embeddings = generate_sparse_embeddings_batch(texts)
 

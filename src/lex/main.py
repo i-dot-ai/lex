@@ -87,11 +87,13 @@ collection_mapping = {
 }
 
 
-def process_single_checkpoint(year: int, court_type: str, limit: int = None, batch_size: int = 50) -> Tuple[int, int]:
+def process_single_checkpoint(
+    year: int, court_type: str, limit: int = None, batch_size: int = 50
+) -> Tuple[int, int]:
     """
     Process a single year/court combination for caselaw unified pipeline.
     This function is designed to be run in parallel workers.
-    
+
     Returns:
         Tuple of (caselaw_count, section_count)
     """
@@ -99,14 +101,14 @@ def process_single_checkpoint(year: int, court_type: str, limit: int = None, bat
     from lex.caselaw.models import Court
     from lex.caselaw.pipeline import pipe_caselaw_unified
     from lex.core import upload_documents
-    
+
     # Set up logging for this process
     process_logger = logging.getLogger(f"worker_{year}_{court_type}")
     process_logger.info(f"Starting processing for {court_type} {year}")
-    
+
     # Convert string back to Court enum
     court = Court(court_type)
-    
+
     # Create args-like object for the pipeline
     class Args:
         def __init__(self):
@@ -115,16 +117,16 @@ def process_single_checkpoint(year: int, court_type: str, limit: int = None, bat
             self.limit = limit
             self.clear_checkpoint = False
             self.batch_size = batch_size
-    
+
     args = Args()
     documents = pipe_caselaw_unified(**vars(args))
-    
+
     # Process documents
     caselaw_batch = []
     section_batch = []
     caselaw_count = 0
     section_count = 0
-    
+
     for index_type, doc in documents:
         if index_type == "caselaw":
             caselaw_batch.append(doc)
@@ -137,16 +139,20 @@ def process_single_checkpoint(year: int, court_type: str, limit: int = None, bat
             section_batch.append(doc)
             section_count += 1
             if len(section_batch) >= batch_size:
-                upload_documents(collection_name=CASELAW_SECTION_COLLECTION, documents=section_batch)
+                upload_documents(
+                    collection_name=CASELAW_SECTION_COLLECTION, documents=section_batch
+                )
                 section_batch = []
-    
+
     # Upload remaining batches
     if caselaw_batch:
         upload_documents(collection_name=CASELAW_INDEX, documents=caselaw_batch)
     if section_batch:
         upload_documents(collection_name=CASELAW_SECTION_INDEX, documents=section_batch)
-    
-    process_logger.info(f"Completed {court_type} {year}: {caselaw_count} cases, {section_count} sections")
+
+    process_logger.info(
+        f"Completed {court_type} {year}: {caselaw_count} cases, {section_count} sections"
+    )
     return caselaw_count, section_count
 
 
@@ -165,33 +171,35 @@ def process_unified_caselaw(args):
         schema=get_caselaw_section_schema(),
         non_interactive=args.non_interactive,
     )
-    
+
     # Check if parallel processing is requested
-    parallel_workers = getattr(args, 'parallel_workers', 1)
-    
+    parallel_workers = getattr(args, "parallel_workers", 1)
+
     if parallel_workers > 1:
         logger.info(f"Starting parallel processing with {parallel_workers} workers")
-        
+
         # Generate all year/court combinations
         tasks = []
         for year in args.years:
             for court in args.types:
                 tasks.append((year, court.value))
-        
+
         logger.info(f"Processing {len(tasks)} year/court combinations")
-        
+
         # Process in parallel
         total_caselaw = 0
         total_sections = 0
-        
+
         executor = ProcessPoolExecutor(max_workers=parallel_workers)
         try:
             # Submit all tasks
             futures = {}
             for year, court_type in tasks:
-                future = executor.submit(process_single_checkpoint, year, court_type, args.limit, args.batch_size)
+                future = executor.submit(
+                    process_single_checkpoint, year, court_type, args.limit, args.batch_size
+                )
                 futures[future] = (year, court_type)
-            
+
             # Process completed tasks
             for future in as_completed(futures):
                 year, court_type = futures[future]
@@ -199,7 +207,9 @@ def process_unified_caselaw(args):
                     caselaw_count, section_count = future.result()
                     total_caselaw += caselaw_count
                     total_sections += section_count
-                    logger.info(f"Completed {court_type} {year}: {caselaw_count} cases, {section_count} sections")
+                    logger.info(
+                        f"Completed {court_type} {year}: {caselaw_count} cases, {section_count} sections"
+                    )
                 except Exception as e:
                     logger.error(f"Failed processing {court_type} {year}: {str(e)}")
         except KeyboardInterrupt:
@@ -208,54 +218,67 @@ def process_unified_caselaw(args):
             raise
         finally:
             executor.shutdown(wait=True)
-        
-        logger.info(f"Parallel processing complete: {total_caselaw} cases, {total_sections} sections")
-        
+
+        logger.info(
+            f"Parallel processing complete: {total_caselaw} cases, {total_sections} sections"
+        )
+
     else:
         # Sequential processing (original implementation)
         documents_iterator = pipe_caselaw_unified
         documents = documents_iterator(**vars(args))
-        
+
         batch_size = args.batch_size if hasattr(args, "batch_size") else 50
         logger.info(f"Processing unified caselaw with batch size: {batch_size}")
-        
+
         # Separate batches for each index type
         caselaw_batch = []
         section_batch = []
         caselaw_count = 0
         section_count = 0
-        
+
         for index_type, doc in documents:
             if index_type == "caselaw":
                 caselaw_batch.append(doc)
                 caselaw_count += 1
                 if len(caselaw_batch) >= batch_size:
                     upload_documents(collection_name=CASELAW_COLLECTION, documents=caselaw_batch)
-                    logger.info(f"Uploaded batch of {len(caselaw_batch)} caselaw documents (total: {caselaw_count})")
+                    logger.info(
+                        f"Uploaded batch of {len(caselaw_batch)} caselaw documents (total: {caselaw_count})"
+                    )
                     caselaw_batch = []
 
             elif index_type == "caselaw-section":
                 section_batch.append(doc)
                 section_count += 1
                 if len(section_batch) >= batch_size:
-                    upload_documents(collection_name=CASELAW_SECTION_COLLECTION, documents=section_batch)
-                    logger.info(f"Uploaded batch of {len(section_batch)} section documents (total: {section_count})")
+                    upload_documents(
+                        collection_name=CASELAW_SECTION_COLLECTION, documents=section_batch
+                    )
+                    logger.info(
+                        f"Uploaded batch of {len(section_batch)} section documents (total: {section_count})"
+                    )
                     section_batch = []
-            
+
             # Garbage collection after processing batches
             if (caselaw_count + section_count) % (batch_size * 2) == 0:
                 import gc
+
                 gc.collect()
-        
+
         # Upload any remaining documents
         if caselaw_batch:
             upload_documents(collection_name=CASELAW_INDEX, documents=caselaw_batch)
-            logger.info(f"Uploaded final caselaw batch of {len(caselaw_batch)} (total: {caselaw_count})")
+            logger.info(
+                f"Uploaded final caselaw batch of {len(caselaw_batch)} (total: {caselaw_count})"
+            )
 
         if section_batch:
             upload_documents(collection_name=CASELAW_SECTION_INDEX, documents=section_batch)
-            logger.info(f"Uploaded final section batch of {len(section_batch)} (total: {section_count})")
-        
+            logger.info(
+                f"Uploaded final section batch of {len(section_batch)} (total: {section_count})"
+            )
+
         logger.info(f"Unified pipeline complete: {caselaw_count} cases, {section_count} sections")
 
 
@@ -296,7 +319,14 @@ def process_documents(args):
         embedding_fields = ["title", "description", "type", "year"]
     elif collection == AMENDMENT_COLLECTION:
         # Amendment metadata collection: embed from legislation names + type of effect + AI explanation
-        embedding_fields = ["changed_legislation", "affecting_legislation", "type_of_effect", "changed_provision", "affecting_provision", "ai_explanation"]
+        embedding_fields = [
+            "changed_legislation",
+            "affecting_legislation",
+            "type_of_effect",
+            "changed_provision",
+            "affecting_provision",
+            "ai_explanation",
+        ]
 
     batch = []
     doc_count = 0
@@ -305,7 +335,9 @@ def process_documents(args):
         batch.append(doc)
         doc_count += 1
         if len(batch) >= batch_size:
-            upload_documents(collection_name=collection, documents=batch, embedding_fields=embedding_fields)
+            upload_documents(
+                collection_name=collection, documents=batch, embedding_fields=embedding_fields
+            )
             logger.info(f"Uploaded batch of {len(batch)} documents (total: {doc_count})")
             batch = []  # Clear batch after upload
 
@@ -316,7 +348,9 @@ def process_documents(args):
 
     # Upload any remaining documents
     if batch:
-        upload_documents(collection_name=collection, documents=batch, embedding_fields=embedding_fields)
+        upload_documents(
+            collection_name=collection, documents=batch, embedding_fields=embedding_fields
+        )
         logger.info(f"Uploaded final batch of {len(batch)} documents (total: {doc_count})")
 
 
@@ -350,7 +384,7 @@ def main():
         default=50,
         help="Number of documents to process in each batch",
     )
-    
+
     # Parallel processing for unified pipeline
     parser.add_argument(
         "--parallel-workers",

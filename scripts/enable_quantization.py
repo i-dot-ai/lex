@@ -17,9 +17,7 @@ import time
 from qdrant_client import QdrantClient
 from qdrant_client.models import ScalarQuantization, ScalarQuantizationConfig, ScalarType
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 QDRANT_URL = "http://localhost:6333"
@@ -46,12 +44,8 @@ def enable_quantization(client: QdrantClient, collection_name: str):
         )
 
         logger.info(f"✓ Quantization enabled for {collection_name}")
-        logger.info(
-            f"  Background optimization started - this may take 10-30 minutes"
-        )
-        logger.info(
-            f"  Check status: curl http://localhost:6333/collections/{collection_name}"
-        )
+        logger.info(f"  Background optimization started - this may take 10-30 minutes")
+        logger.info(f"  Check status: curl http://localhost:6333/collections/{collection_name}")
 
     except Exception as e:
         logger.error(f"✗ Failed to enable quantization for {collection_name}: {e}")
@@ -73,9 +67,7 @@ def check_collection_status(client: QdrantClient, collection_name: str):
             logger.info(f"  ✓ {collection_name} is fully optimized")
             return True
         else:
-            logger.info(
-                f"  ⏳ {collection_name} is still optimizing (status: {status})"
-            )
+            logger.info(f"  ⏳ {collection_name} is still optimizing (status: {status})")
             return False
 
     except Exception as e:

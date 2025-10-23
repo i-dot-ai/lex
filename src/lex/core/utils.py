@@ -67,8 +67,6 @@ def create_collection_if_none(
         logger.info(f"Collection {collection_name} already exists. Continuing")
 
 
-
-
 def load_xml_file_to_soup(filepath: str) -> BeautifulSoup:
     """Load an XML file and return a BeautifulSoup object."""
     with open(filepath, "r") as f:

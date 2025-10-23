@@ -19,7 +19,7 @@ from tenacity import (
     retry_if_exception_type,
     stop_after_attempt,
     wait_exponential,
-    before_sleep_log
+    before_sleep_log,
 )
 
 from lex.pdf_digitization.models import (
@@ -62,7 +62,7 @@ class LegislationPDFProcessor:
         model: str = "gpt-5-mini",
         langfuse_public_key: Optional[str] = None,
         langfuse_secret_key: Optional[str] = None,
-        langfuse_host: Optional[str] = None
+        langfuse_host: Optional[str] = None,
     ):
         """
         Initialize PDF processor with Azure OpenAI and Langfuse.
@@ -92,19 +92,19 @@ class LegislationPDFProcessor:
             api_key=self.api_key,
             api_version="2025-03-01-preview",  # Responses API requires 2025-03-01-preview or later
             max_retries=0,  # We handle retries manually
-            timeout=API_TIMEOUT_SECONDS  # 15 minutes for large PDFs
+            timeout=API_TIMEOUT_SECONDS,  # 15 minutes for large PDFs
         )
 
         # Langfuse setup
         langfuse_public = langfuse_public_key or os.getenv("LANGFUSE_PUBLIC_KEY")
         langfuse_secret = langfuse_secret_key or os.getenv("LANGFUSE_SECRET_KEY")
-        langfuse_host_url = langfuse_host or os.getenv("LANGFUSE_HOST", "https://cloud.langfuse.com")
+        langfuse_host_url = langfuse_host or os.getenv(
+            "LANGFUSE_HOST", "https://cloud.langfuse.com"
+        )
 
         if langfuse_public and langfuse_secret:
             self.langfuse = Langfuse(
-                public_key=langfuse_public,
-                secret_key=langfuse_secret,
-                host=langfuse_host_url
+                public_key=langfuse_public, secret_key=langfuse_secret, host=langfuse_host_url
             )
             logger.info("Langfuse tracing enabled")
         else:
@@ -172,13 +172,10 @@ Handle document quality issues:
         retry=retry_if_exception_type(RateLimitError),
         stop=stop_after_attempt(MAX_RETRIES),
         wait=wait_exponential(multiplier=BASE_BACKOFF, min=BASE_BACKOFF, max=60),
-        before_sleep=before_sleep_log(logger, logging.WARNING)
+        before_sleep=before_sleep_log(logger, logging.WARNING),
     )
     async def _make_responses_request(
-        self,
-        pdf_url: str,
-        prompt: Optional[str] = None,
-        previous_response_id: Optional[str] = None
+        self, pdf_url: str, prompt: Optional[str] = None, previous_response_id: Optional[str] = None
     ) -> Dict:
         """
         Make a request to Azure OpenAI Responses API with retry logic.
@@ -193,21 +190,12 @@ Handle document quality issues:
         """
         # Build request content using direct URL
         content = [
-            {
-                "type": "input_text",
-                "text": prompt or self.extraction_prompt
-            },
-            {
-                "type": "input_file",
-                "file_url": pdf_url
-            }
+            {"type": "input_text", "text": prompt or self.extraction_prompt},
+            {"type": "input_file", "file_url": pdf_url},
         ]
 
         # Build request parameters
-        request_params = {
-            "model": self.model,
-            "input": [{"role": "user", "content": content}]
-        }
+        request_params = {"model": self.model, "input": [{"role": "user", "content": content}]}
 
         # Add previous_response_id for context continuation
         if previous_response_id:
@@ -227,24 +215,26 @@ Handle document quality issues:
             # Find the message item (skip reasoning items)
             message_item = None
             for item in response.output:
-                item_type = getattr(item, 'type', None)
-                if item_type == 'message':
+                item_type = getattr(item, "type", None)
+                if item_type == "message":
                     message_item = item
                     break
 
             if message_item:
                 # Extract text from message content
-                if hasattr(message_item, 'content') and message_item.content:
+                if hasattr(message_item, "content") and message_item.content:
                     for content_part in message_item.content:
-                        if hasattr(content_part, 'type') and content_part.type == 'output_text':
-                            if hasattr(content_part, 'text') and content_part.text:
+                        if hasattr(content_part, "type") and content_part.type == "output_text":
+                            if hasattr(content_part, "text") and content_part.text:
                                 output_text += content_part.text
 
                     logger.info(f"Extracted {len(output_text)} chars from message content")
                 else:
                     logger.warning(f"Message item has no content")
             else:
-                logger.warning(f"No message item found in response.output (only found: {[getattr(item, 'type', 'unknown') for item in response.output]})")
+                logger.warning(
+                    f"No message item found in response.output (only found: {[getattr(item, 'type', 'unknown') for item in response.output]})"
+                )
 
         return {
             "id": response.id,
@@ -252,8 +242,8 @@ Handle document quality issues:
             "usage": {
                 "input_tokens": response.usage.input_tokens,
                 "output_tokens": response.usage.output_tokens,
-                "cached_tokens": getattr(response.usage, "cached_tokens", 0)
-            }
+                "cached_tokens": getattr(response.usage, "cached_tokens", 0),
+            },
         }
 
     @observe(as_type="generation", capture_input=True, capture_output=True)
@@ -263,7 +253,7 @@ Handle document quality issues:
         legislation_type: Optional[str] = None,
         identifier: Optional[str] = None,
         metadata: Optional[LegislationMetadata] = None,
-        trace_name: Optional[str] = None
+        trace_name: Optional[str] = None,
     ) -> ExtractionResult:
         """
         Process a PDF using Azure OpenAI Responses API.
@@ -306,21 +296,19 @@ Handle document quality issues:
             if self.langfuse:
                 # Update current trace with metadata
                 self.langfuse.update_current_trace(
-                    name=trace_name or f"pdf_processing_{legislation_type or 'unknown'}_{identifier or 'unknown'}",
+                    name=trace_name
+                    or f"pdf_processing_{legislation_type or 'unknown'}_{identifier or 'unknown'}",
                     metadata={
                         "pdf_url": pdf_url,
                         "legislation_type": legislation_type,
                         "identifier": identifier,
-                        "model": self.model
-                    }
+                        "model": self.model,
+                    },
                 )
 
                 # Update current span (generation) with input
                 self.langfuse.update_current_span(
-                    input={
-                        "prompt_length": len(self.extraction_prompt),
-                        "pdf_url": pdf_url
-                    }
+                    input={"prompt_length": len(self.extraction_prompt), "pdf_url": pdf_url}
                 )
 
             # Make API request with enhanced prompt
@@ -353,15 +341,17 @@ Handle document quality issues:
                 self.langfuse.update_current_span(
                     output={
                         "extracted_json_length": len(response["output"]),
-                        "extracted_json_preview": response["output"][:500] + "..." if len(response["output"]) > 500 else response["output"]
+                        "extracted_json_preview": response["output"][:500] + "..."
+                        if len(response["output"]) > 500
+                        else response["output"],
                     },
                     metadata={
                         "response_id": response["id"],
                         "input_tokens": response["usage"]["input_tokens"],
                         "output_tokens": response["usage"]["output_tokens"],
                         "cached_tokens": response["usage"]["cached_tokens"],
-                        "processing_time_seconds": round(processing_time, 2)
-                    }
+                        "processing_time_seconds": round(processing_time, 2),
+                    },
                 )
 
             logger.info(
@@ -403,7 +393,7 @@ Handle document quality issues:
         legislation_types: Optional[List[str]] = None,
         identifiers: Optional[List[str]] = None,
         max_concurrent: int = 10,
-        progress_callback: Optional[callable] = None
+        progress_callback: Optional[callable] = None,
     ) -> List[ExtractionResult]:
         """
         Process multiple PDFs concurrently.
@@ -428,7 +418,7 @@ Handle document quality issues:
                 result = await self.process_pdf(
                     pdf_url=url,
                     legislation_type=legislation_types[idx] if legislation_types else None,
-                    identifier=identifiers[idx] if identifiers else None
+                    identifier=identifiers[idx] if identifiers else None,
                 )
                 completed += 1
                 if progress_callback:
@@ -464,7 +454,9 @@ Handle document quality issues:
 
 
 # Convenience async functions for single-use
-async def process_single_pdf_url(pdf_url: str, legislation_type: Optional[str] = None, identifier: Optional[str] = None) -> ExtractionResult:
+async def process_single_pdf_url(
+    pdf_url: str, legislation_type: Optional[str] = None, identifier: Optional[str] = None
+) -> ExtractionResult:
     """
     Process a single PDF from URL (convenience function).
 
@@ -487,7 +479,7 @@ async def process_pdf_batch_from_urls(
     pdf_urls: List[str],
     legislation_types: Optional[List[str]] = None,
     identifiers: Optional[List[str]] = None,
-    max_concurrent: int = 10
+    max_concurrent: int = 10,
 ) -> List[ExtractionResult]:
     """
     Process multiple PDFs from URLs (convenience function).
@@ -503,6 +495,8 @@ async def process_pdf_batch_from_urls(
     """
     processor = LegislationPDFProcessor()
     try:
-        return await processor.process_pdf_batch(pdf_urls, legislation_types, identifiers, max_concurrent)
+        return await processor.process_pdf_batch(
+            pdf_urls, legislation_types, identifiers, max_concurrent
+        )
     finally:
         await processor.close()

@@ -21,7 +21,9 @@ def pipe_amendments(years: list[int], limit: int, **kwargs) -> Iterator[Amendmen
     generate_explanations = kwargs.get("generate_explanations", False)
     explanation_batch_size = kwargs.get("explanation_batch_size", 10)
 
-    logger.info(f"Starting amendment pipeline: run_id={run_id}, generate_explanations={generate_explanations}")
+    logger.info(
+        f"Starting amendment pipeline: run_id={run_id}, generate_explanations={generate_explanations}"
+    )
 
     # Process documents in batches if generating explanations
     if generate_explanations:

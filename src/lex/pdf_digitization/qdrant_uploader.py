@@ -348,10 +348,15 @@ def save_json_for_document(
     json_path.parent.mkdir(parents=True, exist_ok=True)
 
     with open(json_path, "w") as f:
-        json.dump({
-            "legislation": legislation.model_dump(mode="json"),
-            "sections": [s.model_dump(mode="json") for s in sections],
-        }, f, indent=2, default=str)
+        json.dump(
+            {
+                "legislation": legislation.model_dump(mode="json"),
+                "sections": [s.model_dump(mode="json") for s in sections],
+            },
+            f,
+            indent=2,
+            default=str,
+        )
 
     return json_path
 
@@ -413,7 +418,9 @@ def process_jsonl_file(
             if json_backup_dir:
                 pdf_url = pdf_result.get("pdf_source", "")
                 if pdf_url:
-                    json_path = save_json_for_document(legislation, sections, pdf_url, json_backup_dir)
+                    json_path = save_json_for_document(
+                        legislation, sections, pdf_url, json_backup_dir
+                    )
                     logger.info(f"💾 Saved JSON backup: {json_path}")
 
             logger.info(
