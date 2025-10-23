@@ -66,33 +66,30 @@ async def legislation_act_search(
 
 
 def get_legislation_types(
-    category_selection: list[LegislationCategory] | None = None,
-    type_selection: list[LegislationType] | None = None,
+    category_selection: LegislationCategory | None = None,
+    type_selection: LegislationType | None = None,
 ) -> list[str] | None:
     """Returns a list of legislation types based on the type and subtype selection.
 
     Args:
-        type_selection (list[str]): The selected legislation types.
-        subtype_selection (list[str]): The selected legislation subtypes.
+        type_selection: The selected legislation type.
+        category_selection: The selected legislation category.
 
     Returns:
         list[str]: The resulting list of legislation subtypes that should be used in the Elasticsearch query. If no selection is made, None is returned.
     """
 
-    if type_selection and len(type_selection) > 0:
-        return [t.value for t in type_selection]
-    elif category_selection and len(category_selection) > 0:
-        res = []
-        for category in category_selection:
-            res.extend(LEGISLATION_TYPE_MAPPING[category.value])
-        return res
+    if type_selection:
+        return [type_selection.value]
+    elif category_selection:
+        return LEGISLATION_TYPE_MAPPING[category_selection.value]
     else:
         return None
 
 
 def get_filters(
-    category_selection: list[LegislationCategory],
-    type_selection: list[LegislationType],
+    category_selection: LegislationCategory | None,
+    type_selection: LegislationType | None,
     year_from: int,
     year_to: int,
     legislation_id: str = None,
@@ -294,7 +291,7 @@ async def elastic_search_titles(
     query: str,
     year_from: int | None = None,
     year_to: int | None = None,
-    type_filter: list[str] | None = None,
+    type_filter: LegislationType | None = None,
     limit: int = 10,
 ) -> list[Legislation]:
     match_field = "title"
@@ -317,7 +314,7 @@ async def elastic_search_titles(
         body["query"]["bool"]["must"].append({"match_all": {}})
 
     if type_filter:
-        body["query"]["bool"]["filter"].append({"terms": {"type": type_filter}})
+        body["query"]["bool"]["filter"].append({"term": {"type": type_filter.value}})
 
     if year_from:
         body["query"]["bool"]["filter"].append({"range": {"year": {"gte": year_from}}})

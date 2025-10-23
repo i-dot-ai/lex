@@ -7,13 +7,12 @@ import requests
 from bs4 import BeautifulSoup
 
 from lex.core.http import HttpClient
+from lex.core.parser import LexParser
 from lex.explanatory_note.models import (
     ExplanatoryNote,
     ExplanatoryNoteSectionType,
     ExplanatoryNoteType,
 )
-from lex.legislation.models import LegislationType
-from lex.legislation.scraper import LegislationScraper
 
 http_client = HttpClient()
 
@@ -232,8 +231,10 @@ class NewNoteProcessor(NoteProcessor):
         return [ExplanatoryNote(**section) for section in sections]
 
 
-class ExplanatoryNoteScraperAndParser:
-    """Scraper for explanatory notes."""
+class ExplanatoryNoteParser(LexParser):
+    """Parser for explanatory notes. Note that this is strictly not just parsing the provided soup, but will also scrape several other pages to get the full explanatory note.
+
+    This means that on each legislation page, we may perform an unecessary request of the .xml page. However this is deemed acceptable to standardise the APIs across all document types."""
 
     def __init__(
         self,
@@ -241,18 +242,22 @@ class ExplanatoryNoteScraperAndParser:
     ):
         self.base_url = base_url
 
-    def scrape_and_parse_content(
-        self, years: list[int], types: list[LegislationType], limit: Optional[int] = None
-    ) -> Iterator[tuple[str, ExplanatoryNote]]:
-        legislation_scraper = LegislationScraper()
+    def parse_content(self, soup: BeautifulSoup) -> Iterator[ExplanatoryNote]:
+        url = self._extract_legislation_id(soup)
 
-        self.urls = legislation_scraper.load_urls(years, types, limit, include_xml=False)
-
-        for url in self.urls:
+        explanatory_notes = self._parse_explanatory_note_from_legislation_soup(soup)
+        if explanatory_notes:
+            yield from explanatory_notes
+            return
+        else:
             try:
                 yield from self._get_explanatory_note_sections(url)
             except Exception as e:
                 logger.error(f"Error scraping and parsing explanatory note: {e}", exc_info=True)
+
+    def _extract_legislation_id(self, soup: BeautifulSoup) -> str:
+        """Extract the legislation id from the soup."""
+        return soup.find("Legislation").get("DocumentURI").replace("http:", "https:")
 
     def _get_explanatory_note_contents_soup(self, legislation_id: str) -> Optional[BeautifulSoup]:
         """Get the BeautifulSoup object for the explanatory notes contents page."""
@@ -343,5 +348,53 @@ class ExplanatoryNoteScraperAndParser:
                 "section_count": len(sections),
             },
         )
-        ids = [section.id for section in sections]
-        return list(zip(ids, sections))
+        return sections
+
+    def _parse_explanatory_note_from_legislation_soup(
+        self, soup: BeautifulSoup
+    ) -> list[ExplanatoryNote]:
+        """Parse any explanatory notes directly from the legislation soup. This is most typical of Statutory Instruments."""
+
+        legislation_id = (
+            soup.find("Legislation")
+            .get("DocumentURI")
+            .replace("http:", "https:")
+            .replace("https://www.legislation.gov.uk/", "http://www.legislation.gov.uk/id/")
+            .replace("/made", "")
+        )
+        explanatory_note_sections = []
+
+        enacting_text = soup.find("Legislation").find("SecondaryPreamble")
+        if enacting_text:
+            explanatory_note_sections.append(
+                ExplanatoryNote(
+                    id=legislation_id + f"_{len(explanatory_note_sections)}",
+                    legislation_id=legislation_id,
+                    note_type=ExplanatoryNoteType.ENACTING_TEXT,
+                    route=["Enacting Text"],
+                    section_type=ExplanatoryNoteSectionType.SECTION,
+                    section_number=0,
+                    order=0,
+                    text="Legislation Enacting Text: \n\n" + enacting_text.text,
+                )
+            )
+
+        explanatory_note_section = soup.find("Legislation").find("ExplanatoryNotes")
+        if explanatory_note_section:
+            explanatory_note_sections.append(
+                ExplanatoryNote(
+                    id=legislation_id + f"_{len(explanatory_note_sections)}",
+                    legislation_id=legislation_id,
+                    note_type=ExplanatoryNoteType.OVERVIEW,
+                    route=[],
+                    section_type=ExplanatoryNoteSectionType.SECTION,
+                    section_number=0,
+                    order=0,
+                    text=explanatory_note_section.text,
+                )
+            )
+
+        if len(explanatory_note_sections) == 0:
+            return None
+
+        return explanatory_note_sections

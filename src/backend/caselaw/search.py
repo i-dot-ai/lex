@@ -11,8 +11,8 @@ from lex.settings import CASELAW_INDEX, CASELAW_SECTION_INDEX
 
 
 def get_filters(
-    court_filter: list[Court] = None,
-    division_filter: list[str] = None,
+    court_filter: Court = None,
+    division_filter: str = None,
     year_from: int = None,
     year_to: int = None,
 ) -> list[dict]:
@@ -21,11 +21,11 @@ def get_filters(
     """
     filter = []
 
-    if court_filter and len(court_filter) > 0:
-        filter.append({"terms": {"court": [c.value for c in court_filter]}})
+    if court_filter:
+        filter.append({"term": {"court": court_filter.value}})
 
-    if division_filter and len(division_filter) > 0:
-        filter.append({"terms": {"division": [d.value for d in division_filter]}})
+    if division_filter:
+        filter.append({"term": {"division": division_filter}})
 
     if year_from:
         filter.append({"range": {"year": {"gte": year_from}}})

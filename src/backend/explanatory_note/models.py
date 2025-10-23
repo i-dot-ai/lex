@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Optional
 
 from pydantic import BaseModel, Field
 
@@ -6,42 +6,39 @@ from lex.explanatory_note.models import ExplanatoryNoteSectionType, ExplanatoryN
 
 
 class ExplanatoryNoteSearch(BaseModel):
-    """Search for explanatory notes that match the given query."""
-
     query: str = Field(
         default="",
-        description="The natural language query to search for explanatory notes. If empty, will return all notes matching the filters.",
+        description="Natural language query to search explanatory note content. Leave empty to return all notes matching filters.",
     )
     legislation_id: Optional[str] = Field(
         default=None,
-        description="Filter by legislation ID to search within a specific piece of legislation. If not provided, all legislation will be included.",
+        description="Full legislation ID (e.g. http://www.legislation.gov.uk/id/ukpga/2018/12) to search within. Omit to search across all legislation.",
     )
-    note_type: Optional[List[ExplanatoryNoteType]] = Field(
+    note_type: Optional[ExplanatoryNoteType] = Field(
         default=None,
-        description="Filter by note type (overview, policy_background, legal_background, extent, provisions, commencement, related_documents).",
+        description="Filter by note type (overview, policy_background, legal_background, extent, provisions, commencement, related_documents). Omit to include all types.",
     )
-    section_type: Optional[List[ExplanatoryNoteSectionType]] = Field(
+    section_type: Optional[ExplanatoryNoteSectionType] = Field(
         default=None,
-        description="Filter by section type (section, schedule, part).",
+        description="Filter by section type (section, schedule, part). Omit to include all section types.",
     )
     size: int = Field(default=20, description="Maximum number of results to return.")
 
 
 class ExplanatoryNoteLookup(BaseModel):
-    """Lookup explanatory notes for a specific legislation by ID."""
-
     legislation_id: str = Field(
-        description="The ID of the legislation to look up explanatory notes for."
+        description="Full legislation ID (e.g. http://www.legislation.gov.uk/id/ukpga/2018/12) to get explanatory notes for."
     )
-    limit: int = Field(default=1000, description="Maximum number of results to return.")
+    limit: int = Field(
+        default=1000,
+        description="Maximum number of results to return. High default as explanatory notes are typically comprehensive.",
+    )
 
 
 class ExplanatoryNoteSectionLookup(BaseModel):
-    """Lookup a specific explanatory note section by legislation ID and section number."""
-
     legislation_id: str = Field(
-        description="The ID of the legislation to look up an explanatory note for."
+        description="Full legislation ID (e.g. http://www.legislation.gov.uk/id/ukpga/2018/12) to get explanatory note for."
     )
     section_number: int = Field(
-        description="The section number to look up an explanatory note for."
+        description="Section number to get the explanatory note for (e.g. 5 for section 5)."
     )

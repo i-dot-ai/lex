@@ -6,7 +6,7 @@ This module provides the core functionality for processing legislation, explanat
 
 Lex lets you process legislation, explanatory notes, amendments and caselaw. The code for each of these is outlined in the respective subdirectories.
 
-Within each individual subdirectory Lex follows a clear data flow for most document types:
+Within each individual subdirectory Lex follows a consistent data flow across all document types:
 
 1. **Scrapers** - Download and extract raw content (HTML/XML) from legislation websites. For legislation we also provide **Loaders** to process legislation directly from file.
 2. **Parsers** - Transform raw content into structured Pydantic models. These are defined in the `models.py` file in each 
@@ -15,7 +15,7 @@ Within each individual subdirectory Lex follows a clear data flow for most docum
 
 ### Data Flow
 
-#### Standard Data Flow (Legislation, Amendments, Caselaw)
+All document types follow the same consistent scraper→parser→pipeline architecture:
 
 ```
                    ┌─────────┐          ┌─────────┐          ┌──────────┐          ┌─────────────────┐
@@ -26,18 +26,7 @@ Raw Content ───────► Scraper ├──Soup───► Parser   
                                                                                    └─────────────────┘
 ```
 
-#### Explanatory Notes Data Flow
-
-Explanatory notes use a combined scraper-parser approach due to their multi-page structure:
-
-```
-                   ┌───────────────────────────┐                ┌──────────┐          ┌─────────────────┐
-                   │                           │                │          │          │                 │
-Raw Content ───────► ExplanatoryNoteScraperAndParser ──Models──► Pipeline  ├──JSON────► Elasticsearch   │
-                   │                           │                │          │          │ (with automatic │
-                   └───────────────────────────┘                └──────────┘          │   embedding)    │
-                                                                                      └─────────────────┘
-```
+**Note**: Explanatory notes have a small performance trade-off as their parser requires additional HTTP requests to fetch content across multiple pages, but this maintains API consistency across all document types.
 
 ### Available Models
 
@@ -273,7 +262,7 @@ This enables processing of large datasets (10,000+ documents) over multiple sess
 
 To add support for new document types, you can follow one of two patterns:
 
-#### Standard Pattern (for content with consistent pages)
+#### Standard Pattern (for all document types)
 
 1. Create a new scraper class inheriting from `LexScraper`
 2. Create a parser class inheriting from `LexParser`
@@ -281,16 +270,7 @@ To add support for new document types, you can follow one of two patterns:
 4. Add pipeline function to process and upload the documents
 5. Update the `index_mapping` in `main.py`
 
-#### Combined Pattern (for content spanning multiple pages)
-
-1. Create a combined scraper-parser class that handles both operations
-2. Define Pydantic models for the document type
-3. Add pipeline function to process and upload the documents
-4. Update the `index_mapping` in `main.py`
-
-The pattern to choose depends on the structure of the content:
-- Use the standard pattern for content that can be cleanly separated into scraping and parsing steps
-- Use the combined pattern for content that requires sequential fetching of multiple pages or complex state management during processing
+**Note**: For document types that span multiple pages (like explanatory notes), the parser can make additional HTTP requests during the parsing phase while still maintaining the consistent scraper→parser→pipeline architecture.
 
 ## Architecture Details
 
@@ -301,9 +281,9 @@ Scrapers download raw content from external sources:
 - `LegislationScraper`: Downloads legislation XML from legislation.gov.uk
 - `AmendmentScraper`: Downloads amendments to legislation from tables on legislation.gov.uk
 - `CaselawScraper`: Downloads caselaw HTML from various sources
-- `ExplanatoryNoteScraperAndParser`: A special combined scraper-parser that downloads and processes explanatory notes directly into model objects
+- `ExplanatoryNoteScraper`: Downloads explanatory notes from multiple pages on legislation.gov.uk
 
-Each standard scraper returns BeautifulSoup objects representing the raw content.
+Each scraper returns BeautifulSoup objects representing the raw content.
 
 #### Parsers
 
@@ -314,8 +294,7 @@ Parsers transform raw BeautifulSoup content into structured Pydantic models:
 - `AmendmentParser`: Creates `Amendment` models from HTML tables
 - `CaselawParser`: Creates `Caselaw` models from HTML
 - `CaselawSectionParser`: Creates `CaselawSection` models from HTML
-
-For explanatory notes, there is no separate parser - the `ExplanatoryNoteScraperAndParser` handles both tasks in an integrated process.
+- `ExplanatoryNoteParser`: Creates `ExplanatoryNote` models from HTML (with additional HTTP requests for multi-page content)
 
 #### Models
 
@@ -329,16 +308,10 @@ The system uses Pydantic models to represent legal documents:
 
 The pipeline orchestrates the data flow:
 
-For standard document types (Legislation, Amendments, Caselaw):
+For all document types (Legislation, Amendments, Caselaw, Explanatory Notes):
 1. Calls the appropriate scraper to get content (BeautifulSoup objects)
 2. Passes the content to the parser to create models
 3. Uploads the models to Elasticsearch using the document handling utilities
-4. Elasticsearch automatically handles embedding and indexing
-
-For explanatory notes:
-1. Calls the `ExplanatoryNoteScraperAndParser` which handles both scraping and parsing in one operation
-2. Receives models directly from the scraper-parser
-3. Uploads the models to Elasticsearch
 4. Elasticsearch automatically handles embedding and indexing
 
 #### Core Utilities

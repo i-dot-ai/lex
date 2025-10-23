@@ -14,7 +14,7 @@ app = FastAPI(
     version="0.1.0",
 )
 
-# Include routers
+# Include routers with API key protection
 app.include_router(legislation_router)
 app.include_router(caselaw_router)
 app.include_router(explanatory_note_router)

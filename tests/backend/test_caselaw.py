@@ -20,9 +20,9 @@ def test_search_caselaw_endpoint(client):
     # Simple search with a query that should return results in most environments
     search_query = "innocent or guilty"
 
-    response = client.post(
+    response = client.get(
         "/caselaw/search",
-        json={"query": search_query, "is_semantic_search": True, "size": 5},
+        params={"query": search_query, "is_semantic_search": True, "size": 5},
     )
 
     # Check response status
@@ -59,9 +59,9 @@ def test_search_caselaw_endpoint(client):
 def test_search_caselaw_with_filters_endpoint(client):
     """Test that the /caselaw/search endpoint works with filters."""
     # Search for Supreme Court cases from 2020-2023
-    response = client.post(
+    response = client.get(
         "/caselaw/search",
-        json={"court": [Court.UKSC.value], "year_from": 2020, "year_to": 2025, "size": 5},
+        params={"court": Court.UKSC.value, "year_from": 2020, "year_to": 2025, "size": 5},
     )
 
     # Check response status
@@ -96,9 +96,9 @@ def test_search_caselaw_section_endpoint(client):
     # Simple search with a query that should return results in most environments
     search_query = "innocent or guilty"
 
-    response = client.post(
+    response = client.get(
         "/caselaw/section/search",
-        json={"query": search_query, "limit": 5},
+        params={"query": search_query, "limit": 5},
     )
 
     # Check response status
@@ -136,11 +136,11 @@ def test_search_caselaw_section_endpoint(client):
 def test_search_caselaw_section_with_filters_endpoint(client):
     """Test that the /caselaw/section/search endpoint works with filters."""
     # Search for Court of Appeal (Civil Division) cases from 2020-2023
-    response = client.post(
+    response = client.get(
         "/caselaw/section/search",
-        json={
-            "court": [Court.EWCA.value],
-            "division": [CourtDivision.CIV.value],
+        params={
+            "court": Court.EWCA.value,
+            "division": CourtDivision.CIV.value,
             "year_from": 2020,
             "year_to": 2025,
             "limit": 5,

@@ -78,7 +78,29 @@ def upload_documents(
     """
     logger.info(f"Starting upload to index {index_name} with batch size {batch_size}")
 
-    documents = (doc.model_dump() for doc in documents)
+    # Convert to dicts and filter out documents with empty text fields
+    def filter_valid_documents(docs):
+        skipped_count = 0
+        for doc in docs:
+            doc_dict = doc.model_dump()
+
+            # Check if document has a text field and if it's empty or whitespace-only
+            if "text" in doc_dict:
+                text_value = doc_dict.get("text", "").strip()
+                if not text_value:
+                    skipped_count += 1
+                    logger.warning(
+                        f"Skipping document with empty text field: {doc_dict.get(id_field, 'unknown')}",
+                        extra={"document_id": doc_dict.get(id_field), "reason": "empty_text"},
+                    )
+                    continue
+
+            yield doc_dict
+
+        if skipped_count > 0:
+            logger.info(f"Skipped {skipped_count} documents with empty text fields")
+
+    documents = filter_valid_documents(documents)
 
     batch_generator = documents_to_batches(documents, batch_size)
     docs_uploaded = 0

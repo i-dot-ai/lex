@@ -10,8 +10,8 @@ from lex.settings import EXPLANATORY_NOTE_INDEX
 
 
 def get_filters(
-    note_type_filter: list[ExplanatoryNoteType] = None,
-    section_type_filter: list[ExplanatoryNoteSectionType] = None,
+    note_type_filter: ExplanatoryNoteType = None,
+    section_type_filter: ExplanatoryNoteSectionType = None,
     legislation_id: str = None,
 ) -> list[dict]:
     """Returns a list of filters based on the provided search criteria."""
@@ -20,21 +20,11 @@ def get_filters(
     if legislation_id:
         filter.append({"term": {"legislation_id.keyword": legislation_id}})
 
-    if note_type_filter and len(note_type_filter) > 0:
-        filter.append(
-            {"terms": {"note_type.keyword": [note_type.value for note_type in note_type_filter]}}
-        )
+    if note_type_filter:
+        filter.append({"term": {"note_type.keyword": note_type_filter.value}})
 
-    if section_type_filter and len(section_type_filter) > 0:
-        filter.append(
-            {
-                "terms": {
-                    "section_type.keyword": [
-                        section_type.value for section_type in section_type_filter
-                    ]
-                }
-            }
-        )
+    if section_type_filter:
+        filter.append({"term": {"section_type.keyword": section_type_filter.value}})
 
     return filter
 
