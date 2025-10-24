@@ -176,6 +176,8 @@
   .legislation-content .block.banner {
     text-align: center;
     font-weight: bold;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5em !important;
     margin-top: 1em;
     margin-bottom: 0.5em;
   }
