@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { API_CONFIG } from "@/lib/config"
 import DOMPurify from 'isomorphic-dompurify'
@@ -276,7 +276,9 @@ export function LegislationPreview({ open, onOpenChange, legislation, relevantSe
       if (!response.ok) throw new Error('Failed to fetch HTML')
       return response.text()
     },
-    enabled: open && activeTab === 'fulltext'
+    enabled: open && activeTab === 'fulltext',
+    staleTime: 24 * 60 * 60 * 1000, // 24 hours - legislation is immutable
+    gcTime: 24 * 60 * 60 * 1000,    // 24 hours - keep in memory
   })
 
   // Fetch citing cases for cross-references
@@ -297,6 +299,20 @@ export function LegislationPreview({ open, onOpenChange, legislation, relevantSe
     },
     enabled: open && activeTab === 'overview'
   })
+
+  // Memoize sanitized HTML to avoid re-sanitization on every render
+  const sanitizedHtml = useMemo(() => {
+    if (!htmlContent) return ''
+
+    // Fix relative image URLs and sanitize in one operation
+    return DOMPurify.sanitize(
+      htmlContent.replace(/src="\/images\//g, 'src="https://www.legislation.gov.uk/images/'),
+      {
+        ADD_TAGS: ['img'],
+        ADD_ATTR: ['src', 'alt', 'width', 'height', 'class']
+      }
+    )
+  }, [htmlContent])
 
   // Track active section with IntersectionObserver
   useEffect(() => {
@@ -804,16 +820,7 @@ export function LegislationPreview({ open, onOpenChange, legislation, relevantSe
                   <div
                     ref={contentRef}
                     className="legislation-content pr-4"
-                    dangerouslySetInnerHTML={{
-                      __html: DOMPurify.sanitize(
-                        // Fix relative image URLs to point to legislation.gov.uk
-                        htmlContent.replace(/src="\/images\//g, 'src="https://www.legislation.gov.uk/images/'),
-                        {
-                          ADD_TAGS: ['img'],
-                          ADD_ATTR: ['src', 'alt', 'width', 'height', 'class']
-                        }
-                      )
-                    }}
+                    dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
                   />
                 ) : (
                   <Alert className="m-4">
