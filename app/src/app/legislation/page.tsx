@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation"
 import { AppSidebar } from "@/components/app-sidebar"
+import { SourceGovUkLink } from "@/components/source-gov-uk-link"
 import { MultiSelect } from "@/components/ui/multi-select"
 import { getApiErrorMessage } from "@/lib/errors"
 import {
@@ -19,7 +20,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
@@ -28,7 +29,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
-import { Search, FileText, Calendar, ExternalLink, AlertCircle, ArrowUpDown, Filter, X } from "lucide-react"
+import { Search, FileText, Calendar, ExternalLink, AlertCircle, ArrowUpDown, Filter, X, BookOpen, ScrollText, Landmark } from "lucide-react"
 import { ResultSkeletonList } from "@/components/result-skeleton"
 import { EmptyState } from "@/components/empty-state"
 import { StatusBadge, ExtentBadges, LegislationTypeBadge } from "@/components/badges"
@@ -37,6 +38,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { SearchHistoryDropdown } from "@/components/search-history-dropdown"
 import { SearchPagination } from "@/components/search-pagination"
 import { useDocumentSearch } from "@/hooks/use-document-search"
+import { YearRangePicker } from "@/components/ui/year-range-picker"
 
 interface LegislationSection {
   number: string
@@ -69,19 +71,19 @@ const legislationTypeOptions = [
   {
     heading: "Primary Legislation",
     options: [
-      { value: "ukpga", label: "UK Public General Acts", icon: FileText },
-      { value: "asp", label: "Acts of the Scottish Parliament", icon: FileText },
-      { value: "asc", label: "Acts of Senedd Cymru", icon: FileText },
-      { value: "anaw", label: "Acts of the National Assembly for Wales", icon: FileText },
-      { value: "nia", label: "Acts of the Northern Ireland Assembly", icon: FileText },
+      { value: "ukpga", label: "UK Public General Acts", shortLabel: "UKPGA", icon: Landmark },
+      { value: "asp", label: "Acts of the Scottish Parliament", shortLabel: "ASP", icon: BookOpen },
+      { value: "asc", label: "Acts of Senedd Cymru", shortLabel: "ASC", icon: BookOpen },
+      { value: "anaw", label: "Acts of the National Assembly for Wales", shortLabel: "ANAW", icon: BookOpen },
+      { value: "nia", label: "Acts of the Northern Ireland Assembly", shortLabel: "NIA", icon: BookOpen },
     ]
   },
   {
     heading: "Secondary Legislation",
     options: [
-      { value: "uksi", label: "UK Statutory Instruments", icon: FileText },
-      { value: "wsi", label: "Wales Statutory Instruments", icon: FileText },
-      { value: "ssi", label: "Scottish Statutory Instruments", icon: FileText },
+      { value: "uksi", label: "UK Statutory Instruments", shortLabel: "UKSI", icon: ScrollText },
+      { value: "wsi", label: "Wales Statutory Instruments", shortLabel: "WSI", icon: ScrollText },
+      { value: "ssi", label: "Scottish Statutory Instruments", shortLabel: "SSI", icon: ScrollText },
     ]
   }
 ]
@@ -179,25 +181,7 @@ export default function LegislationPage() {
 
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
           {/* Search Form */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="flex items-center gap-2">
-                    <FileText className="h-5 w-5" />
-                    Search UK Legislation
-                  </CardTitle>
-                  <CardDescription className="mt-1.5">
-                    Semantic search through UK legislation using AI-powered embeddings
-                  </CardDescription>
-                </div>
-                <SearchHistoryDropdown
-                  type="legislation"
-                  onSelectSearch={search.handleSelectFromHistory}
-                />
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
+          <div className="space-y-4">
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="query">Search Query</Label>
@@ -205,47 +189,50 @@ export default function LegislationPage() {
                     <kbd className="px-1.5 py-0.5 text-xs font-semibold bg-muted rounded">⌘K</kbd> to focus
                   </span>
                 </div>
-                <Input
-                  ref={search.searchInputRef}
-                  id="query"
-                  placeholder="e.g., data protection, artificial intelligence"
-                  value={search.query}
-                  onChange={(e) => search.setQuery(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && search.handleSearch()}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Legislation Types</Label>
-                <MultiSelect
-                  options={legislationTypeOptions}
-                  onValueChange={search.setFilters}
-                  defaultValue={search.filters}
-                  placeholder="Select legislation types"
-                  maxCount={3}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="yearFrom">Year From</Label>
+                <div className="flex items-center gap-2">
                   <Input
-                    id="yearFrom"
-                    type="number"
-                    placeholder="e.g., 2000"
-                    value={search.yearFrom}
-                    onChange={(e) => search.setYearFrom(e.target.value)}
+                    ref={search.searchInputRef}
+                    id="query"
+                    placeholder="e.g., data protection, artificial intelligence"
+                    value={search.query}
+                    onChange={(e) => search.setQuery(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && search.handleSearch()}
+                    className="flex-1"
+                  />
+                  <SearchHistoryDropdown
+                    type="legislation"
+                    onSelectSearch={search.handleSelectFromHistory}
+                    variant="compact"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-4">
+                <div className="space-y-2">
+                  <Label>Legislation Types</Label>
+                  <MultiSelect
+                    options={legislationTypeOptions}
+                    onValueChange={search.setFilters}
+                    defaultValue={search.filters}
+                    placeholder="Select types"
+                    maxCount={3}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="yearTo">Year To</Label>
-                  <Input
-                    id="yearTo"
-                    type="number"
-                    placeholder="e.g., 2024"
-                    value={search.yearTo}
-                    onChange={(e) => search.setYearTo(e.target.value)}
+                  <Label>Year Range</Label>
+                  <YearRangePicker
+                    value={{
+                      from: search.yearFrom ? parseInt(search.yearFrom) : undefined,
+                      to: search.yearTo ? parseInt(search.yearTo) : undefined,
+                    }}
+                    onChange={(range) => {
+                      search.setYearFrom(range.from?.toString() || "")
+                      search.setYearTo(range.to?.toString() || "")
+                    }}
+                    minYear={1267}
+                    maxYear={new Date().getFullYear()}
+                    placeholder="Select year range"
                   />
                 </div>
               </div>
@@ -267,8 +254,7 @@ export default function LegislationPage() {
                   </AlertDescription>
                 </Alert>
               )}
-            </CardContent>
-          </Card>
+          </div>
 
           {/* Loading State */}
           {search.isLoading && <ResultSkeletonList count={5} />}
@@ -374,15 +360,7 @@ export default function LegislationPage() {
                       <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
                         {result.description || "No description available"}
                       </p>
-                      <a
-                        href={result.uri}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
-                      >
-                        View on legislation.gov.uk
-                        <ExternalLink className="h-3.5 w-3.5" />
-                      </a>
+                      <SourceGovUkLink href={result.uri} source="legislation" variant="button" />
                     </CardContent>
                   </Card>
                 ))}

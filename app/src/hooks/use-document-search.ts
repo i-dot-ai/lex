@@ -2,8 +2,7 @@ import { useState, useCallback, useEffect, useRef } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { API_CONFIG, PAGINATION } from '@/lib/config'
-import { useSearchHistoryTracking } from './use-search-history-tracking'
-import type { SearchHistoryItem } from '@/lib/search-history'
+import { addToSearchHistory, type SearchHistoryItem } from '@/lib/search-history'
 
 export type SortOption = 'relevance' | 'date-desc' | 'date-asc' | 'title-asc' | 'title-desc'
 
@@ -107,15 +106,6 @@ export function useDocumentSearch<TResult, TFilter>(
   const results = response ? config.getResults(response) : []
   const total = response ? config.getTotal(response) : 0
 
-  // Track search history
-  useSearchHistoryTracking({
-    type: config.type,
-    query,
-    filters: config.buildSearchHistoryFilters(filters, yearFrom, yearTo),
-    resultCount: total,
-    enabled: !!response,
-  })
-
   // Sort results client-side
   const sortedResults = config.sortResults([...results], sortBy)
 
@@ -136,8 +126,18 @@ export function useDocumentSearch<TResult, TFilter>(
 
     params.set('page', '1')
 
+    // Save to history on explicit search submission
+    if (query.trim()) {
+      addToSearchHistory(
+        query,
+        config.type,
+        config.buildSearchHistoryFilters(filters, yearFrom, yearTo),
+        total
+      )
+    }
+
     router.push(`/${config.type}?${params.toString()}`)
-  }, [query, yearFrom, yearTo, filters, router, config])
+  }, [query, yearFrom, yearTo, filters, router, config, total])
 
   // Handle selecting from search history
   const handleSelectFromHistory = useCallback((item: SearchHistoryItem) => {
@@ -171,10 +171,21 @@ export function useDocumentSearch<TResult, TFilter>(
 
   // Handle page change
   const handlePageChange = useCallback((page: number) => {
+    // Save to history when user browses to additional pages (shows interest)
+    // Skip page 1 since handleSearch already saved it
+    if (page > 1 && query.trim() && total > 0) {
+      addToSearchHistory(
+        query,
+        config.type,
+        config.buildSearchHistoryFilters(filters, yearFrom, yearTo),
+        total
+      )
+    }
+
     const params = new URLSearchParams(searchParams.toString())
     params.set('page', page.toString())
     router.push(`/${config.type}?${params.toString()}`)
-  }, [searchParams, router, config])
+  }, [searchParams, router, config, query, filters, yearFrom, yearTo, total])
 
   // Clear all filters
   const clearFilters = useCallback(() => {
@@ -187,9 +198,19 @@ export function useDocumentSearch<TResult, TFilter>(
 
   // Handle preview
   const openPreview = useCallback((item: TResult) => {
+    // Save to history when user engages with results
+    if (query.trim() && total > 0) {
+      addToSearchHistory(
+        query,
+        config.type,
+        config.buildSearchHistoryFilters(filters, yearFrom, yearTo),
+        total
+      )
+    }
+
     setPreviewItem(item)
     setPreviewOpen(true)
-  }, [])
+  }, [query, config, filters, yearFrom, yearTo, total])
 
   const closePreview = useCallback(() => {
     setPreviewOpen(false)

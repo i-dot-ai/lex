@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation"
 import { AppSidebar } from "@/components/app-sidebar"
+import { SourceGovUkLink } from "@/components/source-gov-uk-link"
 import { MultiSelect } from "@/components/ui/multi-select"
 import { getApiErrorMessage } from "@/lib/errors"
 import {
@@ -19,7 +20,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
@@ -28,7 +29,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
-import { Search, Scale, Calendar, Building2, Gavel, ExternalLink, AlertCircle, ArrowUpDown, Filter, X } from "lucide-react"
+import { Search, Calendar, Building2, Gavel, ExternalLink, AlertCircle, ArrowUpDown, Filter, X } from "lucide-react"
 import { ResultSkeletonList } from "@/components/result-skeleton"
 import { EmptyState } from "@/components/empty-state"
 import { CourtBadge, CitationBadge } from "@/components/badges"
@@ -37,6 +38,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { SearchHistoryDropdown } from "@/components/search-history-dropdown"
 import { SearchPagination } from "@/components/search-pagination"
 import { useDocumentSearch } from "@/hooks/use-document-search"
+import { YearRangePicker } from "@/components/ui/year-range-picker"
 
 interface CaselawResult {
   id: string
@@ -62,23 +64,23 @@ const courtTypeOptions = [
   {
     heading: "Senior Courts",
     options: [
-      { value: "uksc", label: "UK Supreme Court", icon: Scale },
-      { value: "ukpc", label: "Privy Council", icon: Scale },
-      { value: "ewca", label: "Court of Appeal", icon: Gavel },
+      { value: "uksc", label: "UK Supreme Court", shortLabel: "UKSC", icon: Scale },
+      { value: "ukpc", label: "Privy Council", shortLabel: "UKPC", icon: Scale },
+      { value: "ewca", label: "Court of Appeal", shortLabel: "EWCA", icon: Gavel },
     ]
   },
   {
     heading: "High Court & Crown",
     options: [
-      { value: "ewhc", label: "High Court (England and Wales)", icon: Building2 },
-      { value: "ewcr", label: "Crown Court", icon: Gavel },
+      { value: "ewhc", label: "High Court (England and Wales)", shortLabel: "EWHC", icon: Building2 },
+      { value: "ewcr", label: "Crown Court", shortLabel: "EWCR", icon: Gavel },
     ]
   },
   {
     heading: "Tribunals",
     options: [
-      { value: "ukut", label: "Upper Tribunal", icon: Building2 },
-      { value: "ukftt", label: "First-tier Tribunal", icon: Building2 },
+      { value: "ukut", label: "Upper Tribunal", shortLabel: "UKUT", icon: Building2 },
+      { value: "ukftt", label: "First-tier Tribunal", shortLabel: "UKFTT", icon: Building2 },
     ]
   }
 ]
@@ -176,25 +178,7 @@ export default function CaselawPage() {
 
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
           {/* Search Form */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="flex items-center gap-2">
-                    <Scale className="h-5 w-5" />
-                    Search UK Caselaw
-                  </CardTitle>
-                  <CardDescription className="mt-1.5">
-                    Semantic search through UK court cases using AI-powered embeddings
-                  </CardDescription>
-                </div>
-                <SearchHistoryDropdown
-                  type="caselaw"
-                  onSelectSearch={search.handleSelectFromHistory}
-                />
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
+          <div className="space-y-4">
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="query">Search Query</Label>
@@ -202,47 +186,50 @@ export default function CaselawPage() {
                     <kbd className="px-1.5 py-0.5 text-xs font-semibold bg-muted rounded">⌘K</kbd> to focus
                   </span>
                 </div>
-                <Input
-                  ref={search.searchInputRef}
-                  id="query"
-                  placeholder="e.g., breach of contract, negligence, judicial review"
-                  value={search.query}
-                  onChange={(e) => search.setQuery(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && search.handleSearch()}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Court Types</Label>
-                <MultiSelect
-                  options={courtTypeOptions}
-                  onValueChange={search.setFilters}
-                  defaultValue={search.filters}
-                  placeholder="Select courts (all if empty)"
-                  maxCount={3}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="yearFrom">Year From</Label>
+                <div className="flex items-center gap-2">
                   <Input
-                    id="yearFrom"
-                    type="number"
-                    placeholder="e.g., 2010"
-                    value={search.yearFrom}
-                    onChange={(e) => search.setYearFrom(e.target.value)}
+                    ref={search.searchInputRef}
+                    id="query"
+                    placeholder="e.g., breach of contract, negligence, judicial review"
+                    value={search.query}
+                    onChange={(e) => search.setQuery(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && search.handleSearch()}
+                    className="flex-1"
+                  />
+                  <SearchHistoryDropdown
+                    type="caselaw"
+                    onSelectSearch={search.handleSelectFromHistory}
+                    variant="compact"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-4">
+                <div className="space-y-2">
+                  <Label>Court Types</Label>
+                  <MultiSelect
+                    options={courtTypeOptions}
+                    onValueChange={search.setFilters}
+                    defaultValue={search.filters}
+                    placeholder="Select courts"
+                    maxCount={3}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="yearTo">Year To</Label>
-                  <Input
-                    id="yearTo"
-                    type="number"
-                    placeholder="e.g., 2024"
-                    value={search.yearTo}
-                    onChange={(e) => search.setYearTo(e.target.value)}
+                  <Label>Year Range</Label>
+                  <YearRangePicker
+                    value={{
+                      from: search.yearFrom ? parseInt(search.yearFrom) : undefined,
+                      to: search.yearTo ? parseInt(search.yearTo) : undefined,
+                    }}
+                    onChange={(range) => {
+                      search.setYearFrom(range.from?.toString() || "")
+                      search.setYearTo(range.to?.toString() || "")
+                    }}
+                    minYear={2001}
+                    maxYear={new Date().getFullYear()}
+                    placeholder="Select year range"
                   />
                 </div>
               </div>
@@ -264,8 +251,7 @@ export default function CaselawPage() {
                   </AlertDescription>
                 </Alert>
               )}
-            </CardContent>
-          </Card>
+          </div>
 
           {/* Loading State */}
           {search.isLoading && <ResultSkeletonList count={5} />}
@@ -375,15 +361,7 @@ export default function CaselawPage() {
                       <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
                         {result.header || "No summary available"}
                       </p>
-                      <a
-                        href={result.id}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
-                      >
-                        View on caselaw.nationalarchives.gov.uk
-                        <ExternalLink className="h-3.5 w-3.5" />
-                      </a>
+                      <SourceGovUkLink href={result.id} source="caselaw" variant="button" />
                     </CardContent>
                   </Card>
                 ))}
