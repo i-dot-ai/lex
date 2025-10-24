@@ -23,9 +23,10 @@ import {
 interface SearchHistoryDropdownProps {
   type: 'legislation' | 'caselaw'
   onSelectSearch: (item: SearchHistoryItem) => void
+  variant?: 'default' | 'compact'
 }
 
-export function SearchHistoryDropdown({ type, onSelectSearch }: SearchHistoryDropdownProps) {
+export function SearchHistoryDropdown({ type, onSelectSearch, variant = 'default' }: SearchHistoryDropdownProps) {
   const [history, setHistory] = useState<SearchHistoryItem[]>([])
   const [open, setOpen] = useState(false)
 
@@ -88,10 +89,16 @@ export function SearchHistoryDropdown({ type, onSelectSearch }: SearchHistoryDro
     return (
       <DropdownMenu open={open} onOpenChange={setOpen}>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="sm" className="gap-2">
-            <History className="h-4 w-4" />
-            History
-          </Button>
+          {variant === 'compact' ? (
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+              <History className="h-4 w-4" />
+            </Button>
+          ) : (
+            <Button variant="ghost" size="sm" className="gap-2">
+              <History className="h-4 w-4" />
+              History
+            </Button>
+          )}
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-80">
           <DropdownMenuLabel>Search History</DropdownMenuLabel>
@@ -107,15 +114,24 @@ export function SearchHistoryDropdown({ type, onSelectSearch }: SearchHistoryDro
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="gap-2">
-          <History className="h-4 w-4" />
-          History
-          {history.length > 0 && (
-            <span className="ml-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium">
+        {variant === 'compact' ? (
+          <Button variant="ghost" size="sm" className="h-8 px-2 gap-1">
+            <History className="h-4 w-4" />
+            <span className="rounded-full bg-primary/10 px-1.5 py-0.5 text-xs font-medium">
               {history.length}
             </span>
-          )}
-        </Button>
+          </Button>
+        ) : (
+          <Button variant="ghost" size="sm" className="gap-2">
+            <History className="h-4 w-4" />
+            History
+            {history.length > 0 && (
+              <span className="ml-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium">
+                {history.length}
+              </span>
+            )}
+          </Button>
+        )}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-[400px]">
         <div className="flex items-center justify-between px-2 py-1.5">

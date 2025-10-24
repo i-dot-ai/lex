@@ -25,7 +25,7 @@ export function StatusBadge({ status }: { status: string }) {
   }
 
   return (
-    <Badge variant={config.variant} className={cn("text-xs", config.className)}>
+    <Badge variant={config.variant} className={cn("text-sm h-8 px-3", config.className)}>
       {config.icon}
       {status.charAt(0).toUpperCase() + status.slice(1)}
     </Badge>
@@ -44,7 +44,7 @@ export function ExtentBadges({ extent }: { extent: string[] }) {
   return (
     <>
       {validExtent.map((e) => (
-        <Badge key={e} variant="outline" className="text-xs">
+        <Badge key={e} variant="outline" className="text-sm h-8 px-3">
           {e}
         </Badge>
       ))}
@@ -55,7 +55,7 @@ export function ExtentBadges({ extent }: { extent: string[] }) {
 // Legislation type badge
 export function LegislationTypeBadge({ type, year, number }: { type: string; year: number; number: number }) {
   return (
-    <Badge variant="secondary" className="text-xs font-mono">
+    <Badge variant="secondary" className="text-sm font-mono h-8 px-3">
       {type.toUpperCase()} {year}/{number}
     </Badge>
   )

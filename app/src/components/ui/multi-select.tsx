@@ -58,7 +58,7 @@ const multiSelectVariants = cva("m-1 transition-all duration-300 ease-in-out", {
 			inverted: "inverted",
 		},
 		badgeAnimation: {
-			bounce: "hover:-translate-y-1 hover:scale-110",
+			bounce: "hover:-translate-y-0.5 hover:scale-105",
 			pulse: "hover:animate-pulse",
 			wiggle: "hover:animate-wiggle",
 			fade: "hover:opacity-80",
@@ -80,6 +80,8 @@ interface MultiSelectOption {
 	label: string;
 	/** The unique value associated with the option. */
 	value: string;
+	/** Optional short label to display in badges (e.g., acronym). Falls back to label if not provided. */
+	shortLabel?: string;
 	/** Optional icon component to display alongside the option. */
 	icon?: React.ComponentType<{ className?: string }>;
 	/** Whether this option is disabled */
@@ -489,7 +491,7 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 					case "bounce":
 						return isAnimating
 							? "animate-bounce"
-							: "hover:-translate-y-1 hover:scale-110";
+							: "hover:-translate-y-0.5 hover:scale-105";
 					case "pulse":
 						return "hover:animate-pulse";
 					case "wiggle":
@@ -856,6 +858,7 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 												return (
 													<Badge
 														key={value}
+														title={option.shortLabel ? option.label : undefined}
 														className={cn(
 															getBadgeAnimationClass(),
 															multiSelectVariants({ variant }),
@@ -866,7 +869,7 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 															screenSize === "mobile" &&
 																"max-w-[120px] truncate",
 															singleLine && "flex-shrink-0 whitespace-nowrap",
-															"[&>svg]:pointer-events-auto"
+															"[&>svg]:pointer-events-auto py-1.5"
 														)}
 														style={{
 															...badgeStyle,
@@ -892,7 +895,7 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 															className={cn(
 																screenSize === "mobile" && "truncate"
 															)}>
-															{option.label}
+															{option.shortLabel || option.label}
 														</span>
 														<div
 															role="button"
@@ -912,8 +915,8 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 																}
 															}}
 															aria-label={`Remove ${option.label} from selection`}
-															className="ml-2 h-4 w-4 cursor-pointer hover:bg-white/20 rounded-sm p-0.5 -m-0.5 focus:outline-none focus:ring-1 focus:ring-white/50">
-															<XCircle
+															className="ml-2 h-4 w-4 cursor-pointer hover:bg-white/20 rounded-sm p-0.5 -m-0.5 focus:outline-none focus:ring-1 focus:ring-white/50 flex items-center justify-center">
+															<XIcon
 																className={cn(
 																	"h-3 w-3",
 																	responsiveSettings.compactMode &&
@@ -934,7 +937,7 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 													responsiveSettings.compactMode &&
 														"text-xs px-1.5 py-0.5",
 													singleLine && "flex-shrink-0 whitespace-nowrap",
-													"[&>svg]:pointer-events-auto"
+													"[&>svg]:pointer-events-auto py-1.5"
 												)}
 												style={{
 													animationDuration: `${
@@ -945,7 +948,7 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 												{`+ ${
 													selectedValues.length - responsiveSettings.maxCount
 												} more`}
-												<XCircle
+												<XIcon
 													className={cn(
 														"ml-2 h-4 w-4 cursor-pointer",
 														responsiveSettings.compactMode && "ml-1 h-3 w-3"
