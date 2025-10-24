@@ -156,6 +156,14 @@ uv run ruff format .
 make run
 ```
 
+### Cloud Qdrant
+Switch between local and cloud Qdrant in `.env`:
+```bash
+USE_CLOUD_QDRANT=false  # Local (default)
+USE_CLOUD_QDRANT=true   # Cloud
+```
+Then restart: `docker compose restart backend`
+
 ### Export data
 ```bash
 # List available indices

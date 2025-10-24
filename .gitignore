@@ -230,3 +230,12 @@ data/pdf_*.csv
 data/results_*.jsonl*
 data/*_sample_analysis.json
 CLAUDE.md
+
+# Temporary exports
+lex_exports_*/
+
+# Backup files
+*.bak
+
+# Migration scripts (add to repo if needed)
+scripts/migrate_to_cloud_qdrant.py
