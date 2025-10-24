@@ -1,4 +1,5 @@
 import traceback
+from datetime import datetime, timedelta
 from typing import List
 
 import httpx
@@ -22,6 +23,34 @@ from backend.legislation.search import (
     legislation_section_search,
 )
 from lex.legislation.models import Legislation, LegislationSection
+
+# Simple in-memory cache for legislation HTML
+# Format: {legislation_id: (content_bytes, content_type, cached_at)}
+_html_cache: dict[str, tuple[bytes, str, datetime]] = {}
+_CACHE_TTL = timedelta(hours=24)
+_MAX_CACHE_SIZE = 1500  # ~750MB-1.5GB depending on doc sizes
+
+
+def _get_cached_html(legislation_id: str) -> tuple[bytes, str] | None:
+    """Get cached HTML if available and not expired."""
+    if legislation_id in _html_cache:
+        content, content_type, cached_at = _html_cache[legislation_id]
+        if datetime.now() - cached_at < _CACHE_TTL:
+            return (content, content_type)
+        # Expired - remove it
+        del _html_cache[legislation_id]
+    return None
+
+
+def _cache_html(legislation_id: str, content: bytes, content_type: str) -> None:
+    """Cache HTML content with simple LRU eviction."""
+    _html_cache[legislation_id] = (content, content_type, datetime.now())
+
+    # Simple eviction: remove oldest if over limit
+    if len(_html_cache) > _MAX_CACHE_SIZE:
+        oldest_id = min(_html_cache.items(), key=lambda x: x[1][2])[0]
+        del _html_cache[oldest_id]
+
 
 router = APIRouter(
     prefix="/legislation",
@@ -160,7 +189,21 @@ async def proxy_legislation_data(legislation_id: str):
         HTML content from legislation.gov.uk with CORS headers
     """
     try:
-        # Build URL to legislation.gov.uk
+        # Check cache first
+        cached = _get_cached_html(legislation_id)
+        if cached:
+            content, content_type = cached
+            return Response(
+                content=content,
+                media_type=content_type,
+                headers={
+                    "Access-Control-Allow-Origin": "*",
+                    "Cache-Control": "public, max-age=86400",  # 24 hours
+                    "X-Cache": "HIT",
+                },
+            )
+
+        # Cache miss - fetch from legislation.gov.uk
         url = f"https://www.legislation.gov.uk/{legislation_id}"
 
         async with httpx.AsyncClient(timeout=30.0) as client:
@@ -173,13 +216,18 @@ async def proxy_legislation_data(legislation_id: str):
 
             response.raise_for_status()
 
+            # Cache the response
+            content_type = response.headers.get("content-type", "text/html")
+            _cache_html(legislation_id, response.content, content_type)
+
             # Return the HTML content with appropriate headers
             return Response(
                 content=response.content,
-                media_type=response.headers.get("content-type", "text/html"),
+                media_type=content_type,
                 headers={
                     "Access-Control-Allow-Origin": "*",
-                    "Cache-Control": "public, max-age=3600",  # Cache for 1 hour
+                    "Cache-Control": "public, max-age=86400",  # 24 hours
+                    "X-Cache": "MISS",
                 },
             )
 
