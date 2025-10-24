@@ -57,6 +57,7 @@ class HttpClient:
         self.max_delay = max_delay
         self.enable_cache = enable_cache
         self.cache_ttl = cache_ttl
+        self.cache_size_limit = cache_size_limit
 
         # Default exceptions to retry on
         self.retry_exceptions = retry_exceptions or (
@@ -206,7 +207,12 @@ class HttpClient:
                 logger.debug(f"Cache hit for {url}")
                 return cached_response
         except Exception as e:
-            logger.warning(f"Cache read error for {url}: {e}. Continuing without cache.")
+            # Auto-recreate cache if corrupted
+            if "database disk image is malformed" in str(e):
+                logger.warning(f"Cache corrupted, recreating: {e}")
+                self._recreate_cache()
+            else:
+                logger.warning(f"Cache read error for {url}: {e}. Continuing without cache.")
             # Continue without cache on read errors
 
         # Cache miss - make request
@@ -217,7 +223,14 @@ class HttpClient:
             self._cache.set(cache_key, response, expire=self.cache_ttl)
             logger.debug(f"Cached response for {url}")
         except Exception as e:
-            logger.warning(f"Cache write error for {url}: {e}. Response returned without caching.")
+            # Auto-recreate cache if corrupted
+            if "database disk image is malformed" in str(e):
+                logger.warning(f"Cache corrupted, recreating: {e}")
+                self._recreate_cache()
+            else:
+                logger.warning(
+                    f"Cache write error for {url}: {e}. Response returned without caching."
+                )
 
         return response
 
@@ -241,7 +254,7 @@ class HttpClient:
             try:
                 # Close existing cache
                 self._cache.close()
-            except:
+            except Exception:
                 pass
 
             # Get cache directory

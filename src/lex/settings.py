@@ -2,9 +2,16 @@ import os
 from datetime import datetime
 
 # Qdrant configuration
+USE_CLOUD_QDRANT = os.environ.get("USE_CLOUD_QDRANT", "false").lower() == "true"
+
+# Local Qdrant (default)
 QDRANT_HOST = os.environ.get("QDRANT_HOST", "http://localhost:6333")
 QDRANT_GRPC_PORT = int(os.environ.get("QDRANT_GRPC_PORT", "6334"))
 QDRANT_API_KEY = os.environ.get("QDRANT_API_KEY", None)
+
+# Cloud Qdrant (when USE_CLOUD_QDRANT=true)
+QDRANT_CLOUD_URL = os.environ.get("QDRANT_CLOUD_URL")
+QDRANT_CLOUD_API_KEY = os.environ.get("QDRANT_CLOUD_API_KEY")
 
 # Collection names (replacing index names)
 LEGISLATION_COLLECTION = "legislation"
