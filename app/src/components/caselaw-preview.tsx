@@ -7,6 +7,7 @@ import {
   getCitationFormatLabel,
   type CitationFormat,
 } from "@/lib/citations"
+import { SourceGovUkLink } from "@/components/source-gov-uk-link"
 import {
   Sheet,
   SheetContent,
@@ -331,15 +332,11 @@ export function CaselawPreview({ open, onOpenChange, caselaw }: CaselawPreviewPr
                 </Card>
 
                 {/* External Link */}
-                <a
+                <SourceGovUkLink
                   href={caselaw.id}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 w-full px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors text-sm font-medium"
-                >
-                  View full judgment on caselaw.nationalarchives.gov.uk
-                  <ExternalLink className="h-4 w-4" />
-                </a>
+                  source="caselaw"
+                  variant="primary"
+                />
               </div>
             </ScrollArea>
           </TabsContent>

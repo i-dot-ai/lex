@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { API_CONFIG } from "@/lib/config"
 import DOMPurify from 'isomorphic-dompurify'
+import { SourceGovUkLink } from "@/components/source-gov-uk-link"
 import {
   Sheet,
   SheetContent,
@@ -35,6 +36,9 @@ import {
   X,
   Star,
   Target,
+  Eye,
+  ScrollText,
+  Search,
 } from "lucide-react"
 import { StatusBadge, ExtentBadges, LegislationTypeBadge } from "./badges"
 import { AddToProjectButton } from "./add-to-project-button"
@@ -94,6 +98,7 @@ export function LegislationPreview({ open, onOpenChange, legislation, relevantSe
   const [activeSection, setActiveSection] = useState<string | null>(null)
   const [currentRelevantIndex, setCurrentRelevantIndex] = useState(0)
   const [showRelevanceNav, setShowRelevanceNav] = useState(true)
+  const [searchExpanded, setSearchExpanded] = useState(false)
   const contentRef = useRef<HTMLDivElement>(null)
 
   // Handle citation copy
@@ -112,6 +117,22 @@ export function LegislationPreview({ open, onOpenChange, legislation, relevantSe
     const success = await copyToClipboard(citation)
     if (success) {
       setCopiedFormat(format)
+      setTimeout(() => setCopiedFormat(null), 2000)
+    }
+  }
+
+  // Handle copy full text
+  const handleCopyFullText = async () => {
+    if (!htmlContent) return
+
+    // Strip HTML tags and get plain text
+    const tempDiv = document.createElement('div')
+    tempDiv.innerHTML = htmlContent
+    const plainText = tempDiv.textContent || tempDiv.innerText || ''
+
+    const success = await copyToClipboard(plainText)
+    if (success) {
+      setCopiedFormat('fulltext' as CitationFormat)
       setTimeout(() => setCopiedFormat(null), 2000)
     }
   }
@@ -191,6 +212,12 @@ export function LegislationPreview({ open, onOpenChange, legislation, relevantSe
       }
 
       setActiveSection(normalizedNumber)
+
+      // Scroll TOC to show this item
+      const tocItem = document.querySelector(`[data-section-number="${normalizedNumber}"]`)
+      if (tocItem) {
+        tocItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+      }
     } else {
       console.warn(`Could not find element for section ${sectionNumber} (type: ${provisionType})`)
     }
@@ -308,16 +335,14 @@ export function LegislationPreview({ open, onOpenChange, legislation, relevantSe
 
   // Auto-scroll to top relevant section when opening from search with relevant sections
   useEffect(() => {
-    if (!relevantSections || relevantSections.length === 0) return
+    // Only auto-switch when dialog first opens (not when user manually changes tabs)
+    if (!open || !relevantSections || relevantSections.length === 0) return
 
-    // Switch to fulltext tab if we're on overview
-    if (activeTab === 'overview') {
-      setActiveTab('fulltext')
-      return
-    }
+    // Switch to fulltext tab automatically on open
+    setActiveTab('fulltext')
 
-    // Only scroll if we have HTML content and we're on fulltext tab
-    if (!htmlContent || activeTab !== 'fulltext') return
+    // Only scroll if we have HTML content
+    if (!htmlContent) return
 
     // Small delay to ensure DOM is ready
     const timer = setTimeout(() => {
@@ -328,7 +353,9 @@ export function LegislationPreview({ open, onOpenChange, legislation, relevantSe
     }, 150)
 
     return () => clearTimeout(timer)
-  }, [relevantSections, htmlContent, activeTab])
+    // Only run when dialog opens or relevant sections change, NOT when activeTab changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, relevantSections, htmlContent])
 
   // Reset relevance navigation when dialog closes
   useEffect(() => {
@@ -404,47 +431,21 @@ export function LegislationPreview({ open, onOpenChange, legislation, relevantSe
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-4xl overflow-hidden flex flex-col p-6">
-        <SheetHeader>
-          <SheetTitle className="text-lg leading-tight pr-8">
-            {legislation.title}
-          </SheetTitle>
-          <SheetDescription className="flex flex-wrap gap-2 mt-2">
-            <LegislationTypeBadge
-              type={legislation.type}
-              year={legislation.year}
-              number={legislation.number}
-            />
-            <StatusBadge status={legislation.status} />
-            <ExtentBadges extent={legislation.extent} />
-          </SheetDescription>
-          <div className="mt-3 flex gap-2">
-            <AddToProjectButton
-              document={{
-                documentId: legislation.uri,
-                type: 'legislation',
-                addedBy: 'user',
-                notes: '',
-                tags: [],
-                metadata: {
-                  title: legislation.title,
-                  year: legislation.year,
-                  legislationType: legislation.type,
-                }
-              }}
-              variant="outline"
-              size="sm"
-            />
+      <SheetContent className="w-full sm:max-w-4xl overflow-hidden flex flex-col p-4 gap-0">
+        <SheetHeader className="space-y-2 p-0 pb-3">
+          <div className="flex items-start gap-2 pr-8">
+            <SheetTitle className="text-xl font-bold leading-tight flex-1">
+              {legislation.title}
+            </SheetTitle>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-2">
+                <button className="shrink-0 opacity-70 hover:opacity-100 transition-opacity">
                   {copiedFormat ? (
                     <Check className="h-4 w-4" />
                   ) : (
                     <Copy className="h-4 w-4" />
                   )}
-                  Copy Citation
-                </Button>
+                </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 {(['oscola', 'bluebook', 'plain', 'markdown'] as CitationFormat[]).map((format) => (
@@ -457,20 +458,68 @@ export function LegislationPreview({ open, onOpenChange, legislation, relevantSe
                     {getCitationFormatLabel(format)}
                   </DropdownMenuItem>
                 ))}
+                <DropdownMenuItem
+                  onClick={handleCopyFullText}
+                  disabled={!htmlContent}
+                  className={copiedFormat === 'fulltext' ? "bg-accent" : ""}
+                >
+                  {copiedFormat === 'fulltext' && <Check className="h-4 w-4 mr-2" />}
+                  Full Text
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+          </div>
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <SheetDescription className="flex flex-wrap items-center gap-1.5">
+              <LegislationTypeBadge
+                type={legislation.type}
+                year={legislation.year}
+                number={legislation.number}
+              />
+              <StatusBadge status={legislation.status} />
+              <ExtentBadges extent={legislation.extent} />
+            </SheetDescription>
+            <div className="flex gap-1.5 flex-wrap">
+              <AddToProjectButton
+                document={{
+                  documentId: legislation.uri,
+                  type: 'legislation',
+                  addedBy: 'user',
+                  notes: '',
+                  tags: [],
+                  metadata: {
+                    title: legislation.title,
+                    year: legislation.year,
+                    legislationType: legislation.type,
+                  }
+                }}
+                variant="outline"
+                size="sm"
+              />
+              <SourceGovUkLink
+                href={legislation.uri}
+                source="legislation"
+                variant="button"
+              />
+            </div>
           </div>
         </SheetHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
-          <TabsList className="grid w-full grid-cols-2 mb-4">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="fulltext">Full Text</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 h-9 items-center rounded-md border bg-background p-1 mb-2">
+            <TabsTrigger value="overview" className="text-sm data-[state=active]:bg-muted data-[state=active]:border data-[state=active]:shadow-sm transition-all gap-2 h-full py-0">
+              <Eye className="h-4 w-4" />
+              Overview
+            </TabsTrigger>
+            <TabsTrigger value="fulltext" className="text-sm data-[state=active]:bg-muted data-[state=active]:border data-[state=active]:shadow-sm transition-all gap-2 h-full py-0">
+              <ScrollText className="h-4 w-4" />
+              Full Text
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="flex-1 overflow-hidden mt-0">
             <ScrollArea className="h-full pr-4">
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {/* Description */}
                 {legislation.description && (
                   <Card className="gap-2">
@@ -585,88 +634,97 @@ export function LegislationPreview({ open, onOpenChange, legislation, relevantSe
                 </Card>
 
                 {/* External Link */}
-                <a
+                <SourceGovUkLink
                   href={legislation.uri}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 w-full px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors text-sm font-medium"
-                >
-                  View full text on legislation.gov.uk
-                  <ExternalLink className="h-4 w-4" />
-                </a>
+                  source="legislation"
+                  variant="primary"
+                />
               </div>
             </ScrollArea>
           </TabsContent>
 
           <TabsContent value="fulltext" className="flex-1 overflow-hidden mt-0 flex flex-col">
-            {/* Search and controls */}
-            <div className="space-y-2 mb-4 p-1">
-              <div className="flex gap-2 items-center">
-                <div className="flex-1">
-                  <TextSearch containerRef={contentRef} placeholder="Search within text..." />
+            {/* Relevance Navigator */}
+            {relevantSections && relevantSections.length > 0 && showRelevanceNav && (
+              <div className="flex items-center gap-2 px-2.5 py-1.5 mb-2 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-md">
+                <Target className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
+                <div className="flex-1 text-sm text-amber-900 dark:text-amber-100">
+                  <span className="font-medium">{relevantSections.length} relevant section{relevantSections.length !== 1 ? 's' : ''} found</span>
+                  <span className="text-amber-700 dark:text-amber-300 ml-1">• Viewing {currentRelevantIndex + 1} of {relevantSections.length}</span>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowToc(!showToc)}
-                  className="shrink-0 h-9"
-                >
-                  <List className="h-4 w-4 mr-2" />
-                  {showToc ? 'Hide' : 'Show'} TOC
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => window.open(legislation.uri, '_blank')}
-                  className="shrink-0 h-9"
-                >
-                  <ExternalLink className="h-4 w-4 mr-1" />
-                  Open
-                </Button>
+                <div className="flex gap-0.5">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={goToPrevRelevant}
+                    className="h-6 w-6 p-0 text-amber-700 dark:text-amber-300 hover:text-amber-900 dark:hover:text-amber-100"
+                    disabled={relevantSections.length <= 1}
+                  >
+                    <ChevronUp className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={goToNextRelevant}
+                    className="h-6 w-6 p-0 text-amber-700 dark:text-amber-300 hover:text-amber-900 dark:hover:text-amber-100"
+                    disabled={relevantSections.length <= 1}
+                  >
+                    <ChevronDown className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowRelevanceNav(false)}
+                    className="h-6 w-6 p-0 text-amber-700 dark:text-amber-300 hover:text-amber-900 dark:hover:text-amber-100"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
               </div>
+            )}
 
-              {/* Relevance Navigator */}
-              {relevantSections && relevantSections.length > 0 && showRelevanceNav && (
-                <div className="flex items-center gap-3 px-3 py-2 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-md">
-                  <Target className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
-                  <div className="flex-1 text-sm text-amber-900 dark:text-amber-100">
-                    <span className="font-medium">{relevantSections.length} relevant section{relevantSections.length !== 1 ? 's' : ''} found</span>
-                    <span className="text-amber-700 dark:text-amber-300 ml-1">• Viewing {currentRelevantIndex + 1} of {relevantSections.length}</span>
-                  </div>
-                  <div className="flex gap-1">
+            {/* Content with TOC */}
+            <div className="flex-1 overflow-hidden flex gap-5 relative">
+              {/* Floating TOC Toggle Button */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowToc(!showToc)}
+                className={`absolute top-2 z-10 h-8 w-8 p-0 backdrop-blur-sm bg-background/80 hover:bg-background shadow-md transition-all duration-300 ${
+                  showToc && sections && sections.length > 0 ? 'left-[242px]' : 'left-2'
+                }`}
+                title={showToc ? 'Hide Contents' : 'Show Contents'}
+              >
+                <List className="h-4 w-4" />
+              </Button>
+
+              {/* Floating Search Button/Panel */}
+              <div className="absolute top-2 right-2 z-10">
+                {searchExpanded ? (
+                  <div className="flex items-center gap-2 backdrop-blur-sm bg-background/95 rounded-md shadow-lg border p-1 animate-in slide-in-from-right-5 duration-200">
+                    <TextSearch containerRef={contentRef} placeholder="Search..." />
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={goToPrevRelevant}
-                      className="h-7 w-7 p-0 text-amber-700 dark:text-amber-300 hover:text-amber-900 dark:hover:text-amber-100"
-                      disabled={relevantSections.length <= 1}
-                    >
-                      <ChevronUp className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={goToNextRelevant}
-                      className="h-7 w-7 p-0 text-amber-700 dark:text-amber-300 hover:text-amber-900 dark:hover:text-amber-100"
-                      disabled={relevantSections.length <= 1}
-                    >
-                      <ChevronDown className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setShowRelevanceNav(false)}
-                      className="h-7 w-7 p-0 text-amber-700 dark:text-amber-300 hover:text-amber-900 dark:hover:text-amber-100"
+                      onClick={() => setSearchExpanded(false)}
+                      className="h-8 w-8 p-0 shrink-0"
                     >
                       <X className="h-4 w-4" />
                     </Button>
                   </div>
-                </div>
-              )}
-            </div>
+                ) : (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSearchExpanded(true)}
+                    className="h-8 w-8 p-0 backdrop-blur-sm bg-background/80 hover:bg-background shadow-md"
+                    title="Search within text"
+                  >
+                    <Search className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
 
-            {/* Content with TOC */}
-            <div className="flex-1 overflow-hidden flex gap-4">
               {/* Table of Contents */}
               <div
                 className={`shrink-0 border-r pr-4 transition-all duration-300 ease-in-out overflow-hidden ${
@@ -693,6 +751,7 @@ export function LegislationPreview({ open, onOpenChange, legislation, relevantSe
                         return (
                           <button
                             key={section.id}
+                            data-section-number={normalizedNumber}
                             onClick={() => scrollToSection(sectionNumber, section.provision_type)}
                             className={`
                               w-full text-left text-xs py-1.5 px-2 rounded transition-colors
@@ -718,7 +777,7 @@ export function LegislationPreview({ open, onOpenChange, legislation, relevantSe
                                   ) : (
                                     <Star className="h-3 w-3 fill-amber-500 text-amber-500" />
                                   )}
-                                  <span className="text-[10px] font-medium text-amber-700 dark:text-amber-400">
+                                  <span className="text-xs font-medium text-amber-700 dark:text-amber-400">
                                     {Math.round(relevance.score * 100)}%
                                   </span>
                                 </div>
@@ -733,7 +792,7 @@ export function LegislationPreview({ open, onOpenChange, legislation, relevantSe
               </div>
 
               {/* Main content */}
-              <ScrollArea className="flex-1">
+              <ScrollArea className={`flex-1 transition-all duration-300 ${showToc && sections && sections.length > 0 ? '' : 'pl-12'}`}>
                 {htmlLoading ? (
                   <div className="space-y-4 p-4">
                     <Skeleton className="h-8 w-3/4" />
@@ -746,10 +805,14 @@ export function LegislationPreview({ open, onOpenChange, legislation, relevantSe
                     ref={contentRef}
                     className="legislation-content pr-4"
                     dangerouslySetInnerHTML={{
-                      __html: DOMPurify.sanitize(htmlContent, {
-                        ADD_TAGS: ['img'],
-                        ADD_ATTR: ['src', 'alt', 'width', 'height', 'class']
-                      })
+                      __html: DOMPurify.sanitize(
+                        // Fix relative image URLs to point to legislation.gov.uk
+                        htmlContent.replace(/src="\/images\//g, 'src="https://www.legislation.gov.uk/images/'),
+                        {
+                          ADD_TAGS: ['img'],
+                          ADD_ATTR: ['src', 'alt', 'width', 'height', 'class']
+                        }
+                      )
                     }}
                   />
                 ) : (
@@ -757,14 +820,13 @@ export function LegislationPreview({ open, onOpenChange, legislation, relevantSe
                     <AlertCircle className="h-4 w-4" />
                     <AlertDescription>
                       Failed to load legislation content. Please try again or{" "}
-                      <a
+                      <SourceGovUkLink
                         href={legislation.uri}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="underline hover:text-primary"
+                        source="legislation"
+                        variant="inline"
                       >
-                        view on legislation.gov.uk
-                      </a>
+                        view on <span className="font-semibold">legislation</span>.gov.uk
+                      </SourceGovUkLink>
                     </AlertDescription>
                   </Alert>
                 )}
