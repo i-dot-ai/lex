@@ -13,10 +13,10 @@ services:
     deploy:
       resources:
         limits:
-          memory: 8G
+          memory: 4G
           cpus: '2'
         reservations:
-          memory: 4G
+          memory: 2G
           cpus: '1'
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:6333/healthz"]
@@ -34,8 +34,13 @@ services:
     env_file:
       - .env
     environment:
+      # Local Qdrant (when USE_CLOUD_QDRANT=false)
       - QDRANT_HOST=http://qdrant:6333
       - QDRANT_GRPC_PORT=6334
+      # Cloud Qdrant settings from .env (USE_CLOUD_QDRANT, QDRANT_CLOUD_URL, QDRANT_CLOUD_API_KEY)
+      - USE_CLOUD_QDRANT=${USE_CLOUD_QDRANT:-false}
+      - QDRANT_CLOUD_URL=${QDRANT_CLOUD_URL}
+      - QDRANT_CLOUD_API_KEY=${QDRANT_CLOUD_API_KEY}
       - ENVIRONMENT=${ENVIRONMENT:-localhost}
     volumes:
       - ./data:/app/data
@@ -63,12 +68,12 @@ services:
     # Keep container running for executing commands
     tty: true
     stdin_open: true
-    # Add memory limit to prevent OOM issues
+    # Increased memory for parallel embedding generation (50 workers)
     deploy:
       resources:
         limits:
-          memory: 2G
+          memory: 8G
         reservations:
-          memory: 1G
+          memory: 4G
     depends_on:
       - qdrant
