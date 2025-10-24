@@ -172,6 +172,17 @@
     display: none;
   }
 
+  /* Crown/Crest - Royal coat of arms */
+  .legislation-content .crest {
+    text-align: center !important;
+    margin: 1em 0 !important;
+  }
+
+  .legislation-content .crest img {
+    display: inline-block !important;
+    margin: 0 auto !important;
+  }
+
   /* Header/Banner elements */
   .legislation-content .block.banner {
     text-align: center;
