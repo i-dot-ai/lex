@@ -208,24 +208,74 @@
     line-height: 1.4;
   }
 
+  /* Dates section - Official legislation.gov.uk styling */
+
+  /* Legacy format (LegDate classes) */
+  .legislation-content div.LegDate {
+    clear: both !important;
+    text-align: center !important;
+    width: 70% !important;
+    margin: 0 auto !important;
+    padding-top: 0 !important;
+  }
+
+  .legislation-content .LegDateText {
+    float: left !important;
+    margin-top: 0 !important;
+    width: 58% !important;
+    text-align: left !important;
+    font-style: italic !important;
+    margin-bottom: 0 !important;
+    padding-bottom: 0.5em !important;
+  }
+
+  .legislation-content .LegDateText em {
+    font-style: normal;
+  }
+
+  .legislation-content .LegDateDate {
+    float: right !important;
+    margin-top: 0 !important;
+    width: 41% !important;
+    text-align: right !important;
+    font-style: italic !important;
+    margin-bottom: 0 !important;
+  }
+
+  /* Modern HTML5 format (block.madeDate etc.) */
   .legislation-content .container.dates {
-    margin-bottom: 2em;
+    clear: both !important;
+    text-align: center !important;
+    width: 70% !important;
+    margin: 0 auto !important;
+    margin-bottom: 2em !important;
   }
 
   .legislation-content .block.madeDate,
+  .legislation-content .block.laidDate,
   .legislation-content .block.commenceDate {
-    margin-top: 0.5em;
+    clear: both !important;
+    margin-bottom: 0.5em !important;
   }
 
   .legislation-content .block.madeDate .span,
+  .legislation-content .block.laidDate .span,
   .legislation-content .block.commenceDate .span {
-    font-weight: normal;
+    float: left !important;
+    width: 58% !important;
+    text-align: left !important;
+    font-style: italic !important;
+    font-weight: normal !important;
   }
 
   .legislation-content .block.madeDate time,
+  .legislation-content .block.laidDate time,
   .legislation-content .block.commenceDate time {
-    font-weight: bold;
-    margin-left: 0.5ch;
+    float: right !important;
+    width: 41% !important;
+    text-align: right !important;
+    font-style: italic !important;
+    font-weight: normal !important;
   }
 
   /* Basic elements */
