@@ -49,12 +49,6 @@ const data = {
       isActive: false,
     },
     {
-      title: "Settings",
-      url: "/settings",
-      icon: Settings,
-      isActive: false,
-    },
-    {
       title: "Search",
       url: "#",
       icon: Search,
@@ -85,13 +79,20 @@ const data = {
         },
       ],
     },
+    {
+      title: "Settings",
+      url: "/settings",
+      icon: Settings,
+      isActive: false,
+    },
   ],
   projects: [],
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const platformItems = data.navMain.filter(item => item.title !== "Documentation")
+  const platformItems = data.navMain.filter(item => !["Documentation", "Settings"].includes(item.title))
   const documentationItems = data.navMain.filter(item => item.title === "Documentation")
+  const settingsItems = data.navMain.filter(item => item.title === "Settings")
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -102,6 +103,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarGroup>
           <NavMain items={platformItems} />
           <NavMain items={documentationItems} />
+          <NavMain items={settingsItems} />
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
