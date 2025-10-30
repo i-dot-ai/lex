@@ -30,7 +30,6 @@ import { ExternalLink, Copy, Check, Link2 } from "lucide-react"
 import { useQuery } from "@tanstack/react-query"
 import { API_CONFIG } from "@/lib/config"
 import { CourtBadge, CitationBadge } from "./badges"
-import { AddToProjectButton } from "./add-to-project-button"
 
 interface CaselawPreviewProps {
   open: boolean
@@ -138,23 +137,6 @@ export function CaselawPreview({ open, onOpenChange, caselaw }: CaselawPreviewPr
             />
           </SheetDescription>
           <div className="mt-3 flex gap-2">
-            <AddToProjectButton
-              document={{
-                documentId: caselaw.id,
-                type: 'caselaw',
-                addedBy: 'user',
-                notes: '',
-                tags: [],
-                metadata: {
-                  title: caselaw.name,
-                  year: caselaw.year,
-                  court: caselaw.court,
-                  citation: caselaw.cite_as,
-                }
-              }}
-              variant="outline"
-              size="sm"
-            />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="gap-2">

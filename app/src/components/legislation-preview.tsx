@@ -41,7 +41,6 @@ import {
   Search,
 } from "lucide-react"
 import { StatusBadge, ExtentBadges, LegislationTypeBadge } from "./badges"
-import { AddToProjectButton } from "./add-to-project-button"
 import { TextSearch } from "./text-search"
 import {
   formatLegislationCitation,
@@ -496,22 +495,6 @@ export function LegislationPreview({ open, onOpenChange, legislation, relevantSe
               <ExtentBadges extent={legislation.extent} />
             </SheetDescription>
             <div className="flex gap-1.5 flex-wrap">
-              <AddToProjectButton
-                document={{
-                  documentId: legislation.uri,
-                  type: 'legislation',
-                  addedBy: 'user',
-                  notes: '',
-                  tags: [],
-                  metadata: {
-                    title: legislation.title,
-                    year: legislation.year,
-                    legislationType: legislation.type,
-                  }
-                }}
-                variant="outline"
-                size="sm"
-              />
               <SourceGovUkLink
                 href={legislation.uri}
                 source="legislation"
