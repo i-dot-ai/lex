@@ -29,7 +29,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
-import { Search, Calendar, Building2, Gavel, ExternalLink, AlertCircle, ArrowUpDown, Filter, X } from "lucide-react"
+import { Search, Calendar, Building2, Gavel, Scale, ExternalLink, AlertCircle, ArrowUpDown, Filter, X } from "lucide-react"
 import { ResultSkeletonList } from "@/components/result-skeleton"
 import { EmptyState } from "@/components/empty-state"
 import { CourtBadge, CitationBadge } from "@/components/badges"
