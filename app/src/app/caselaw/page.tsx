@@ -30,7 +30,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar"
 import { Search, Calendar, Building2, Gavel, Scale, ExternalLink, AlertCircle, ArrowUpDown, Filter, X } from "lucide-react"
-import { ResultSkeletonList } from "@/components/result-skeleton"
+import { ResultSkeletonList, ResultsSectionSkeleton } from "@/components/result-skeleton"
 import { EmptyState } from "@/components/empty-state"
 import { CourtBadge, CitationBadge } from "@/components/badges"
 import { CaselawPreview } from "@/components/caselaw-preview"
@@ -254,7 +254,7 @@ export default function CaselawPage() {
           </div>
 
           {/* Loading State */}
-          {search.isLoading && <ResultSkeletonList count={5} />}
+          {search.isLoading && <ResultsSectionSkeleton count={5} />}
 
           {/* Empty State */}
           {search.showEmptyState && (

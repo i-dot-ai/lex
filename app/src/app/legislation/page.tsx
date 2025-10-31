@@ -30,7 +30,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar"
 import { Search, FileText, Calendar, ExternalLink, AlertCircle, ArrowUpDown, Filter, X, BookOpen, ScrollText, Landmark } from "lucide-react"
-import { ResultSkeletonList } from "@/components/result-skeleton"
+import { ResultSkeletonList, ResultsSectionSkeleton } from "@/components/result-skeleton"
 import { EmptyState } from "@/components/empty-state"
 import { StatusBadge, ExtentBadges, LegislationTypeBadge } from "@/components/badges"
 import { LegislationPreview } from "@/components/legislation-preview"
@@ -259,7 +259,7 @@ export default function LegislationPage() {
           </div>
 
           {/* Loading State */}
-          {search.isLoading && <ResultSkeletonList count={5} />}
+          {search.isLoading && <ResultsSectionSkeleton count={5} />}
 
           {/* Empty State */}
           {search.showEmptyState && (
