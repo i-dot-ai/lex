@@ -50,6 +50,7 @@ export function useDocumentSearch<TResult, TFilter>(
 
   // State
   const [query, setQuery] = useState(searchParams.get('q') || '')
+  const [debouncedQuery, setDebouncedQuery] = useState(searchParams.get('q') || '')
   const [yearFrom, setYearFrom] = useState(searchParams.get('year_from') || '')
   const [yearTo, setYearTo] = useState(searchParams.get('year_to') || config.defaultYearTo)
   const [filters, setFilters] = useState<TFilter>(() => config.parseFiltersFromUrl(searchParams))
@@ -59,6 +60,15 @@ export function useDocumentSearch<TResult, TFilter>(
   const [previewOpen, setPreviewOpen] = useState(false)
 
   const currentPage = parseInt(searchParams.get('page') || '1')
+
+  // Debounce search query to reduce API calls
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedQuery(query)
+    }, 400) // 400ms debounce delay
+
+    return () => clearTimeout(timer)
+  }, [query])
 
   // Keyboard shortcut: Cmd/Ctrl+K to focus search
   useEffect(() => {
@@ -75,12 +85,12 @@ export function useDocumentSearch<TResult, TFilter>(
 
   // TanStack Query for fetching results
   const { data: response, isLoading, error } = useQuery({
-    queryKey: [config.type, query, filters, yearFrom, yearTo, currentPage],
-    queryFn: async () => {
-      if (!query) return null
+    queryKey: [config.type, debouncedQuery, filters, yearFrom, yearTo, currentPage],
+    queryFn: async ({ signal }) => {
+      if (!debouncedQuery) return null
 
       const requestBody = config.buildApiRequestBody({
-        query,
+        query: debouncedQuery,
         filters,
         yearFrom,
         yearTo,
@@ -92,6 +102,7 @@ export function useDocumentSearch<TResult, TFilter>(
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody),
+        signal, // Enable request cancellation
       })
 
       if (!res.ok) {
@@ -100,7 +111,7 @@ export function useDocumentSearch<TResult, TFilter>(
 
       return res.json()
     },
-    enabled: !!query,
+    enabled: !!debouncedQuery && debouncedQuery.length >= 3, // Only search with 3+ characters
   })
 
   const results = response ? config.getResults(response) : []
@@ -218,7 +229,7 @@ export function useDocumentSearch<TResult, TFilter>(
 
   const totalPages = Math.ceil(total / PAGINATION.DEFAULT_PAGE_SIZE)
   const hasResults = results.length > 0
-  const showEmptyState = !isLoading && !hasResults && !!query
+  const showEmptyState = !isLoading && !hasResults && !!debouncedQuery && debouncedQuery.length >= 3
 
   return {
     // State
