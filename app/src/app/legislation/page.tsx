@@ -38,6 +38,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { SearchHistoryDropdown } from "@/components/search-history-dropdown"
 import { SearchPagination } from "@/components/search-pagination"
 import { useDocumentSearch } from "@/hooks/use-document-search"
+import { useLegislationPrefetch } from "@/hooks/use-legislation-prefetch"
 import { YearRangePicker } from "@/components/ui/year-range-picker"
 
 interface LegislationSection {
@@ -90,6 +91,7 @@ const legislationTypeOptions = [
 
 export default function LegislationPage() {
   const router = useRouter()
+  const { prefetchLegislation } = useLegislationPrefetch()
 
   const search = useDocumentSearch<LegislationResult, string[]>({
     type: 'legislation',
@@ -335,6 +337,7 @@ export default function LegislationPage() {
                     key={result.id}
                     className="hover:shadow-md transition-shadow cursor-pointer"
                     onClick={() => search.openPreview(result)}
+                    onMouseEnter={() => prefetchLegislation(result)}
                   >
                     <CardHeader className="pb-3">
                       <div className="flex items-start justify-between gap-4 mb-2">
