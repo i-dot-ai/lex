@@ -20,32 +20,53 @@ export function useLegislationPrefetch() {
   const prefetchLegislation = useCallback((legislation: LegislationResult) => {
     // Prefetch sections data
     queryClient.prefetchQuery({
-      queryKey: ['legislation-sections', legislation.uri],
+      queryKey: ['legislation-sections', legislation.id],
       queryFn: async () => {
-        const res = await fetch(`${API_CONFIG.baseUrl}/legislation/sections`, {
+        const response = await fetch(`${API_CONFIG.baseUrl}/legislation/section/lookup`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ uri: legislation.uri }),
+          body: JSON.stringify({
+            legislation_id: legislation.id,
+            limit: 100
+          })
         })
-        if (!res.ok) throw new Error('Failed to fetch sections')
-        return res.json()
+        if (!response.ok) throw new Error('Failed to fetch sections')
+        return response.json()
       },
       staleTime: 5 * 60 * 1000, // 5 minutes
     })
 
+    // Build legislation path for HTML
+    const typeMap = {
+      'ukpga': 'ukpga',
+      'uksi': 'uksi',
+      'asp': 'asp',
+      'asc': 'asc',
+      'anaw': 'anaw',
+      'mnia': 'nia',
+      'ukci': 'ukci',
+      'ukla': 'ukla',
+      'ukcm': 'ukcm',
+      'uksro': 'uksro',
+      'nisro': 'nisro',
+      'wsi': 'wsi',
+      'ssi': 'ssi',
+      'nisi': 'nisi',
+      'nisr': 'nisr',
+    }
+    const legislationType = typeMap[legislation.type as keyof typeof typeMap] || legislation.type
+    const legislationPath = `${legislationType}/${legislation.year}/${legislation.number}`
+
     // Prefetch HTML content
     queryClient.prefetchQuery({
-      queryKey: ['legislation-html', legislation.uri],
+      queryKey: ['legislation-html', legislation.id],
       queryFn: async () => {
-        const res = await fetch(`${API_CONFIG.baseUrl}/legislation/html`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ uri: legislation.uri }),
-        })
-        if (!res.ok) throw new Error('Failed to fetch HTML')
-        return res.json()
+        const response = await fetch(`${API_CONFIG.baseUrl}/legislation/proxy/${legislationPath}/data.html`)
+        if (!response.ok) throw new Error('Failed to fetch HTML')
+        return response.text()
       },
-      staleTime: 10 * 60 * 1000, // 10 minutes
+      staleTime: 24 * 60 * 60 * 1000, // 24 hours - legislation is immutable
+      gcTime: 24 * 60 * 60 * 1000,    // 24 hours - keep in memory
     })
   }, [queryClient])
 
