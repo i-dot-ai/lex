@@ -37,6 +37,7 @@ import { LegislationPreview } from "@/components/legislation-preview"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { SearchHistoryDropdown } from "@/components/search-history-dropdown"
 import { SearchPagination } from "@/components/search-pagination"
+import { SearchSuggestions } from "@/components/search-suggestions"
 import { useDocumentSearch } from "@/hooks/use-document-search"
 import { useLegislationPrefetch } from "@/hooks/use-legislation-prefetch"
 import { YearRangePicker } from "@/components/ui/year-range-picker"
@@ -257,6 +258,19 @@ export default function LegislationPage() {
                 </Alert>
               )}
           </div>
+
+          {/* Search Suggestions - Show when no query entered */}
+          {!search.query && !search.isLoading && (
+            <SearchSuggestions
+              searchType="legislation"
+              onSuggestionClick={(suggestion) => {
+                search.setQuery(suggestion)
+                // Auto-trigger search after setting query
+                setTimeout(() => search.handleSearch(), 100)
+              }}
+              className="mt-8"
+            />
+          )}
 
           {/* Loading State */}
           {search.isLoading && <ResultsSectionSkeleton count={5} />}
