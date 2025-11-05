@@ -132,7 +132,7 @@ async def get_sections_by_id(input: LegislationSectionLookup):
         sections = await get_legislation_sections(input)
         if not sections:
             raise HTTPException(
-                status_code=404, detail=f"No sections found for legislation title: {input.title}"
+                status_code=404, detail=f"No sections found for legislation ID: {input.legislation_id}"
             )
         return sections
     except HTTPException:
