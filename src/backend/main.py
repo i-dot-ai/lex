@@ -3,7 +3,7 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from fastapi_mcp import FastApiMCP
+from fastmcp import FastMCP
 
 from backend.amendment.router import router as amendment_router
 from backend.caselaw.router import router as caselaw_router
@@ -17,14 +17,16 @@ logging.basicConfig(
 # Ensure lex.core.embeddings logger shows INFO logs
 logging.getLogger("lex.core.embeddings").setLevel(logging.INFO)
 
-app = FastAPI(
+# First create the base FastAPI app with routes
+base_app = FastAPI(
     title="Lex API",
     description="API for accessing Lex's legislation and caselaw search capabilities",
     version="0.1.0",
+    redirect_slashes=False,
 )
 
 # Configure CORS
-app.add_middleware(
+base_app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
     allow_credentials=True,
@@ -33,18 +35,18 @@ app.add_middleware(
 )
 
 # Include routers
-app.include_router(legislation_router)
-app.include_router(caselaw_router)
-app.include_router(explanatory_note_router)
-app.include_router(amendment_router)
+base_app.include_router(legislation_router)
+base_app.include_router(caselaw_router)
+base_app.include_router(explanatory_note_router)
+base_app.include_router(amendment_router)
 
 
-@app.get("/")
+@base_app.get("/")
 def read_root():
     return {"Hello": "World"}
 
 
-@app.get("/healthcheck")
+@base_app.get("/healthcheck")
 async def health_check():
     """Health check with Qdrant connection verification."""
     try:
@@ -74,8 +76,27 @@ async def health_check():
         return JSONResponse(status_code=503, content={"status": "unhealthy", "error": str(e)})
 
 
-mcp = FastApiMCP(app)
-mcp.mount_http()  # Streamable HTTP transport (v0.4.0+ recommended)
+# Enable new OpenAPI parser for better schema handling
+import os
+os.environ["FASTMCP_EXPERIMENTAL_ENABLE_NEW_OPENAPI_PARSER"] = "true"
+
+# Create MCP server from FastAPI app
+mcp = FastMCP.from_fastapi(app=base_app, name="Lex Research API")
+
+# Create the MCP ASGI app using streamable HTTP for better compatibility
+mcp_app = mcp.streamable_http_app(path='/mcp')
+
+# Create combined app with both API and MCP routes
+app = FastAPI(
+    title="Lex API with MCP",
+    description="API for accessing Lex's legislation and caselaw search capabilities with MCP support",
+    version="0.1.0",
+    routes=[
+        *base_app.routes,  # Original API routes
+        *mcp_app.routes,   # MCP routes
+    ],
+    lifespan=mcp_app.lifespan,
+)
 
 if __name__ == "__main__":
     uvicorn.run("backend.main:app", host="0.0.0.0", port=8000, reload=True)
