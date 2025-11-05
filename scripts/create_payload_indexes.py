@@ -31,9 +31,9 @@ from lex.legislation.qdrant_schema import get_legislation_schema, get_legislatio
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Initialize Qdrant client
-qdrant_url = os.getenv("QDRANT_URL", "http://localhost:6333")
-qdrant_client = QdrantClient(url=qdrant_url)
+# Initialize Qdrant client using the same method as the main application
+from lex.core.qdrant_client import get_qdrant_client
+qdrant_client = get_qdrant_client()
 
 
 def create_index(collection_name: str, field_name: str, field_type: PayloadSchemaType):
@@ -105,7 +105,6 @@ def main():
     """Main execution."""
     logger.info("Qdrant Payload Index Creator")
     logger.info("=" * 80)
-    logger.info(f"Qdrant URL: {qdrant_url}")
     logger.info("")
 
     apply_payload_indexes()
