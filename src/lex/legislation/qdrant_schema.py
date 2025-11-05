@@ -88,5 +88,6 @@ def get_legislation_section_schema():
             "legislation_id": PayloadSchemaType.KEYWORD,  # Filter by parent legislation
             "legislation_type": PayloadSchemaType.KEYWORD,  # Filter by legislation type
             "legislation_year": PayloadSchemaType.INTEGER,  # Range queries (year_from/year_to)
+            "provision_type": PayloadSchemaType.KEYWORD,  # Filter by section/schedule type
         },
     }

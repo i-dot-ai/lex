@@ -43,6 +43,8 @@ def get_caselaw_schema():
             "court": PayloadSchemaType.KEYWORD,  # Filter by court
             "division": PayloadSchemaType.KEYWORD,  # Filter by division
             "year": PayloadSchemaType.INTEGER,  # Range queries (year_from/year_to)
+            "legislation_references": PayloadSchemaType.KEYWORD,  # Filter by legislation references
+            "caselaw_references": PayloadSchemaType.KEYWORD,  # Filter by caselaw references
         },
     }
 
