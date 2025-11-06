@@ -77,6 +77,20 @@ async def search_caselaw_reference_endpoint(search: CaselawReferenceSearch):
         raise HTTPException(status_code=500, detail=error_detail)
 
 
+@router.post(
+    "/reference",
+    response_model=List[Caselaw],
+    operation_id="search_caselaw_by_reference",
+)
+async def search_caselaw_reference_alias(search: CaselawReferenceSearch):
+    """
+    Search for cases that reference a specific case or piece of legislation.
+    
+    Alias for /reference/search for MCP compatibility.
+    """
+    return await search_caselaw_reference_endpoint(search)
+
+
 @router.get(
     "/proxy/{case_id:path}",
     operation_id="proxy_caselaw_data",

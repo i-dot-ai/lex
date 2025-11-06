@@ -15,7 +15,7 @@ class LegislationSectionSearch(BaseModel):
     )
     legislation_id: str | None = Field(
         default=None,
-        description="The legislation_id to search within. Use this if you only want to search within a specific piece of legislation. If not provided, all legislation will be included based on the other filters.",
+        description="The legislation_id to search within. Use this if you only want to search within a specific piece of legislation. Accepts both short format (e.g., 'ukpga/1994/13') and full URL format (e.g., 'http://www.legislation.gov.uk/id/ukpga/1994/13'). If not provided, all legislation will be included based on the other filters.",
     )
     legislation_category: list[LegislationCategory] | None = Field(
         default=None,

@@ -225,3 +225,70 @@ def test_get_legislation_sections_endpoint(client):
 
         except ValidationError as e:
             pytest.fail(f"Validation error: {e}")
+
+
+def test_search_legislation_sections_with_short_format_id_endpoint(client):
+    """Test that the /legislation/section/search endpoint works with short format legislation_id."""
+    # Test the specific case reported: short format legislation_id should be automatically
+    # converted to full URL format for proper filtering
+    search_query = "intelligence"
+    short_legislation_id = "ukpga/1994/13"  # Intelligence Services Act 1994
+
+    response = client.post(
+        "/legislation/section/search",
+        json={
+            "query": search_query,
+            "legislation_id": short_legislation_id,
+            "size": 5,
+        },
+    )
+
+    # Check response status
+    assert response.status_code == 200, (
+        f"Expected 200 OK, got {response.status_code}: {response.text}"
+    )
+
+    # Check response structure
+    data = response.json()
+    assert isinstance(data, list), "Expected a list of legislation sections"
+
+    # The search should work even with short format ID (if the act exists in the database)
+    # If no results are found, it could be because:
+    # 1. The act doesn't exist in the test database
+    # 2. The query doesn't match any sections
+    # Both are valid scenarios, so we don't fail the test
+    if data:
+        # If we do get results, verify they're from the correct legislation
+        for section_data in data:
+            try:
+                section = LegislationSection(**section_data)
+                # The normalized ID should be the full URL format
+                expected_full_id = "http://www.legislation.gov.uk/id/ukpga/1994/13"
+                assert section.legislation_id == expected_full_id, (
+                    f"Expected legislation_id to be '{expected_full_id}', "
+                    f"got '{section.legislation_id}'"
+                )
+            except ValidationError as e:
+                pytest.fail(f"Validation error: {e}")
+
+
+def test_normalize_legislation_id():
+    """Test the normalize_legislation_id function."""
+    from backend.legislation.search import normalize_legislation_id
+
+    # Test cases: (input, expected_output)
+    test_cases = [
+        ("ukpga/1994/13", "http://www.legislation.gov.uk/id/ukpga/1994/13"),
+        ("http://www.legislation.gov.uk/id/ukpga/1994/13", "http://www.legislation.gov.uk/id/ukpga/1994/13"),
+        ("uksi/2020/123", "http://www.legislation.gov.uk/id/uksi/2020/123"),
+        ("asp/1999/1", "http://www.legislation.gov.uk/id/asp/1999/1"),
+        ("", ""),
+        (None, None),
+    ]
+
+    for input_val, expected in test_cases:
+        result = normalize_legislation_id(input_val)
+        assert result == expected, (
+            f"normalize_legislation_id({repr(input_val)}) returned {repr(result)}, "
+            f"expected {repr(expected)}"
+        )
