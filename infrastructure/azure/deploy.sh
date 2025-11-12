@@ -94,8 +94,9 @@ build_and_push_image() {
         # Login to ACR
         az acr login --name "$ACR_NAME" >/dev/null
         
-        # Build and push image
-        IMAGE_TAG="${ACR_NAME}.azurecr.io/lex-backend:latest"
+        # Build and push image with unique tag
+        BUILD_ID=$(date +%Y%m%d-%H%M%S)
+        IMAGE_TAG="${ACR_NAME}.azurecr.io/lex-backend:${BUILD_ID}"
         
         log_info "Building image: $IMAGE_TAG"
         docker build --platform linux/amd64 -f src/backend/Dockerfile -t "$IMAGE_TAG" . >/dev/null
@@ -106,8 +107,8 @@ build_and_push_image() {
         log_success "Container image built and pushed successfully"
     } >&2
     
-    # Return only the image tag
-    echo "${ACR_NAME}.azurecr.io/lex-backend:latest"
+    # Return the image tag with build ID
+    echo "$IMAGE_TAG"
 }
 
 # Deploy infrastructure

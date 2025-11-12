@@ -276,10 +276,6 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
   }
 }
 
-// Documentation is now served directly from Container App
-// No need for separate storage account or API Management
-
-// Using ACR admin credentials for simplicity
 
 // Outputs
 output containerAppUrl string = 'https://${containerApp.properties.configuration.ingress.fqdn}'
