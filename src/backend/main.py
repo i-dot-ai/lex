@@ -1,9 +1,17 @@
 import logging
+import os
+import time
+from typing import Dict, Any, Optional
+from datetime import datetime, timedelta
+
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from fastmcp import FastMCP
+import redis
+import json
 
 from backend.amendment.router import router as amendment_router
 from backend.caselaw.router import router as caselaw_router
@@ -17,6 +25,114 @@ logging.basicConfig(
 # Ensure lex.core.embeddings logger shows INFO logs
 logging.getLogger("lex.core.embeddings").setLevel(logging.INFO)
 
+# Smart cache that works with Redis or in-memory fallback
+class SmartCache:
+    def __init__(self):
+        self.redis_client = None
+        self.memory_cache: Dict[str, Dict[str, Any]] = {}
+        self.use_redis = False
+        
+        # Try to connect to Redis
+        redis_url = os.getenv("REDIS_URL")
+        if redis_url:
+            try:
+                self.redis_client = redis.from_url(redis_url, decode_responses=True)
+                # Test connection
+                self.redis_client.ping()
+                self.use_redis = True
+                logging.info("Connected to Redis for caching and rate limiting")
+            except Exception as e:
+                logging.warning(f"Failed to connect to Redis, using in-memory cache: {e}")
+        else:
+            logging.info("No Redis URL configured, using in-memory cache")
+    
+    def get(self, key: str) -> Optional[Any]:
+        """Get value from cache."""
+        if self.use_redis:
+            try:
+                value = self.redis_client.get(key)
+                return json.loads(value) if value else None
+            except Exception as e:
+                logging.error(f"Redis get error: {e}")
+                return None
+        else:
+            # Check memory cache with TTL
+            if key in self.memory_cache:
+                entry = self.memory_cache[key]
+                if datetime.now() < entry["expires"]:
+                    return entry["value"]
+                else:
+                    del self.memory_cache[key]
+            return None
+    
+    def set(self, key: str, value: Any, ttl: int = 300) -> bool:
+        """Set value in cache with TTL."""
+        if self.use_redis:
+            try:
+                self.redis_client.setex(key, ttl, json.dumps(value))
+                return True
+            except Exception as e:
+                logging.error(f"Redis set error: {e}")
+                return False
+        else:
+            # Store in memory with expiration
+            self.memory_cache[key] = {
+                "value": value,
+                "expires": datetime.now() + timedelta(seconds=ttl)
+            }
+            # Simple cleanup: remove expired entries occasionally
+            if len(self.memory_cache) > 1000:
+                now = datetime.now()
+                expired_keys = [
+                    k for k, v in self.memory_cache.items() 
+                    if now >= v["expires"]
+                ]
+                for k in expired_keys:
+                    del self.memory_cache[k]
+            return True
+    
+    def increment_with_ttl(self, key: str, ttl: int = 60) -> int:
+        """Increment counter with TTL for rate limiting."""
+        if self.use_redis:
+            try:
+                # Use Redis pipeline for atomic increment with TTL
+                pipe = self.redis_client.pipeline()
+                pipe.incr(key)
+                pipe.expire(key, ttl)
+                result = pipe.execute()
+                return result[0]  # Return the incremented value
+            except Exception as e:
+                logging.error(f"Redis increment error: {e}")
+                return 0
+        else:
+            # In-memory rate limiting
+            now = datetime.now()
+            if key not in self.memory_cache:
+                self.memory_cache[key] = {
+                    "value": 1,
+                    "expires": now + timedelta(seconds=ttl)
+                }
+                return 1
+            else:
+                entry = self.memory_cache[key]
+                if now < entry["expires"]:
+                    entry["value"] += 1
+                    return entry["value"]
+                else:
+                    # Reset expired counter
+                    self.memory_cache[key] = {
+                        "value": 1,
+                        "expires": now + timedelta(seconds=ttl)
+                    }
+                    return 1
+
+# Global cache instance
+cache = SmartCache()
+
+# Rate limiting configuration
+RATE_LIMIT_PER_MINUTE = int(os.getenv("RATE_LIMIT_PER_MINUTE", "60"))
+RATE_LIMIT_PER_HOUR = int(os.getenv("RATE_LIMIT_PER_HOUR", "1000"))
+
 # First create the base FastAPI app with routes
 base_app = FastAPI(
     title="Lex API",
@@ -25,12 +141,55 @@ base_app = FastAPI(
     redirect_slashes=False,
 )
 
+# Rate limiting middleware
+@base_app.middleware("http")
+async def rate_limit_middleware(request: Request, call_next):
+    """Rate limiting middleware using smart cache."""
+    # Skip rate limiting for health checks
+    if request.url.path in ["/healthcheck", "/health"]:
+        return await call_next(request)
+    
+    # Get client IP (considering potential proxy headers)
+    client_ip = request.headers.get("X-Forwarded-For", "").split(",")[0].strip()
+    if not client_ip:
+        client_ip = request.headers.get("X-Real-IP", "")
+    if not client_ip:
+        client_ip = getattr(request.client, "host", "unknown")
+    
+    # Check rate limits
+    minute_key = f"rate_limit:minute:{client_ip}"
+    hour_key = f"rate_limit:hour:{client_ip}"
+    
+    minute_count = cache.increment_with_ttl(minute_key, 60)
+    hour_count = cache.increment_with_ttl(hour_key, 3600)
+    
+    if minute_count > RATE_LIMIT_PER_MINUTE:
+        raise HTTPException(
+            status_code=429,
+            detail=f"Rate limit exceeded: {RATE_LIMIT_PER_MINUTE} requests per minute"
+        )
+    
+    if hour_count > RATE_LIMIT_PER_HOUR:
+        raise HTTPException(
+            status_code=429,
+            detail=f"Rate limit exceeded: {RATE_LIMIT_PER_HOUR} requests per hour"
+        )
+    
+    # Add rate limit headers to response
+    response = await call_next(request)
+    response.headers["X-RateLimit-Limit-Minute"] = str(RATE_LIMIT_PER_MINUTE)
+    response.headers["X-RateLimit-Remaining-Minute"] = str(max(0, RATE_LIMIT_PER_MINUTE - minute_count))
+    response.headers["X-RateLimit-Limit-Hour"] = str(RATE_LIMIT_PER_HOUR)
+    response.headers["X-RateLimit-Remaining-Hour"] = str(max(0, RATE_LIMIT_PER_HOUR - hour_count))
+    
+    return response
+
 # Configure CORS
 base_app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
-    allow_credentials=True,
-    allow_methods=["*"],
+    allow_origins=["*"],  # Allow all origins for public API
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -41,9 +200,8 @@ base_app.include_router(explanatory_note_router)
 base_app.include_router(amendment_router)
 
 
-@base_app.get("/")
-def read_root():
-    return {"Hello": "World"}
+# Removed GET / route to allow static files to handle root path
+# The static files mount will now handle the root URL
 
 
 @base_app.get("/healthcheck")
@@ -88,15 +246,58 @@ mcp_app = mcp.streamable_http_app(path='/mcp')
 
 # Create combined app with both API and MCP routes
 app = FastAPI(
-    title="Lex API with MCP",
-    description="API for accessing Lex's legislation and caselaw search capabilities with MCP support",
-    version="0.1.0",
-    routes=[
-        *base_app.routes,  # Original API routes
-        *mcp_app.routes,   # MCP routes
-    ],
-    lifespan=mcp_app.lifespan,
+    title="Lex API",
+    description="UK Legal Research API for AI agents with MCP support",
+    version="2.0.0",
+    docs_url="/api/docs",  # Move API docs to /api/docs
+    redoc_url="/api/redoc",  # Move ReDoc to /api/redoc
+    openapi_url="/api/openapi.json",  # Move OpenAPI spec
 )
 
+# Add all middleware from base_app to main app
+for middleware in base_app.user_middleware:
+    # Handle different FastAPI middleware structure
+    if hasattr(middleware, 'cls') and hasattr(middleware, 'args') and hasattr(middleware, 'kwargs'):
+        app.add_middleware(middleware.cls, **middleware.kwargs)
+    elif hasattr(middleware, 'cls'):
+        app.add_middleware(middleware.cls)
+
+# Include all API routes except the root path (/) to allow static files
+for route in base_app.routes:
+    # Skip the root path route to let static files handle it
+    if hasattr(route, 'path') and route.path == "/":
+        continue
+    app.router.routes.append(route)
+
+# Mount MCP server at /mcp
+app.mount("/mcp", mcp_app, name="mcp")
+
+# Serve static files at root (this should be last)
+try:
+    app.mount("/", StaticFiles(directory="./src/backend/static", html=True), name="static")
+    logging.info("Serving static files from src/backend/static at root path")
+except Exception as e:
+    logging.warning(f"Could not mount static files: {e}")
+    
+    # Fallback: create a simple root endpoint
+    @app.get("/")
+    async def root():
+        return {
+            "message": "Lex Research API",
+            "description": "UK Legal Research API for AI agents",
+            "version": "2.0.0",
+            "endpoints": {
+                "api_docs": "/api/docs",
+                "mcp_server": "/mcp",
+                "health_check": "/healthcheck"
+            }
+        }
+
 if __name__ == "__main__":
-    uvicorn.run("backend.main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run(
+        "backend.main:app", 
+        host="0.0.0.0", 
+        port=8000, 
+        reload=True,
+        lifespan=mcp_app.lifespan
+    )

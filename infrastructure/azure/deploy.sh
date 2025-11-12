@@ -10,7 +10,6 @@ set -e
 RESOURCE_GROUP="${RESOURCE_GROUP:-rg-lex}"
 LOCATION="${LOCATION:-uksouth}"
 APPLICATION_NAME="${APPLICATION_NAME:-lex}"
-ENVIRONMENT="${ENVIRONMENT:-prod}"
 SUBSCRIPTION_ID="${SUBSCRIPTION_ID:-}"
 
 # Colors for output
@@ -82,7 +81,7 @@ build_and_push_image() {
         
         if [ -z "$ACR_NAME" ]; then
             log_warning "No Azure Container Registry found. Creating one..."
-            ACR_NAME="${APPLICATION_NAME}${ENVIRONMENT}acr"
+            ACR_NAME="${APPLICATION_NAME}acr"
             az acr create \
                 --resource-group "$RESOURCE_GROUP" \
                 --name "$ACR_NAME" \
@@ -145,7 +144,6 @@ deploy_infrastructure() {
         --template-file infrastructure/azure/main.bicep \
         --parameters \
             applicationName="$APPLICATION_NAME" \
-            environment="$ENVIRONMENT" \
             location="$LOCATION" \
             containerImage="$container_image" \
             qdrantCloudUrl="$QDRANT_CLOUD_URL" \
@@ -172,31 +170,72 @@ get_outputs() {
             --name "$DEPLOYMENT_NAME" \
             --query "properties.outputs.containerAppUrl.value" -o tsv)
         
-        API_MANAGEMENT_URL=$(az deployment group show \
+        MCP_ENDPOINT_URL=$(az deployment group show \
             --resource-group "$RESOURCE_GROUP" \
             --name "$DEPLOYMENT_NAME" \
-            --query "properties.outputs.apiManagementUrl.value" -o tsv)
+            --query "properties.outputs.mcpEndpointUrl.value" -o tsv)
         
-        MCP_SERVER_URL=$(az deployment group show \
+        API_DOCS_URL=$(az deployment group show \
             --resource-group "$RESOURCE_GROUP" \
             --name "$DEPLOYMENT_NAME" \
-            --query "properties.outputs.mcpServerUrl.value" -o tsv)
+            --query "properties.outputs.apiDocsUrl.value" -o tsv)
         
         echo ""
-        log_success "Deployment completed successfully!"
+        log_success "Simplified Lex API deployment completed successfully!"
         echo ""
-        echo "📍 Container App URL: $CONTAINER_APP_URL"
-        echo "🌐 API Management URL: $API_MANAGEMENT_URL"
-        echo "🤖 MCP Server URL: $MCP_SERVER_URL"
+        echo "🌐 Container App URL: $CONTAINER_APP_URL"
+        echo "📚 Documentation: $CONTAINER_APP_URL (root page)"
+        echo "🔧 API Documentation: $API_DOCS_URL"
+        echo "🤖 MCP Server URL: $MCP_ENDPOINT_URL"
         echo ""
         echo "🔗 Try the API:"
-        echo "  curl $API_MANAGEMENT_URL/healthcheck"
+        echo "  curl $CONTAINER_APP_URL/healthcheck"
+        echo ""
+        echo "📖 View documentation:"
+        echo "  Open $CONTAINER_APP_URL"
         echo ""
         echo "🤖 Add MCP server to Claude Desktop:"
-        echo "  Add '$MCP_SERVER_URL' to your MCP configuration"
+        echo '  {'
+        echo '    "mcpServers": {'
+        echo '      "lex-research": {'
+        echo '        "command": "npx",'
+        echo "        \"args\": [\"-y\", \"mcp-remote@latest\", \"$MCP_ENDPOINT_URL\"]"
+        echo '      }'
+        echo '    }'
+        echo '  }'
+        echo ""
+        log_success "✅ No more API Management or Storage Account needed!"
+        echo "💰 Cost reduced by ~£200/month"
+        echo "🚀 Better performance with direct Container App access"
+        echo "🔧 No more 64KB response truncation issues"
         echo ""
     fi
 }
+
+# Simplified deployment - no APIM import needed
+verify_container_app() {
+    log_info "Verifying Container App deployment..."
+    
+    # Get Container App FQDN
+    local container_app_fqdn=$(az containerapp show --name "${APPLICATION_NAME}-api" --resource-group "$RESOURCE_GROUP" --query properties.configuration.ingress.fqdn --output tsv 2>/dev/null || echo "")
+    
+    if [ -n "$container_app_fqdn" ]; then
+        local app_url="https://${container_app_fqdn}"
+        log_info "Testing Container App health endpoint..."
+        
+        # Test health endpoint with timeout
+        if curl -f -s --max-time 30 "$app_url/healthcheck" >/dev/null 2>&1; then
+            log_success "Container App is healthy and responding"
+        else
+            log_warning "Container App health check failed - may still be starting up"
+        fi
+    else
+        log_warning "Could not retrieve Container App FQDN"
+    fi
+}
+
+# Documentation is now served directly from Container App
+# No separate deployment needed
 
 # Main execution
 main() {
@@ -204,7 +243,6 @@ main() {
     log_info "Resource Group: $RESOURCE_GROUP"
     log_info "Location: $LOCATION"
     log_info "Application: $APPLICATION_NAME"
-    log_info "Environment: $ENVIRONMENT"
     echo ""
     
     check_prerequisites
@@ -215,6 +253,9 @@ main() {
     
     # Deploy infrastructure
     deploy_infrastructure "$container_image"
+    
+    # Verify Container App deployment
+    verify_container_app
     
     # Show results
     get_outputs

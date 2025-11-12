@@ -1,17 +1,13 @@
-@description('Main deployment template for Lex Research API')
+@description('Main deployment template for Lex API - Simplified Architecture')
 @minLength(3)
 @maxLength(24)
-param applicationName string = 'lex-research'
+param applicationName string = 'lex'
 
 @description('Location for all resources')
 param location string = resourceGroup().location
 
 @description('Container image for the backend')
 param containerImage string = 'lex-backend:latest'
-
-@description('Environment for deployment')
-@allowed(['dev', 'staging', 'prod'])
-param environment string = 'prod'
 
 @description('Qdrant Cloud URL')
 @secure()
@@ -31,14 +27,20 @@ param azureOpenAIEndpoint string
 @description('Azure OpenAI Embedding Model')
 param azureOpenAIEmbeddingModel string = 'text-embedding-3-large'
 
+@description('Rate limit per minute')
+param rateLimitPerMinute int = 60
+
+@description('Rate limit per hour')
+param rateLimitPerHour int = 1000
+
 // Variables
-var resourcePrefix = '${applicationName}-${environment}'
+var resourcePrefix = applicationName
 var containerAppName = '${resourcePrefix}-api'
 var containerEnvironmentName = '${resourcePrefix}-env'
-var apiManagementName = '${resourcePrefix}-apim'
 var logAnalyticsName = '${resourcePrefix}-logs'
 var appInsightsName = '${resourcePrefix}-insights'
-var acrName = '${applicationName}${environment}acr'
+var acrName = '${applicationName}acr'
+var redisName = '${resourcePrefix}-cache'
 
 // Log Analytics Workspace
 resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2023-09-01' = {
@@ -63,6 +65,7 @@ resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
   }
 }
 
+
 // Azure Container Registry
 resource acr 'Microsoft.ContainerRegistry/registries@2023-11-01-preview' = {
   name: acrName
@@ -74,6 +77,8 @@ resource acr 'Microsoft.ContainerRegistry/registries@2023-11-01-preview' = {
     adminUserEnabled: true
   }
 }
+
+
 
 // Container Apps Environment
 resource containerEnvironment 'Microsoft.App/managedEnvironments@2024-03-01' = {
@@ -90,6 +95,30 @@ resource containerEnvironment 'Microsoft.App/managedEnvironments@2024-03-01' = {
   }
 }
 
+// Azure Cache for Redis
+resource redisCache 'Microsoft.Cache/redis@2023-08-01' = {
+  name: redisName
+  location: location
+  properties: {
+    sku: {
+      name: 'Basic'
+      family: 'C'
+      capacity: 0  // C0 - smallest instance
+    }
+    enableNonSslPort: false
+    minimumTlsVersion: '1.2'
+    redisConfiguration: {
+      'maxmemory-reserved': '30'
+      'maxfragmentationmemory-reserved': '30'
+      'maxmemory-delta': '30'
+    }
+    publicNetworkAccess: 'Enabled'
+  }
+  tags: {
+    Application: applicationName
+  }
+}
+
 // Container App
 resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
   name: containerAppName
@@ -98,7 +127,7 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
     managedEnvironmentId: containerEnvironment.id
     configuration: {
       ingress: {
-        external: true
+        external: true  // Changed to external for direct access
         targetPort: 8000
         allowInsecure: false
         traffic: [
@@ -136,6 +165,10 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
           name: 'azure-openai-api-key'
           value: azureOpenAIApiKey
         }
+        {
+          name: 'redis-primary-key'
+          value: redisCache.listKeys().primaryKey
+        }
       ]
     }
     template: {
@@ -155,10 +188,6 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
             {
               name: 'PORT'
               value: '8000'
-            }
-            {
-              name: 'ENVIRONMENT'
-              value: environment
             }
             {
               name: 'USE_CLOUD_QDRANT'
@@ -187,6 +216,22 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
             {
               name: 'FASTMCP_EXPERIMENTAL_ENABLE_NEW_OPENAPI_PARSER'
               value: 'true'
+            }
+            {
+              name: 'REDIS_URL'
+              value: 'rediss://${redisCache.properties.hostName}:${redisCache.properties.sslPort}'
+            }
+            {
+              name: 'REDIS_PASSWORD'
+              secretRef: 'redis-primary-key'
+            }
+            {
+              name: 'RATE_LIMIT_PER_MINUTE'
+              value: string(rateLimitPerMinute)
+            }
+            {
+              name: 'RATE_LIMIT_PER_HOUR'
+              value: string(rateLimitPerHour)
             }
           ]
           probes: [
@@ -231,76 +276,17 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
   }
 }
 
-// API Management
-resource apiManagement 'Microsoft.ApiManagement/service@2023-05-01-preview' = {
-  name: apiManagementName
-  location: location
-  sku: {
-    name: 'BasicV2'
-    capacity: 1
-  }
-  properties: {
-    publisherEmail: 'lex@cabinetoffice.gov.uk'
-    publisherName: 'Incubator for AI - Lex API'
-    customProperties: {
-      'Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls10': 'false'
-      'Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls11': 'false'
-      'Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Ssl30': 'false'
-    }
-  }
-}
-
-// Backend configuration for Container App
-resource apiBackend 'Microsoft.ApiManagement/service/backends@2023-05-01-preview' = {
-  parent: apiManagement
-  name: 'lex-backend'
-  properties: {
-    description: 'Lex Research API Backend'
-    url: 'https://${containerApp.properties.configuration.ingress.fqdn}'
-    protocol: 'http'
-    tls: {
-      validateCertificateChain: true
-      validateCertificateName: true
-    }
-  }
-}
-
-// API definition
-resource api 'Microsoft.ApiManagement/service/apis@2023-05-01-preview' = {
-  parent: apiManagement
-  name: 'lex-research-api'
-  properties: {
-    displayName: 'Lex Research API'
-    description: 'Free UK legal research API for AI agents and researchers'
-    path: ''
-    protocols: ['https']
-    subscriptionRequired: false
-    format: 'openapi+json'
-    value: loadTextContent('api-definition.json')
-  }
-}
-
-// Rate limiting policy
-resource apiPolicy 'Microsoft.ApiManagement/service/apis/policies@2023-05-01-preview' = {
-  parent: api
-  name: 'policy'
-  dependsOn: [
-    apiBackend
-  ]
-  properties: {
-    value: loadTextContent('api-policies.xml')
-    format: 'xml'
-  }
-}
+// Documentation is now served directly from Container App
+// No need for separate storage account or API Management
 
 // Using ACR admin credentials for simplicity
 
-// Note: MCP Server will be configured manually through Azure portal
-// as the mcpServers resource type is not yet generally available
-
 // Outputs
 output containerAppUrl string = 'https://${containerApp.properties.configuration.ingress.fqdn}'
-output apiManagementUrl string = apiManagement.properties.gatewayUrl
-output mcpServerUrl string = 'https://${containerApp.properties.configuration.ingress.fqdn}/mcp'
+output mcpEndpointUrl string = 'https://${containerApp.properties.configuration.ingress.fqdn}/mcp'
+output apiDocsUrl string = 'https://${containerApp.properties.configuration.ingress.fqdn}/api/docs'
 output resourceGroupName string = resourceGroup().name
 output acrName string = acr.name
+output containerAppFqdn string = containerApp.properties.configuration.ingress.fqdn
+output redisHostname string = redisCache.properties.hostName
+output redisSslPort int = redisCache.properties.sslPort
