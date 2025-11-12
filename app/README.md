@@ -35,12 +35,32 @@ Open [http://localhost:3000](http://localhost:3000) to view the app.
 
 ## API Integration
 
-The frontend connects to the Lex backend API at `http://localhost:8000`:
+The frontend connects to the Lex backend API. You can use either:
+
+### Option 1: Public API (No Local Backend)
+
+Set the public API endpoint in `.env.local`:
+
+```bash
+NEXT_PUBLIC_API_URL=https://lex-api.victoriousdesert-f8e685e0.uksouth.azurecontainerapps.io
+```
+
+**⚠️ Experimental**: Public API is for development/testing only. Not guaranteed to be available.
+
+### Option 2: Local Backend
+
+Default configuration connects to `http://localhost:8000`:
+
+```bash
+NEXT_PUBLIC_API_URL=http://localhost:8000
+```
+
+Make sure the backend is running before starting the frontend.
+
+### Available Endpoints
 
 - **Legislation**: `POST /legislation/search`
 - **Caselaw**: `POST /caselaw/search`
-
-Make sure the backend is running before starting the frontend.
 
 ## Project Structure
 

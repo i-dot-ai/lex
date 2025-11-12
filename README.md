@@ -6,26 +6,78 @@
 [![Docker](https://img.shields.io/badge/docker-required-blue.svg)](https://docs.docker.com/compose/install/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-## 🚀 Quick Start (2 minutes → API calls)
+## 🚀 Quick Start Options
 
+### Option 1: Use Public API (No Setup)
+
+Skip local setup and use the public API for development:
+
+```bash
+# Test the public API
+curl -X POST https://lex-api.victoriousdesert-f8e685e0.uksouth.azurecontainerapps.io/legislation/search \
+  -H "Content-Type: application/json" \
+  -d '{"query": "data protection", "limit": 5}'
+```
+
+**⚠️ Experimental**: Public API is for development/testing only. Not guaranteed to be available.
+
+### Option 2: Frontend Only (Use Public API + Local UI)
+
+Run the frontend locally pointing to the public API:
+
+```bash
+# 1. Clone and setup frontend
+git clone https://github.com/i-dot-ai/lex.git && cd lex/app
+bun install
+
+# 2A. Configure for public API
+echo 'NEXT_PUBLIC_API_URL=https://lex-api.victoriousdesert-f8e685e0.uksouth.azurecontainerapps.io' > .env.local
+
+# 3. Start frontend
+bun dev
+
+# 4. Open web interface  
+open http://localhost:3000
+```
+
+### Option 3: Full Local Setup (Complete System)
+
+#### 3A. Local Frontend + Public API Backend
+```bash
+# 1. Setup frontend (as above)
+git clone https://github.com/i-dot-ai/lex.git && cd lex
+cp .env.example .env
+
+# 2. Setup frontend pointing to public API
+cd app && bun install
+echo 'NEXT_PUBLIC_API_URL=https://lex-api.victoriousdesert-f8e685e0.uksouth.azurecontainerapps.io' > .env.local
+bun dev
+
+# Frontend runs at http://localhost:3000
+```
+
+#### 3B. Local Frontend + Local Backend + Data
 ```bash
 # 1. Clone and setup
 git clone https://github.com/i-dot-ai/lex.git && cd lex
 cp .env.example .env  # Add your Azure OpenAI keys
 
-# 2. Start everything
+# 2. Start backend services
 docker compose up -d
 
 # 3. Load sample data (⚡ ~5 min)
 make ingest-all-sample
 
-# 4. Test the API
-curl -X POST http://localhost:8000/legislation/search \
-  -H "Content-Type: application/json" \
-  -d '{"query": "data protection", "limit": 5}'
+# 4. Start frontend (separate terminal)
+cd app && bun install 
+# .env.local defaults to http://localhost:8000
+bun dev
+
+# 5. Open web interface
+open http://localhost:3000
 ```
 
-**That's it!** API docs at http://localhost:8000/docs 📚
+**Complete system**: Web UI at http://localhost:3000 and API docs at http://localhost:8000/docs 📚
 
 ## 🎯 What You Get
 
@@ -38,6 +90,7 @@ curl -X POST http://localhost:8000/legislation/search \
 *📈 Stats from October 2025 - continuously growing with new legislation and cases*
 
 All searchable via:
+- 🌐 **Web Interface** - Next.js frontend with modern UI
 - 🔌 **REST API** - FastAPI with full OpenAPI docs
 - 🤖 **MCP Tools** - Direct integration with Claude Desktop
 - 🔍 **Semantic Search** - Powered by Azure OpenAI embeddings
@@ -79,7 +132,19 @@ curl -X POST http://localhost:8000/legislation/lookup \
 
 ## 🤖 MCP Integration
 
-Add to Claude Desktop config:
+**Option 1: Public API** (no local setup required):
+```json
+{
+  "mcpServers": {
+    "lex": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote@latest", "https://lex-api.victoriousdesert-f8e685e0.uksouth.azurecontainerapps.io/mcp"]
+    }
+  }
+}
+```
+
+**Option 2: Local setup**:
 ```json
 {
   "mcpServers": {
