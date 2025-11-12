@@ -4,6 +4,12 @@ import time
 from typing import Dict, Any, Optional
 from datetime import datetime, timedelta
 
+# Configure Azure Monitor OpenTelemetry FIRST - before any FastAPI imports
+if os.getenv("APPLICATIONINSIGHTS_CONNECTION_STRING"):
+    from azure.monitor.opentelemetry import configure_azure_monitor
+    configure_azure_monitor()
+    print("✅ Azure Monitor OpenTelemetry configured")
+
 import uvicorn
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -17,6 +23,12 @@ from backend.amendment.router import router as amendment_router
 from backend.caselaw.router import router as caselaw_router
 from backend.explanatory_note.router import router as explanatory_note_router
 from backend.legislation.router import router as legislation_router
+
+from backend.monitoring import monitoring
+
+# Add explicit FastAPI instrumentation for Azure Monitor
+if os.getenv("APPLICATIONINSIGHTS_CONNECTION_STRING"):
+    from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
 # Configure logging to show all INFO level logs
 logging.basicConfig(
@@ -141,13 +153,16 @@ base_app = FastAPI(
     redirect_slashes=False,
 )
 
-# Rate limiting middleware
+# Enhanced monitoring and rate limiting middleware
 @base_app.middleware("http")
-async def rate_limit_middleware(request: Request, call_next):
-    """Rate limiting middleware using smart cache."""
+async def monitoring_and_rate_limit_middleware(request: Request, call_next):
+    """Combined monitoring and rate limiting middleware."""
+    start_time = time.time()
+    
     # Skip rate limiting for health checks
     if request.url.path in ["/healthcheck", "/health"]:
-        return await call_next(request)
+        response = await call_next(request)
+        return response
     
     # Get client IP (considering potential proxy headers)
     client_ip = request.headers.get("X-Forwarded-For", "").split(",")[0].strip()
@@ -175,14 +190,51 @@ async def rate_limit_middleware(request: Request, call_next):
             detail=f"Rate limit exceeded: {RATE_LIMIT_PER_HOUR} requests per hour"
         )
     
-    # Add rate limit headers to response
-    response = await call_next(request)
-    response.headers["X-RateLimit-Limit-Minute"] = str(RATE_LIMIT_PER_MINUTE)
-    response.headers["X-RateLimit-Remaining-Minute"] = str(max(0, RATE_LIMIT_PER_MINUTE - minute_count))
-    response.headers["X-RateLimit-Limit-Hour"] = str(RATE_LIMIT_PER_HOUR)
-    response.headers["X-RateLimit-Remaining-Hour"] = str(max(0, RATE_LIMIT_PER_HOUR - hour_count))
+    # Track rate limiting events if approaching limits
+    if minute_count > RATE_LIMIT_PER_MINUTE * 0.8:  # 80% threshold
+        monitoring.track_rate_limit_event(
+            request, "minute", minute_count, RATE_LIMIT_PER_MINUTE, 
+            exceeded=(minute_count > RATE_LIMIT_PER_MINUTE)
+        )
     
-    return response
+    if hour_count > RATE_LIMIT_PER_HOUR * 0.8:  # 80% threshold
+        monitoring.track_rate_limit_event(
+            request, "hour", hour_count, RATE_LIMIT_PER_HOUR,
+            exceeded=(hour_count > RATE_LIMIT_PER_HOUR)
+        )
+    
+    # Process request
+    try:
+        response = await call_next(request)
+        duration = time.time() - start_time
+        
+        # Track page views for documentation pages
+        if request.url.path == "/":
+            monitoring.track_page_view(request, "home")
+        elif request.url.path == "/api/docs":
+            monitoring.track_page_view(request, "api_docs")
+        elif request.url.path == "/api/redoc":
+            monitoring.track_page_view(request, "redoc")
+        
+        # Track API usage for non-documentation endpoints
+        elif request.url.path not in ["/", "/api/docs", "/api/redoc", "/api/openapi.json"]:
+            query_params = dict(request.query_params) if request.query_params else None
+            monitoring.track_api_usage(
+                request, request.url.path, duration, response.status_code, query_params
+            )
+        
+        # Add rate limit headers to response
+        response.headers["X-RateLimit-Limit-Minute"] = str(RATE_LIMIT_PER_MINUTE)
+        response.headers["X-RateLimit-Remaining-Minute"] = str(max(0, RATE_LIMIT_PER_MINUTE - minute_count))
+        response.headers["X-RateLimit-Limit-Hour"] = str(RATE_LIMIT_PER_HOUR)
+        response.headers["X-RateLimit-Remaining-Hour"] = str(max(0, RATE_LIMIT_PER_HOUR - hour_count))
+        
+        return response
+        
+    except Exception as e:
+        # Track errors with monitoring
+        monitoring.track_error(request, e, request.url.path)
+        raise
 
 # Configure CORS
 base_app.add_middleware(
@@ -192,6 +244,9 @@ base_app.add_middleware(
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
 )
+
+# Instrument FastAPI with OpenTelemetry
+monitoring.instrument_fastapi(base_app)
 
 # Include routers
 base_app.include_router(legislation_router)
@@ -241,6 +296,17 @@ os.environ["FASTMCP_EXPERIMENTAL_ENABLE_NEW_OPENAPI_PARSER"] = "true"
 # Create MCP server from FastAPI app
 mcp = FastMCP.from_fastapi(app=base_app, name="Lex Research API")
 
+# MCP lifecycle tracking via FastAPI events
+@base_app.on_event("startup")
+async def track_mcp_startup():
+    """Track MCP server startup."""
+    monitoring.track_mcp_event("server_startup")
+
+@base_app.on_event("shutdown")
+async def track_mcp_shutdown():
+    """Track MCP server shutdown."""
+    monitoring.track_mcp_event("server_shutdown")
+
 # Create the MCP ASGI app using streamable HTTP for better compatibility
 mcp_app = mcp.streamable_http_app(path='/mcp')
 
@@ -269,8 +335,44 @@ for route in base_app.routes:
         continue
     app.router.routes.append(route)
 
-# Mount MCP server at /mcp
-app.mount("/mcp", mcp_app, name="mcp")
+# MCP protocol monitoring middleware
+class MCPMiddleware:
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] == "http" and scope["path"].startswith("/mcp"):
+            body = await self._get_request_body(receive)
+            request = monitoring.parse_mcp_request(body)
+            
+            client_info = {"name": "mcp_client", "version": "unknown"}
+            if "params" in request and "clientInfo" in request["params"]:
+                client_info.update(request["params"]["clientInfo"])
+            
+            method = request.get("method", "unknown")
+            monitoring.track_mcp_event(method, client_info)
+            
+            async def new_receive():
+                return {"type": "http.request", "body": body, "more_body": False}
+            
+            await self.app(scope, new_receive, send)
+        else:
+            await self.app(scope, receive, send)
+    
+    async def _get_request_body(self, receive) -> bytes:
+        body = b""
+        while True:
+            message = await receive()
+            if message["type"] == "http.request":
+                body += message.get("body", b"")
+                if not message.get("more_body", False):
+                    break
+            else:
+                break
+        return body
+
+# Mount MCP server at /mcp with monitoring middleware
+app.mount("/mcp", MCPMiddleware(mcp_app), name="mcp")
 
 # Serve static files at root (this should be last)
 try:
@@ -281,7 +383,8 @@ except Exception as e:
     
     # Fallback: create a simple root endpoint
     @app.get("/")
-    async def root():
+    async def root(request: Request):
+        monitoring.track_page_view(request, "home_fallback")
         return {
             "message": "Lex Research API",
             "description": "UK Legal Research API for AI agents",
@@ -292,6 +395,14 @@ except Exception as e:
                 "health_check": "/healthcheck"
             }
         }
+
+# Instrument FastAPI apps for Azure Monitor telemetry
+if os.getenv("APPLICATIONINSIGHTS_CONNECTION_STRING"):
+    try:
+        FastAPIInstrumentor.instrument_app(app)
+        print("✅ FastAPI app instrumented for Azure Monitor")
+    except Exception as e:
+        print(f"⚠️ FastAPI instrumentation failed: {e}")
 
 if __name__ == "__main__":
     uvicorn.run(
