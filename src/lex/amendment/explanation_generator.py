@@ -25,6 +25,7 @@ def get_http_client() -> HttpClient:
     if _http_client is None:
         # Custom retry exceptions - don't retry HTTP errors (esp. 404s)
         from requests.exceptions import ConnectionError, Timeout
+
         from lex.core.exceptions import RateLimitException
 
         retry_exceptions = (

@@ -11,9 +11,9 @@ from backend.legislation.models import (
     LegislationFullText,
     LegislationFullTextLookup,
     LegislationLookup,
+    LegislationSearchResponse,
     LegislationSectionLookup,
     LegislationSectionSearch,
-    LegislationSearchResponse,
 )
 from backend.legislation.search import (
     get_legislation_full_text,
@@ -63,6 +63,8 @@ router = APIRouter(
     "/section/search",
     response_model=List[LegislationSection],
     operation_id="search_for_legislation_sections",
+    summary="Search within specific sections of legislation",
+    description="Find text within sections of Acts, SIs, or other legislation types. Use for detailed content searches.",
 )
 async def search_for_legislation_sections(search: LegislationSectionSearch):
     try:
@@ -81,6 +83,8 @@ async def search_for_legislation_sections(search: LegislationSectionSearch):
     "/search",
     response_model=LegislationSearchResponse,
     operation_id="search_for_legislation_acts",
+    summary="Search for Acts and Statutory Instruments",
+    description="Find legislation by title, content, or metadata. Returns full Acts and SIs with match scores.",
 )
 async def search_for_legislation_acts(search: LegislationActSearch):
     try:
@@ -99,6 +103,8 @@ async def search_for_legislation_acts(search: LegislationActSearch):
     "/lookup",
     response_model=Legislation,
     operation_id="lookup_legislation",
+    summary="Get specific legislation by type, year, and number",
+    description="Retrieve a single Act or SI using its official citation (e.g. ukpga/2018/12).",
     responses={404: {"description": "Legislation not found"}},
 )
 async def lookup_legislation_endpoint(lookup: LegislationLookup):
@@ -125,6 +131,8 @@ async def lookup_legislation_endpoint(lookup: LegislationLookup):
     "/section/lookup",
     response_model=List[LegislationSection],
     operation_id="get_legislation_sections",
+    summary="Get all sections for specific legislation",
+    description="Retrieve the complete structure and content of all sections within a piece of legislation.",
     responses={404: {"description": "No sections found for the specified legislation title"}},
 )
 async def get_sections_by_id(input: LegislationSectionLookup):
@@ -132,7 +140,8 @@ async def get_sections_by_id(input: LegislationSectionLookup):
         sections = await get_legislation_sections(input)
         if not sections:
             raise HTTPException(
-                status_code=404, detail=f"No sections found for legislation ID: {input.legislation_id}"
+                status_code=404,
+                detail=f"No sections found for legislation ID: {input.legislation_id}",
             )
         return sections
     except HTTPException:
@@ -150,6 +159,8 @@ async def get_sections_by_id(input: LegislationSectionLookup):
     "/text",
     response_model=LegislationFullText,
     operation_id="get_legislation_full_text",
+    summary="Get complete text content of legislation",
+    description="Retrieve the full text content of an Act or SI as a single document.",
     responses={404: {"description": "Legislation not found"}},
 )
 async def get_full_text_by_id(input: LegislationFullTextLookup):

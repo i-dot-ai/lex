@@ -26,6 +26,8 @@ router = APIRouter(
     "/section/search",
     response_model=List[ExplanatoryNote],
     operation_id="search_explanatory_note",
+    summary="Search explanatory notes by content",
+    description="Find explanatory notes by text content across all legislation types.",
 )
 async def search_explanatory_note_endpoint(search: ExplanatoryNoteSearch):
     try:
@@ -44,6 +46,8 @@ async def search_explanatory_note_endpoint(search: ExplanatoryNoteSearch):
     "/legislation/lookup",
     response_model=List[ExplanatoryNote],
     operation_id="get_explanatory_note_by_legislation",
+    summary="Get explanatory notes for specific legislation",
+    description="Retrieve all explanatory notes associated with a particular Act or SI.",
     responses={404: {"description": "Explanatory notes not found for the specified legislation"}},
 )
 async def get_explanatory_note_by_legislation_endpoint(lookup: ExplanatoryNoteLookup):
@@ -73,6 +77,8 @@ async def get_explanatory_note_by_legislation_endpoint(lookup: ExplanatoryNoteLo
     "/section/lookup",
     response_model=ExplanatoryNote,
     operation_id="get_explanatory_note_by_section",
+    summary="Get explanatory note for specific section",
+    description="Retrieve the explanatory note that explains a particular section of legislation.",
     responses={404: {"description": "Explanatory note section not found"}},
 )
 async def get_explanatory_note_by_section_endpoint(lookup: ExplanatoryNoteSectionLookup):

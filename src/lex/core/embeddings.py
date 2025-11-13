@@ -75,7 +75,7 @@ def generate_dense_embedding_with_retry(text: str, max_retries: int = MAX_RETRIE
             )
             return response.data[0].embedding
 
-        except RateLimitError as e:
+        except RateLimitError:
             if attempt == max_retries - 1:
                 logger.error(f"Rate limit exceeded after {max_retries} retries")
                 raise
@@ -224,7 +224,7 @@ def generate_hybrid_embeddings(text: str) -> Tuple[List[float], SparseVector]:
         ([0.1, 0.2, ...], SparseVector(indices=[12, 45], values=[0.8, 0.6]))
     """
     start_time = time.time()
-    from lex.core.embedding_cache import get_cached_embeddings, cache_embeddings
+    from lex.core.embedding_cache import cache_embeddings, get_cached_embeddings
 
     # Check cache
     cache_start = time.time()

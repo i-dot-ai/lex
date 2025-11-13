@@ -1,6 +1,7 @@
 """MCP server creation and middleware."""
 
 import os
+
 from fastmcp import FastMCP
 
 from backend.monitoring import monitoring
@@ -20,7 +21,7 @@ def create_mcp_server(base_app):
 
 class MCPMiddleware:
     """MCP protocol monitoring middleware."""
-    
+
     def __init__(self, app):
         self.app = app
 
@@ -28,21 +29,21 @@ class MCPMiddleware:
         if scope["type"] == "http" and scope["path"].startswith("/mcp"):
             body = await self._get_request_body(receive)
             request = monitoring.parse_mcp_request(body)
-            
+
             client_info = {"name": "mcp_client", "version": "unknown"}
             if "params" in request and "clientInfo" in request["params"]:
                 client_info.update(request["params"]["clientInfo"])
-            
+
             method = request.get("method", "unknown")
             monitoring.track_mcp_event(method, client_info)
-            
+
             async def new_receive():
                 return {"type": "http.request", "body": body, "more_body": False}
-            
+
             await self.app(scope, new_receive, send)
         else:
             await self.app(scope, receive, send)
-    
+
     async def _get_request_body(self, receive) -> bytes:
         body = b""
         while True:

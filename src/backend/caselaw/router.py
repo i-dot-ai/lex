@@ -21,7 +21,13 @@ router = APIRouter(
 )
 
 
-@router.post("/search", response_model=CaselawSearchResponse, operation_id="search_for_caselaw")
+@router.post(
+    "/search",
+    response_model=CaselawSearchResponse,
+    operation_id="search_for_caselaw",
+    summary="Search court cases and judgments",
+    description="Find cases by content, court, judge, or citation. Returns cases with match scores and metadata.",
+)
 async def search_caselaw_endpoint(search: CaselawSearch):
     try:
         result = await caselaw_search(search)
@@ -39,6 +45,8 @@ async def search_caselaw_endpoint(search: CaselawSearch):
     "/section/search",
     response_model=List[CaselawSection],
     operation_id="search_for_caselaw_section",
+    summary="Search within specific case sections",
+    description="Find text within judgments, headnotes, or specific parts of court cases.",
 )
 async def search_caselaw_section_endpoint(search: CaselawSectionSearch):
     try:
@@ -57,14 +65,10 @@ async def search_caselaw_section_endpoint(search: CaselawSectionSearch):
     "/reference/search",
     response_model=List[Caselaw],
     operation_id="search_for_caselaw_by_reference",
+    summary="Find cases that cite specific cases or legislation",
+    description="Search for cases that reference a particular case or Act. Filter by court, division, and date range.",
 )
 async def search_caselaw_reference_endpoint(search: CaselawReferenceSearch):
-    """
-    Search for cases that reference a specific case or piece of legislation.
-
-    This endpoint allows you to find all cases that cite a specific case or
-    legislation, with optional filtering by court, division, and year range.
-    """
     try:
         result = await caselaw_reference_search(search)
         return result
@@ -81,13 +85,10 @@ async def search_caselaw_reference_endpoint(search: CaselawReferenceSearch):
     "/reference",
     response_model=List[Caselaw],
     operation_id="search_caselaw_by_reference",
+    summary="Find cases that cite specific cases or legislation (MCP alias)",
+    description="Search for cases that reference a particular case or Act. Alias for /reference/search.",
 )
 async def search_caselaw_reference_alias(search: CaselawReferenceSearch):
-    """
-    Search for cases that reference a specific case or piece of legislation.
-    
-    Alias for /reference/search for MCP compatibility.
-    """
     return await search_caselaw_reference_endpoint(search)
 
 

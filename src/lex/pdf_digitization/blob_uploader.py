@@ -9,11 +9,10 @@ import asyncio
 import logging
 import os
 from datetime import datetime, timedelta
-from pathlib import Path
 from typing import List, Optional, Tuple
 
 import aiohttp
-from azure.storage.blob import BlobServiceClient, generate_blob_sas, BlobSasPermissions
+from azure.storage.blob import BlobSasPermissions, BlobServiceClient, generate_blob_sas
 from tqdm import tqdm
 
 logger = logging.getLogger(__name__)

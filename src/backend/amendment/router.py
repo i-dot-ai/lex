@@ -18,6 +18,8 @@ router = APIRouter(
     "/search",
     response_model=List[Amendment],
     operation_id="search_amendments",
+    summary="Search legislative amendments",
+    description="Find amendments to Acts and SIs by content, title, or affected legislation.",
 )
 async def search_amendments_endpoint(search: AmendmentSearch):
     try:
@@ -36,6 +38,8 @@ async def search_amendments_endpoint(search: AmendmentSearch):
     "/section/search",
     response_model=List[Amendment],
     operation_id="search_amendment_sections",
+    summary="Search within amendment sections",
+    description="Find text within specific sections of legislative amendments.",
 )
 async def search_amendment_sections_endpoint(search: AmendmentSectionSearch):
     try:

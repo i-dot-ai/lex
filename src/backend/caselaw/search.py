@@ -1,5 +1,4 @@
 import logging
-from collections import defaultdict
 
 from qdrant_client.models import (
     FieldCondition,
@@ -7,12 +6,9 @@ from qdrant_client.models import (
     Fusion,
     FusionQuery,
     MatchAny,
-    MatchValue,
     Prefetch,
     Range,
 )
-
-from backend.core.cache import cached_search
 
 from backend.caselaw.models import (
     CaselawReferenceSearch,
@@ -20,6 +16,7 @@ from backend.caselaw.models import (
     CaselawSectionSearch,
     ReferenceType,
 )
+from backend.core.cache import cached_search
 from lex.caselaw.models import Caselaw, CaselawSection
 from lex.core.embeddings import generate_hybrid_embeddings
 from lex.core.qdrant_client import qdrant_client

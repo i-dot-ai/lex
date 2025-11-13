@@ -5,15 +5,7 @@ import logging
 import uuid
 from typing import Optional, Tuple
 
-from qdrant_client.models import (
-    Distance,
-    FieldCondition,
-    Filter,
-    MatchValue,
-    PointStruct,
-    SparseVector,
-    VectorParams,
-)
+from qdrant_client.models import Distance, PointStruct, SparseVector, VectorParams
 
 from lex.core.qdrant_client import qdrant_client
 

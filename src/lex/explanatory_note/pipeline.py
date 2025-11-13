@@ -2,7 +2,7 @@ import logging
 import uuid
 from typing import Iterator
 
-from lex.core.pipeline_utils import PipelineMonitor, process_documents
+from lex.core.pipeline_utils import PipelineMonitor
 from lex.explanatory_note.models import ExplanatoryNote
 from lex.explanatory_note.scraper import ExplanatoryNoteScraperAndParser
 from lex.legislation.models import LegislationType

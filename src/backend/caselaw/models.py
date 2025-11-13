@@ -19,6 +19,11 @@ class CaselawSearch(BaseModel):
     query: Optional[str] = Field(
         default=None,
         description="The natural language query to search for caselaw. Often this will be the question on which the case hinges, but it could be more tangential. If not provided, will return results based on filters only.",
+        examples=[
+            "negligence in medical treatment",
+            "breach of contract remedies",
+            "judicial review of administrative decisions",
+        ],
     )
     is_semantic_search: bool = Field(
         default=True,
@@ -46,6 +51,7 @@ class CaselawSectionSearch(BaseModel):
     query: Optional[str] = Field(
         default=None,
         description="The query to search for in case names, citations, etc. If not provided, will return results based on filters only.",
+        examples=["negligence", "contract", "human rights"],
     )
     court: Optional[List[Court]] = Field(default=None, description="Filter by court.")
     division: Optional[List[CourtDivision]] = Field(

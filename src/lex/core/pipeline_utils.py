@@ -180,9 +180,11 @@ def process_documents(
         Processed documents of the specified type
     """
     import uuid
-    from lex.core.url_tracker import URLTracker, clear_tracking as clear_tracking_fn
+
     from lex.core.document import uri_to_uuid
     from lex.core.exceptions import ProcessedException
+    from lex.core.url_tracker import URLTracker
+    from lex.core.url_tracker import clear_tracking as clear_tracking_fn
 
     logger = logging.getLogger(__name__)
 

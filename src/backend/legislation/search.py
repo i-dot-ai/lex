@@ -14,7 +14,6 @@ from qdrant_client.models import (
 )
 
 from backend.core.cache import cached_search
-
 from backend.legislation.models import (
     LegislationActSearch,
     LegislationFullText,
@@ -46,7 +45,9 @@ async def legislation_section_search(
 ) -> list[LegislationSection]:
     """Search for legislation sections using Qdrant hybrid search."""
 
-    logger.info(f"Legislation section search input: query='{input.query}', legislation_id='{input.legislation_id}', size={input.size}")
+    logger.info(
+        f"Legislation section search input: query='{input.query}', legislation_id='{input.legislation_id}', size={input.size}"
+    )
 
     sections, _ = await qdrant_search(
         collection=LEGISLATION_SECTION_COLLECTION,
@@ -62,15 +63,21 @@ async def legislation_section_search(
         include_text=input.include_text,
     )
 
-    logger.info(f"Found {len(sections)} sections for legislation_id='{input.legislation_id}' with query='{input.query}'")
-    
+    logger.info(
+        f"Found {len(sections)} sections for legislation_id='{input.legislation_id}' with query='{input.query}'"
+    )
+
     # Debug log first few sections found
     if sections:
         for i, section in enumerate(sections[:3]):
-            logger.info(f"Section {i+1}: id='{section.id}', legislation_id='{section.legislation_id}', title='{section.title[:100]}'")
+            logger.info(
+                f"Section {i + 1}: id='{section.id}', legislation_id='{section.legislation_id}', title='{section.title[:100]}'"
+            )
     else:
-        logger.warning(f"No sections found for query='{input.query}' within legislation_id='{input.legislation_id}'")
-    
+        logger.warning(
+            f"No sections found for query='{input.query}' within legislation_id='{input.legislation_id}'"
+        )
+
     return sections
 
 
@@ -200,18 +207,18 @@ def get_legislation_types(
 def normalize_legislation_id(legislation_id: str) -> str:
     """
     Normalize legislation_id to the full URL format.
-    
+
     Converts formats like:
     - "ukpga/1994/13" -> "http://www.legislation.gov.uk/id/ukpga/1994/13"
     - "http://www.legislation.gov.uk/id/ukpga/1994/13" -> "http://www.legislation.gov.uk/id/ukpga/1994/13" (unchanged)
     """
     if not legislation_id:
         return legislation_id
-    
+
     # If it's already a full URL, return as-is
     if legislation_id.startswith("http://www.legislation.gov.uk/id/"):
         return legislation_id
-    
+
     # If it's a short format, convert to full URL
     # Expected format: "type/year/number" (e.g., "ukpga/1994/13")
     return f"http://www.legislation.gov.uk/id/{legislation_id}"
@@ -230,7 +237,9 @@ def get_filters(
     if legislation_id:
         # Normalize the legislation_id to the full URL format
         normalized_id = normalize_legislation_id(legislation_id)
-        logger.info(f"Creating filter for legislation_id: '{legislation_id}' -> normalized: '{normalized_id}'")
+        logger.info(
+            f"Creating filter for legislation_id: '{legislation_id}' -> normalized: '{normalized_id}'"
+        )
         return [FieldCondition(key="legislation_id", match=MatchValue(value=normalized_id))]
 
     legislation_types = (
@@ -287,7 +296,9 @@ async def qdrant_search(
 
     query_filter = Filter(must=filter_conditions) if filter_conditions else None
     logger.debug(f"Qdrant search query_filter: {query_filter}")
-    logger.debug(f"Qdrant search params: collection={collection}, search_query='{search_query}', is_semantic_search={is_semantic_search}, size={size}, offset={offset}")
+    logger.debug(
+        f"Qdrant search params: collection={collection}, search_query='{search_query}', is_semantic_search={is_semantic_search}, size={size}, offset={offset}"
+    )
 
     # Determine which payload fields to retrieve
     # When include_text=False, exclude large text field for 60% faster retrieval
@@ -362,8 +373,10 @@ async def qdrant_search(
     logger.debug(f"Qdrant returned {len(results.points)} results")
     for i, point in enumerate(results.points):
         if i < 3:  # Log first 3 results for debugging
-            logger.debug(f"Result {i}: score={point.score}, legislation_id={point.payload.get('legislation_id', 'N/A')}")
-        
+            logger.debug(
+                f"Result {i}: score={point.score}, legislation_id={point.payload.get('legislation_id', 'N/A')}"
+            )
+
         section = LegislationSection(**point.payload)
         sections.append(section)
 
@@ -377,20 +390,22 @@ async def qdrant_search(
 
 async def legislation_lookup(input: LegislationLookup) -> Legislation | None:
     """Lookup legislation by exact type, year, and number.
-    
+
     Args:
         input: LegislationLookup with legislation_type, year, and number fields
-        
+
     Returns:
         Legislation object if found, None if not found
     """
-    logger.info(f"Looking up legislation: type={input.legislation_type.value}, year={input.year}, number={input.number}")
-    
+    logger.info(
+        f"Looking up legislation: type={input.legislation_type.value}, year={input.year}, number={input.number}"
+    )
+
     # Validate input parameters
     if input.year < 1267 or input.year > 2030:
         logger.warning(f"Invalid year provided: {input.year}. Should be between 1267 and 2030.")
         return None
-        
+
     if input.number <= 0:
         logger.warning(f"Invalid number provided: {input.number}. Should be positive.")
         return None
@@ -410,7 +425,9 @@ async def legislation_lookup(input: LegislationLookup) -> Legislation | None:
     )[0]
 
     if not points:
-        logger.info(f"No legislation found for type={input.legislation_type.value}, year={input.year}, number={input.number}")
+        logger.info(
+            f"No legislation found for type={input.legislation_type.value}, year={input.year}, number={input.number}"
+        )
         return None
 
     legislation = Legislation(**points[0].payload)
@@ -423,24 +440,24 @@ async def get_legislation_sections(
     input: LegislationSectionLookup,
 ) -> list[LegislationSection]:
     """Retrieve all sections of specific legislation by legislation_id.
-    
+
     Args:
         input: LegislationSectionLookup with legislation_id and limit
-        
+
     Returns:
         List of LegislationSection objects sorted by section number
     """
     # Normalize the legislation_id to ensure consistent format
     normalized_id = normalize_legislation_id(input.legislation_id)
-    logger.info(f"Looking up sections for legislation_id: '{input.legislation_id}' -> normalized: '{normalized_id}', limit={input.limit}")
+    logger.info(
+        f"Looking up sections for legislation_id: '{input.legislation_id}' -> normalized: '{normalized_id}', limit={input.limit}"
+    )
 
     # Use scroll to get all sections (sorted by number in payload)
     points, _ = qdrant_client.scroll(
         collection_name=LEGISLATION_SECTION_COLLECTION,
         scroll_filter=Filter(
-            must=[
-                FieldCondition(key="legislation_id", match=MatchValue(value=normalized_id))
-            ]
+            must=[FieldCondition(key="legislation_id", match=MatchValue(value=normalized_id))]
         ),
         limit=input.limit,
         with_payload=True,
@@ -468,7 +485,9 @@ async def get_legislation_full_text(input: LegislationFullTextLookup) -> Legisla
     """
     # Normalize the legislation_id to ensure consistent format
     normalized_id = normalize_legislation_id(input.legislation_id)
-    logger.info(f"Getting full text for legislation_id: '{input.legislation_id}' -> normalized: '{normalized_id}', include_schedules={input.include_schedules}")
+    logger.info(
+        f"Getting full text for legislation_id: '{input.legislation_id}' -> normalized: '{normalized_id}', include_schedules={input.include_schedules}"
+    )
 
     # Get legislation metadata
     points = qdrant_client.scroll(

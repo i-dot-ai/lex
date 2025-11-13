@@ -15,18 +15,14 @@ from typing import Dict, List, Optional
 from langfuse import Langfuse, observe
 from openai import AsyncAzureOpenAI, RateLimitError
 from tenacity import (
+    before_sleep_log,
     retry,
     retry_if_exception_type,
     stop_after_attempt,
     wait_exponential,
-    before_sleep_log,
 )
 
-from lex.pdf_digitization.models import (
-    ExtractionResult,
-    ExtractionProvenance,
-    LegislationMetadata,
-)
+from lex.pdf_digitization.models import ExtractionProvenance, ExtractionResult, LegislationMetadata
 
 logger = logging.getLogger(__name__)
 
@@ -230,7 +226,7 @@ Handle document quality issues:
 
                     logger.info(f"Extracted {len(output_text)} chars from message content")
                 else:
-                    logger.warning(f"Message item has no content")
+                    logger.warning("Message item has no content")
             else:
                 logger.warning(
                     f"No message item found in response.output (only found: {[getattr(item, 'type', 'unknown') for item in response.output]})"

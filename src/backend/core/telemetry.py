@@ -1,7 +1,6 @@
 """OpenTelemetry and Azure Monitor configuration."""
 
 import logging
-import os
 
 from backend.core.config import APPLICATIONINSIGHTS_CONNECTION_STRING
 
@@ -11,6 +10,7 @@ def configure_telemetry():
     # Configure Azure Monitor OpenTelemetry FIRST - before any FastAPI imports
     if APPLICATIONINSIGHTS_CONNECTION_STRING:
         from azure.monitor.opentelemetry import configure_azure_monitor
+
         configure_azure_monitor()
         print("✅ Azure Monitor OpenTelemetry configured")
 
@@ -27,6 +27,7 @@ def instrument_fastapi_app(app):
     if APPLICATIONINSIGHTS_CONNECTION_STRING:
         try:
             from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+
             FastAPIInstrumentor.instrument_app(app)
             print("✅ FastAPI app instrumented for Azure Monitor")
         except Exception as e:

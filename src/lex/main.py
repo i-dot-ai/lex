@@ -4,7 +4,7 @@ import logging
 import os
 from collections import namedtuple
 from concurrent.futures import ProcessPoolExecutor, as_completed
-from typing import List, Tuple
+from typing import Tuple
 
 from dotenv import load_dotenv
 
@@ -146,9 +146,9 @@ def process_single_checkpoint(
 
     # Upload remaining batches
     if caselaw_batch:
-        upload_documents(collection_name=CASELAW_INDEX, documents=caselaw_batch)
+        upload_documents(collection_name=CASELAW_COLLECTION, documents=caselaw_batch)
     if section_batch:
-        upload_documents(collection_name=CASELAW_SECTION_INDEX, documents=section_batch)
+        upload_documents(collection_name=CASELAW_SECTION_COLLECTION, documents=section_batch)
 
     process_logger.info(
         f"Completed {court_type} {year}: {caselaw_count} cases, {section_count} sections"
@@ -268,13 +268,13 @@ def process_unified_caselaw(args):
 
         # Upload any remaining documents
         if caselaw_batch:
-            upload_documents(collection_name=CASELAW_INDEX, documents=caselaw_batch)
+            upload_documents(collection_name=CASELAW_COLLECTION, documents=caselaw_batch)
             logger.info(
                 f"Uploaded final caselaw batch of {len(caselaw_batch)} (total: {caselaw_count})"
             )
 
         if section_batch:
-            upload_documents(collection_name=CASELAW_SECTION_INDEX, documents=section_batch)
+            upload_documents(collection_name=CASELAW_SECTION_COLLECTION, documents=section_batch)
             logger.info(
                 f"Uploaded final section batch of {len(section_batch)} (total: {section_count})"
             )
