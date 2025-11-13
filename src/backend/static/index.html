@@ -13,6 +13,10 @@
     <!-- Import Inter font -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     
+    <!-- Favicon -->
+    <link rel="icon" href="/i-dot-ai-logo.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/i-dot-ai-logo.svg">
+    
     <style>
         /* i.AI Design System - Based on GOV.UK Frontend 5.9.0 */
         
@@ -716,7 +720,7 @@
             
             <!-- Hero section -->
             <div class="govuk-grid-row">
-                <div class="govuk-grid-column-two-thirds">
+                <div class="govuk-grid-column-full">
                     <h1 class="govuk-heading-xl">Lex API</h1>
                     <p class="govuk-body-l">UK legal API for AI agents and researchers. Access comprehensive UK legislation and caselaw data with semantic search and Model Context Protocol integration.</p>
                 </div>
@@ -744,16 +748,18 @@
                 </div>
             </div>
 
-            <div class="govuk-grid-row govuk-!-margin-bottom-9">
-                <div class="govuk-grid-column-one-half">
+            <div class="govuk-grid-row govuk-!-margin-bottom-6">
+                <div class="govuk-grid-column-full">
                     <h3 class="govuk-heading-m">Swagger UI</h3>
                     <p class="govuk-body">Interactive API explorer with request and response examples for all endpoints.</p>
                     <a href="/api/docs" class="govuk-button" role="button" target="_blank" rel="noopener noreferrer">
                         View Swagger Documentation
                     </a>
                 </div>
-                
-                <div class="govuk-grid-column-one-half">
+            </div>
+            
+            <div class="govuk-grid-row govuk-!-margin-bottom-9">
+                <div class="govuk-grid-column-full">
                     <h3 class="govuk-heading-m">ReDoc</h3>
                     <p class="govuk-body">Clean, reference-style documentation with detailed schemas and examples.</p>
                     <a href="/api/redoc" class="govuk-button" role="button" target="_blank" rel="noopener noreferrer">
@@ -771,7 +777,7 @@
             </div>
 
             <div class="govuk-grid-row govuk-!-margin-bottom-6">
-                <div class="govuk-grid-column-two-thirds">
+                <div class="govuk-grid-column-full">
                     <h3 class="govuk-heading-m">Configuration</h3>
                     <p class="govuk-body">Add this configuration to your Claude Desktop configuration file:</p>
                     <p class="govuk-body-s"><strong>Config file location:</strong> <code>~/Library/Application Support/Claude/claude_desktop_config.json</code></p>
@@ -784,7 +790,7 @@
       <span class="json-key">"command"</span><span class="json-punctuation">:</span> <span class="json-string">"npx"</span><span class="json-punctuation">,</span>
       <span class="json-key">"args"</span><span class="json-punctuation">:</span> <span class="json-punctuation">[</span>
         <span class="json-string">"-y"</span><span class="json-punctuation">,</span>
-        <span class="json-string">"mcp-remote@latest"</span><span class="json-punctuation">,</span>
+        <span class="json-string">"@modelcontextprotocol/server-fetch"</span><span class="json-punctuation">,</span>
         <span class="json-string">"https://lex-api.victoriousdesert-f8e685e0.uksouth.azurecontainerapps.io/mcp"</span>
       <span class="json-punctuation">]</span><span class="json-punctuation">,</span>
       <span class="json-key">"env"</span><span class="json-punctuation">:</span> <span class="json-punctuation">{}</span>
@@ -809,22 +815,6 @@
             </div>
 
 
-            <!-- Terms section -->
-            <div class="govuk-grid-row govuk-!-margin-bottom-9">
-                <div class="govuk-grid-column-full">
-                    <div class="govuk-notification-banner" role="region" aria-labelledby="terms-title">
-                        <div class="govuk-notification-banner__header">
-                            <h2 class="govuk-notification-banner__title" id="terms-title">Terms of Use</h2>
-                        </div>
-                        <div class="govuk-notification-banner__content">
-                            <p class="govuk-notification-banner__heading">
-                                For research and non-commercial use. Attribution required. For commercial licensing contact: 
-                                <a class="govuk-link" href="mailto:lex@cabinetoffice.gov.uk">lex@cabinetoffice.gov.uk</a>
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
             <!-- Quick Reference section -->
             <div class="govuk-grid-row">
@@ -833,13 +823,17 @@
                 </div>
             </div>
 
-            <div class="govuk-grid-row">
-                <div class="govuk-grid-column-one-half">
+            <div class="govuk-grid-row govuk-!-margin-bottom-6">
+                <div class="govuk-grid-column-full">
                     <h3 class="govuk-heading-m">Base URL</h3>
                     <div class="code-block">
                         <pre>https://lex-api.victoriousdesert-f8e685e0.uksouth.azurecontainerapps.io</pre>
                     </div>
-                    
+                </div>
+            </div>
+            
+            <div class="govuk-grid-row govuk-!-margin-bottom-6">
+                <div class="govuk-grid-column-full">
                     <h3 class="govuk-heading-m">Key Endpoints</h3>
                     <ul class="govuk-list govuk-list--bullet">
                         <li><code>/legislation/search</code> - Semantic legislation search</li>
@@ -848,8 +842,10 @@
                         <li><code>/mcp</code> - MCP server endpoint</li>
                     </ul>
                 </div>
+            </div>
                 
-                <div class="govuk-grid-column-one-half">
+            <div class="govuk-grid-row govuk-!-margin-bottom-6">
+                <div class="govuk-grid-column-full">
                     <h3 class="govuk-heading-m">Rate Limits</h3>
                     <ul class="govuk-list">
                         <li><strong>Per minute:</strong> 60 requests</li>
@@ -876,8 +872,7 @@
                     </p>
                     <p class="govuk-body-s">
                         <a href="https://github.com/i-dot-ai/lex" class="govuk-footer__link" target="_blank" rel="noopener noreferrer">GitHub</a> • 
-                        <a href="mailto:lex@cabinetoffice.gov.uk" class="govuk-footer__link">Contact</a> • 
-                        <a href="https://www.gov.uk/government/organisations/incubator-for-artificial-intelligence" class="govuk-footer__link" target="_blank" rel="noopener noreferrer">About i.AI</a>
+                        <a href="https://ai.gov.uk/about/" class="govuk-footer__link" target="_blank" rel="noopener noreferrer">About i.AI</a>
                     </p>
                 </div>
             </div>

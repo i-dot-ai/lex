@@ -14,19 +14,8 @@ def create_mcp_server(base_app):
     # Create MCP server from FastAPI app
     mcp = FastMCP.from_fastapi(app=base_app, name="Lex API")
 
-    # MCP lifecycle tracking via FastAPI events
-    @base_app.on_event("startup")
-    async def track_mcp_startup():
-        """Track MCP server startup."""
-        monitoring.track_mcp_event("server_startup")
-
-    @base_app.on_event("shutdown")
-    async def track_mcp_shutdown():
-        """Track MCP server shutdown."""
-        monitoring.track_mcp_event("server_shutdown")
-
-    # Create the MCP ASGI app using streamable HTTP for better compatibility
-    return mcp.streamable_http_app(path='/mcp')
+    # Return the MCP server for combined routes pattern
+    return mcp
 
 
 class MCPMiddleware:

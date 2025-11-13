@@ -4,6 +4,7 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.exceptions import HTTPException
 from fastapi.staticfiles import StaticFiles
 
 from backend.amendment.router import router as amendment_router
@@ -13,7 +14,7 @@ from backend.legislation.router import router as legislation_router
 from backend.core.middleware import monitoring_and_rate_limit_middleware
 from backend.core.telemetry import instrument_fastapi_app
 from backend.monitoring import monitoring
-from backend.mcp.server import create_mcp_server, MCPMiddleware
+from backend.mcp.server import create_mcp_server
 
 
 def create_base_app():
@@ -34,7 +35,7 @@ def create_base_app():
         allow_origins=["*"],  # Allow all origins for public API
         allow_credentials=False,
         allow_methods=["GET", "POST", "OPTIONS"],
-        allow_headers=["*"],
+        allow_headers=["*", "MCP-Protocol-Version", "mcp-session-id"],
     )
 
     # Instrument FastAPI with OpenTelemetry
@@ -85,9 +86,12 @@ def create_app():
     base_app = create_base_app()
     
     # Create MCP server
-    mcp_app = create_mcp_server(base_app)
+    mcp = create_mcp_server(base_app)
     
-    # Create combined app with both API and MCP routes
+    # Create MCP ASGI app with proper path
+    mcp_app = mcp.http_app(path='/mcp')
+    
+    # Use FastMCP's combined routes pattern from docs
     app = FastAPI(
         title="Lex API",
         description="UK Legal API for AI agents with MCP support",
@@ -95,25 +99,12 @@ def create_app():
         docs_url="/api/docs",  # Move API docs to /api/docs
         redoc_url="/api/redoc",  # Move ReDoc to /api/redoc
         openapi_url="/api/openapi.json",  # Move OpenAPI spec
+        routes=[
+            *mcp_app.routes,      # MCP routes
+            *base_app.routes,     # Original API routes
+        ],
+        lifespan=mcp_app.lifespan,
     )
-
-    # Add all middleware from base_app to main app
-    for middleware in base_app.user_middleware:
-        # Handle different FastAPI middleware structure
-        if hasattr(middleware, 'cls') and hasattr(middleware, 'args') and hasattr(middleware, 'kwargs'):
-            app.add_middleware(middleware.cls, **middleware.kwargs)
-        elif hasattr(middleware, 'cls'):
-            app.add_middleware(middleware.cls)
-
-    # Include all API routes except the root path (/) to allow static files
-    for route in base_app.routes:
-        # Skip the root path route to let static files handle it
-        if hasattr(route, 'path') and route.path == "/":
-            continue
-        app.router.routes.append(route)
-
-    # Mount MCP server at /mcp with monitoring middleware
-    app.mount("/mcp", MCPMiddleware(mcp_app), name="mcp")
 
     # Serve static files at root (this should be last)
     try:
