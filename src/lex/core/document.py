@@ -1,7 +1,7 @@
 import logging
 import time
 import uuid
-from typing import Iterable, Iterator, Type, TypeVar
+from typing import Any, Dict, Iterable, Iterator, List, Type, TypeVar, Union
 
 from pydantic import BaseModel
 from qdrant_client.models import PointStruct
@@ -29,7 +29,7 @@ def uri_to_uuid(uri: str) -> str:
     return str(uuid.uuid5(NAMESPACE_LEX, uri))
 
 
-def documents_to_batches(documents: Iterable, batch_size: int):
+def documents_to_batches(documents: Iterable[Dict[str, Any]], batch_size: int) -> Iterator[List[Dict[str, Any]]]:
     """Yield batches of documents."""
     batch = []
     for doc in documents:
@@ -41,7 +41,7 @@ def documents_to_batches(documents: Iterable, batch_size: int):
         yield batch
 
 
-def generate_documents(source_documents: Iterable, target_model: Type[T]) -> Iterator[T]:
+def generate_documents(source_documents: Iterable[Union[Dict[str, Any], BaseModel, Any]], target_model: Type[T]) -> Iterator[T]:
     """Generate pydantic documents from source documents.
 
     Args:
@@ -77,7 +77,7 @@ def upload_documents(
     batches_per_log: int = 10,
     max_retries: int = 5,
     retry_delay: float = 10.0,
-):
+) -> None:
     """Upload documents to Qdrant with hybrid embeddings.
 
     Args:
@@ -98,8 +98,8 @@ def upload_documents(
         embedding_fields = ["text"]
 
     # Convert documents to dicts
-    documents = list(doc.model_dump() for doc in documents)
-    batch_generator = documents_to_batches(documents, batch_size)
+    document_dicts: List[Dict[str, Any]] = list(doc.model_dump() for doc in documents)
+    batch_generator = documents_to_batches(document_dicts, batch_size)
     docs_uploaded = 0
     connection_errors = 0
 
@@ -113,7 +113,7 @@ def upload_documents(
                 # Generate embeddings and create points
                 points = []
                 for doc in batch:
-                    doc_id = doc.get(id_field)
+                    doc_id = doc.get(id_field, 'unknown')
 
                     # Build text from specified fields
                     text_parts = []

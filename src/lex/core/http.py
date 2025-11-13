@@ -27,9 +27,9 @@ class HttpClient:
         max_retries: int = 30,
         initial_delay: float = 1.0,
         max_delay: float = 600.0,
-        timeout: Optional[Union[float, tuple]] = 30,
+        timeout: Optional[Union[float, tuple[float, float]]] = 30,
         session: Optional[requests.Session] = None,
-        retry_exceptions: Optional[tuple[Type[Exception], ...]] = None,
+        retry_exceptions: Optional[tuple[type[Exception], ...]] = None,
         enable_cache: bool = True,
         cache_dir: Optional[str] = None,
         cache_size_limit: int = 1_000_000_000,  # 1GB default
@@ -60,7 +60,7 @@ class HttpClient:
         self.cache_size_limit = cache_size_limit
 
         # Default exceptions to retry on
-        self.retry_exceptions = retry_exceptions or (
+        self.retry_exceptions: tuple[type[Exception], ...] = retry_exceptions or (
             requests.exceptions.RequestException,
             requests.exceptions.HTTPError,
             requests.exceptions.ConnectionError,
@@ -115,10 +115,11 @@ class HttpClient:
 
         # Check for rate limiting
         if response.status_code == 429:
-            retry_after = response.headers.get("Retry-After")
-            if retry_after:
+            retry_after_header = response.headers.get("Retry-After")
+            retry_after: Optional[int] = None
+            if retry_after_header:
                 try:
-                    retry_after = int(retry_after)
+                    retry_after = int(retry_after_header)
                 except ValueError:
                     retry_after = None
 
@@ -153,7 +154,7 @@ class HttpClient:
 
         try:
             # Use circuit breaker to protect against cascading failures
-            response = self.circuit_breaker.call(
+            response: requests.Response = self.circuit_breaker.call(
                 self._retry_decorator(self._make_request), method, url, **kwargs
             )
             self.rate_limiter.record_success()
@@ -202,7 +203,7 @@ class HttpClient:
 
         # Check cache
         try:
-            cached_response = self._cache.get(cache_key)
+            cached_response: Optional[requests.Response] = self._cache.get(cache_key)
             if cached_response is not None:
                 logger.debug(f"Cache hit for {url}")
                 return cached_response

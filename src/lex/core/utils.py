@@ -1,5 +1,5 @@
 import logging
-from typing import Optional
+from typing import Any, Dict, List, Optional, Union
 
 from bs4 import BeautifulSoup
 
@@ -32,9 +32,9 @@ def set_logging_level(
 
 def create_collection_if_none(
     collection_name: str,
-    schema: dict = None,
+    schema: Optional[Dict[str, Any]] = None,
     non_interactive: bool = False,
-):
+) -> None:
     """Creates a collection in Qdrant if it does not already exist.
 
     Args:
@@ -72,7 +72,7 @@ def load_xml_file_to_soup(filepath: str) -> BeautifulSoup:
         return BeautifulSoup(f.read(), "xml")
 
 
-def parse_years(years_input):
+def parse_years(years_input: Optional[List[Union[str, int]]]) -> Optional[List[int]]:
     """
     Parse years input that can contain individual years or ranges.
 
@@ -98,9 +98,9 @@ def parse_years(years_input):
         if "-" in year_str:
             # Handle range like "2020-2025"
             try:
-                start_year, end_year = year_str.split("-")
-                start_year = int(start_year)
-                end_year = int(end_year)
+                start_year_str, end_year_str = year_str.split("-")
+                start_year = int(start_year_str)
+                end_year = int(end_year_str)
 
                 if start_year > end_year:
                     raise ValueError(

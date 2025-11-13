@@ -7,7 +7,7 @@ import uuid
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
+from typing import Dict, Optional, Set
 
 logger = logging.getLogger(__name__)
 
@@ -71,7 +71,7 @@ class URLTracker:
         """Check if URL has already been successfully processed."""
         return url in self._processed_urls
 
-    def record_success(self, url: str, doc_uuid: str, doc_date: Optional[str] = None):
+    def record_success(self, url: str, doc_uuid: str, doc_date: Optional[str] = None) -> None:
         """Record successful processing.
 
         Args:
@@ -96,7 +96,7 @@ class URLTracker:
         self._processed_urls.add(url)
         logger.debug(f"Recorded success: {url} -> {doc_uuid}")
 
-    def record_failure(self, url: str, error: str):
+    def record_failure(self, url: str, error: str) -> None:
         """Record processing failure."""
         record = FailureRecord(
             url=url,
@@ -113,7 +113,7 @@ class URLTracker:
 
         logger.debug(f"Recorded failure: {url} - {error[:100]}")
 
-    def _load_processed_urls(self) -> set:
+    def _load_processed_urls(self) -> Set[str]:
         """Load all successfully processed URLs into memory."""
         processed = set()
 
@@ -126,7 +126,7 @@ class URLTracker:
 
         return processed
 
-    def get_stats(self) -> dict:
+    def get_stats(self) -> Dict[str, int]:
         """Get success/failure counts."""
         success_count = len(self._processed_urls)
 
@@ -142,7 +142,7 @@ class URLTracker:
         }
 
 
-def clear_tracking(doc_type: str):
+def clear_tracking(doc_type: str) -> None:
     """Clear all tracking files for a document type."""
     import glob
 

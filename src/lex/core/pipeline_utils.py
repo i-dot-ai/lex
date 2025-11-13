@@ -4,12 +4,28 @@ import logging
 import re
 import time
 from functools import wraps
-from typing import Any, Callable, Dict, Iterator, Type, TypeVar
+from typing import Any, Callable, Dict, Iterator, Optional, Protocol, Type, TypeVar, Union
 
 from lex.core.document import generate_documents
 from lex.core.models import LexModel
 
 T = TypeVar("T", bound=LexModel)
+
+
+class ContentLoader(Protocol):
+    """Protocol for content loaders/scrapers."""
+    
+    def load_content(self, years: list[int], types: list[Any], limit: Optional[int] = None) -> Iterator[tuple[str, Any]]:
+        """Load content yielding (url, soup) tuples."""
+        ...
+
+
+class ContentParser(Protocol):
+    """Protocol for content parsers."""
+    
+    def parse_content(self, soup: Any) -> Any:
+        """Parse content from soup object."""
+        ...
 
 
 class PipelineMonitor:
@@ -31,7 +47,7 @@ class PipelineMonitor:
         """Wrap the pipeline function with monitoring capabilities."""
 
         @wraps(func)
-        def wrapper(*args, **kwargs) -> Iterator[T]:
+        def wrapper(*args: Any, **kwargs: Any) -> Iterator[T]:
             logger = logging.getLogger(func.__module__)
             start_time = time.time()
             doc_count = 0
@@ -51,7 +67,7 @@ class PipelineMonitor:
                     doc_metadata = self._extract_doc_metadata(doc)
 
                     logger.info(
-                        f"Processed {self.doc_type} document: {doc.id}",
+                        f"Processed {self.doc_type} document: {getattr(doc, 'id', 'unknown')}",
                         extra={
                             "doc_type": self.doc_type,
                             "processing_status": "success",
@@ -110,7 +126,7 @@ class PipelineMonitor:
 
         return wrapper
 
-    def _extract_params_info(self, args: tuple, kwargs: dict) -> Dict[str, Any]:
+    def _extract_params_info(self, args: tuple[Any, ...], kwargs: dict[str, Any]) -> Dict[str, Any]:
         """Extract relevant parameters for logging."""
         info = {}
 
@@ -153,13 +169,13 @@ class PipelineMonitor:
 def process_documents(
     years: list[int],
     types: list[Any],
-    loader_or_scraper: Any,
-    parser: Any,
+    loader_or_scraper: ContentLoader,
+    parser: ContentParser,
     document_type: Type[LexModel],
-    limit: int,
+    limit: Optional[int],
     wrap_result: bool = False,
-    doc_type_name: str = None,
-    run_id: str = None,
+    doc_type_name: Optional[str] = None,
+    run_id: Optional[str] = None,
     clear_tracking: bool = False,
 ) -> Iterator[LexModel]:
     """Process documents with URL tracking, relying on Qdrant UUID5 idempotency.
@@ -236,7 +252,7 @@ def process_documents(
 
                         for doc in generate_documents(data_to_process, document_type):
                             if tracker:
-                                doc_uuid = uri_to_uuid(doc.id)
+                                doc_uuid = uri_to_uuid(getattr(doc, 'id', str(doc)))
                                 doc_date = None
                                 if hasattr(doc, "date") and doc.date:
                                     doc_date = str(doc.date)

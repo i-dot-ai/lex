@@ -2,7 +2,7 @@ import logging
 import os
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 from fastembed import SparseTextEmbedding
 from openai import AzureOpenAI, RateLimitError
@@ -23,7 +23,7 @@ MAX_RETRIES = 5
 BASE_BACKOFF = 1.0  # seconds
 
 
-def get_openai_client():
+def get_openai_client() -> AzureOpenAI:
     """Lazy load Azure OpenAI client."""
     global _openai_client
     if _openai_client is None:
@@ -38,7 +38,7 @@ def get_openai_client():
     return _openai_client
 
 
-def get_sparse_model():
+def get_sparse_model() -> SparseTextEmbedding:
     """Lazy load sparse model to avoid initialization on import."""
     global _sparse_model
     if _sparse_model is None:
@@ -123,7 +123,7 @@ def generate_dense_embeddings_batch(
     if not texts:
         return []
 
-    results = [None] * len(texts)
+    results: List[Optional[List[float]]] = [None] * len(texts)
     completed = 0
 
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
@@ -147,7 +147,8 @@ def generate_dense_embeddings_batch(
                 logger.error(f"Failed to generate embedding for text {idx}: {e}")
                 results[idx] = [0.0] * EMBEDDING_DIMENSIONS
 
-    return results
+    # Type checker: results is guaranteed to have no None values due to exception handling
+    return results  # type: ignore[return-value]
 
 
 def generate_sparse_embedding(text: str) -> SparseVector:

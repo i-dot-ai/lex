@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -14,7 +15,7 @@ class EmbeddableModel(LexModel):
 
     @field_validator("text", mode="before")
     @classmethod
-    def coerce_text_from_dict(cls, value):
+    def coerce_text_from_dict(cls, value: Any) -> str:
         """Extract text from dict if present (handles nested text fields)."""
         if isinstance(value, dict) and "text" in value:
             return value["text"]
