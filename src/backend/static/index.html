@@ -210,10 +210,21 @@
             flex-grow: 1;
         }
         
+        .govuk-header__experiment-tag {
+            background: var(--iai-pink);
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            padding: 4px 8px;
+            margin-left: 18px;
+            border-radius: 0;
+        }
+        
         .govuk-header__link--service-name {
             font-weight: 700;
-            font-size: 24px;
-            line-height: 1.2;
+            font-size: 30px;
+            line-height: 1.11111;
             color: #ffffff;
             text-decoration: none;
             margin: 0;
@@ -246,7 +257,13 @@
             }
             
             .govuk-header__link--service-name {
-                font-size: 28px;
+                font-size: 30px;
+                line-height: 1.25;
+            }
+            
+            .govuk-header__experiment-tag {
+                font-size: 16px;
+                margin-left: 20px;
             }
             
             .govuk-header__iai-logo img {
@@ -516,6 +533,7 @@
             overflow-x: auto;
             font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
             font-size: 14px;
+            font-weight: bold;
             line-height: 1.45;
             position: relative;
         }
@@ -640,6 +658,187 @@
             outline-offset: 0;
         }
         
+        /* Tab interface for MCP setup */
+        .mcp-tabs {
+            border: 2px solid var(--govuk-border-colour);
+            border-radius: 0;
+            background-color: var(--govuk-secondary-background);
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+        
+        .mcp-tabs__list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            border-bottom: 2px solid var(--govuk-border-colour);
+            background-color: #ffffff;
+        }
+        
+        .mcp-tabs__tab {
+            background: none;
+            border: none;
+            padding: 15px 20px;
+            font-family: Inter, arial, sans-serif;
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--govuk-text-colour);
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            border-right: 1px solid var(--govuk-border-colour);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+            justify-content: center;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .mcp-tabs__tab:last-child {
+            border-right: none;
+        }
+        
+        .mcp-tabs__tab:hover {
+            background-color: var(--govuk-secondary-background);
+            border-bottom-color: var(--govuk-border-colour);
+            transform: translateY(-1px);
+        }
+        
+        .mcp-tabs__tab--active {
+            color: var(--iai-pink);
+            border-bottom-color: var(--iai-pink);
+            background-color: #ffffff;
+            font-weight: 700;
+            box-shadow: inset 0 3px 0 var(--iai-pink);
+        }
+        
+        .mcp-tabs__tab-icon {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+        
+        .mcp-tabs__content {
+            display: none;
+            padding: 25px;
+            background-color: #ffffff;
+        }
+        
+        .mcp-tabs__content--active {
+            display: block;
+            animation: fadeIn 0.3s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @media (min-width: 40.0625em) {
+            .mcp-tabs__tab {
+                font-size: 16px;
+                padding: 20px 30px;
+            }
+            
+            .mcp-tabs__tab-icon {
+                width: 24px;
+                height: 24px;
+            }
+            
+            .mcp-tabs__content {
+                padding: 35px;
+            }
+        }
+
+        /* Two column layout for API docs */
+        .api-docs-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        
+        @media (min-width: 40.0625em) {
+            .api-docs-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 30px;
+            }
+        }
+
+        /* GitHub card styling */
+        .github-card {
+            border: 2px solid var(--govuk-border-colour);
+            border-radius: 0;
+            padding: 20px;
+            background-color: #ffffff;
+            margin-bottom: 30px;
+            transition: border-color 0.3s ease;
+        }
+        
+        .github-card:hover {
+            border-color: var(--iai-pink);
+        }
+        
+        .github-card__header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .github-card__icon {
+            width: 32px;
+            height: 32px;
+            flex-shrink: 0;
+        }
+        
+        .github-card__title {
+            font-size: 18px;
+            font-weight: 700;
+            margin: 0;
+            color: var(--govuk-text-colour);
+            line-height: 1.11111;
+        }
+        
+        .github-card__description {
+            margin-bottom: 20px;
+            color: #505a5f;
+        }
+        
+        .github-card__actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        @media (min-width: 40.0625em) {
+            .github-card {
+                padding: 30px;
+            }
+            
+            .github-card__icon {
+                width: 40px;
+                height: 40px;
+            }
+            
+            .github-card__title {
+                font-size: 24px;
+                line-height: 1.25;
+            }
+            
+            .github-card__actions {
+                flex-direction: row;
+                gap: 15px;
+            }
+        }
+
         /* Accessibility helpers */
         .govuk-visually-hidden {
             position: absolute !important;
@@ -705,6 +904,7 @@
                     <a href="/" class="govuk-header__link govuk-header__link--service-name">
                         Lex API
                     </a>
+                    <span class="govuk-header__experiment-tag">EXPERIMENT</span>
                 </div>
                 <div class="govuk-header__iai-logo">
                     <a href="https://ai.gov.uk" aria-label="Incubator for AI" target="_blank" rel="noopener noreferrer">
@@ -720,23 +920,119 @@
             
             <!-- Hero section -->
             <div class="govuk-grid-row">
-                <div class="govuk-grid-column-full">
-                    <h1 class="govuk-heading-xl">Lex API</h1>
-                    <p class="govuk-body-l">UK legal API for AI agents and researchers. Access comprehensive UK legislation and caselaw data with semantic search and Model Context Protocol integration.</p>
+                <div class="govuk-grid-column-two-thirds">
+                    <p class="govuk-body">UK legal API for AI agents and researchers. Access comprehensive UK legislation and caselaw data with semantic search and Model Context Protocol integration.</p>
+                    <p class="govuk-body">Our API provides programmatic access to millions of UK legal documents, court decisions, and statutory instruments with advanced semantic search capabilities, making it easier than ever to build AI-powered legal applications and conduct comprehensive legal analysis.</p>
+                    <p class="govuk-body">This API is hosted as an experimental service and should not be used as a production dependency.</p>
+                </div>
+                <div class="govuk-grid-column-one-third">
+                    <!-- Notification banner -->
+                    <div class="govuk-notification-banner govuk-notification-banner--success" role="region" aria-labelledby="govuk-notification-banner-title">
+                        <div class="govuk-notification-banner__header">
+                            <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
+                                Important
+                            </h2>
+                        </div>
+                        <div class="govuk-notification-banner__content">
+                            <p class="govuk-notification-banner__heading">
+                                This API is for research and non-production use. Rate limited to 60 requests per minute, 1000 per hour per IP address.
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Notification banner -->
-            <div class="govuk-notification-banner govuk-notification-banner--success" role="region" aria-labelledby="govuk-notification-banner-title">
-                <div class="govuk-notification-banner__header">
-                    <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
-                        Important
-                    </h2>
-                </div>
-                <div class="govuk-notification-banner__content">
-                    <p class="govuk-notification-banner__heading">
-                        This API is for research and non-commercial use. Rate limited to 60 requests per minute, 1000 per hour.
-                    </p>
+
+            <!-- MCP Setup section -->
+            <div class="govuk-grid-row govuk-!-margin-bottom-8">
+                <div class="govuk-grid-column-full">
+                    <h2 class="govuk-heading-l">Model Context Protocol Setup</h2>
+                    <p class="govuk-body">Connect the Lex API to AI assistants via Model Context Protocol for seamless legal research integration.</p>
+                    
+                    <!-- Tab interface -->
+                    <div class="mcp-tabs">
+                        <ul class="mcp-tabs__list" role="tablist">
+                            <li role="presentation">
+                                <button class="mcp-tabs__tab mcp-tabs__tab--active" 
+                                        role="tab" 
+                                        aria-selected="true" 
+                                        aria-controls="claude-panel" 
+                                        id="claude-tab"
+                                        onclick="switchTab('claude')">
+                                    <img src="/claude.svg" alt="Claude" class="mcp-tabs__tab-icon">
+                                    Claude Desktop
+                                </button>
+                            </li>
+                            <li role="presentation">
+                                <button class="mcp-tabs__tab" 
+                                        role="tab" 
+                                        aria-selected="false" 
+                                        aria-controls="copilot-panel" 
+                                        id="copilot-tab"
+                                        onclick="switchTab('copilot')">
+                                    <img src="/copilot.svg" alt="Microsoft Copilot" class="mcp-tabs__tab-icon">
+                                    Microsoft Copilot
+                                </button>
+                            </li>
+                        </ul>
+                        
+                        <!-- Claude Desktop Configuration -->
+                        <div id="claude-panel" class="mcp-tabs__content mcp-tabs__content--active" role="tabpanel" aria-labelledby="claude-tab">
+                            <h3 class="govuk-heading-m">Claude Desktop Configuration</h3>
+                            <p class="govuk-body">Add this configuration to your Claude Desktop configuration file:</p>
+                            <p class="govuk-body-s"><strong>Config file location:</strong> <code>~/Library/Application Support/Claude/claude_desktop_config.json</code></p>
+                            
+                            <div class="code-block">
+                                <button class="copy-button" onclick="copyToClipboard('claude-config')" aria-label="Copy Claude Desktop MCP configuration to clipboard">Copy</button>
+                                <pre id="claude-config"><span class="json-punctuation">{</span>
+  <span class="json-key">"mcpServers"</span><span class="json-punctuation">:</span> <span class="json-punctuation">{</span>
+    <span class="json-key">"lex"</span><span class="json-punctuation">:</span> <span class="json-punctuation">{</span>
+      <span class="json-key">"command"</span><span class="json-punctuation">:</span> <span class="json-string">"npx"</span><span class="json-punctuation">,</span>
+      <span class="json-key">"args"</span><span class="json-punctuation">:</span> <span class="json-punctuation">[</span>
+        <span class="json-string">"-y"</span><span class="json-punctuation">,</span>
+        <span class="json-string">"mcp-remote@latest"</span><span class="json-punctuation">,</span>
+        <span class="json-string">"https://lex-api.victoriousdesert-f8e685e0.uksouth.azurecontainerapps.io/mcp"</span>
+      <span class="json-punctuation">]</span><span class="json-punctuation">,</span>
+      <span class="json-key">"env"</span><span class="json-punctuation">:</span> <span class="json-punctuation">{}</span>
+    <span class="json-punctuation">}</span>
+  <span class="json-punctuation">}</span>
+<span class="json-punctuation">}</span></pre>
+                            </div>
+                        </div>
+                        
+                        <!-- Microsoft Copilot Configuration -->
+                        <div id="copilot-panel" class="mcp-tabs__content" role="tabpanel" aria-labelledby="copilot-tab">
+                            <h3 class="govuk-heading-m">Microsoft Copilot Studio Configuration</h3>
+                            <p class="govuk-body">To use Lex API with Microsoft Copilot Studio, follow these steps:</p>
+                            
+                            <ol class="govuk-list govuk-list--number">
+                                <li><strong>Access Copilot Studio:</strong> Go to your Microsoft Copilot Studio environment</li>
+                                <li><strong>Create MCP Connection:</strong> Navigate to Tools → Add a tool → New tool → Model Context Protocol</li>
+                                <li><strong>Configure Server URL:</strong> Enter the Lex API MCP endpoint URL</li>
+                                <li><strong>Set Authentication:</strong> Configure API key authentication if required</li>
+                            </ol>
+                            
+                            <div class="govuk-notification-banner" role="region">
+                                <div class="govuk-notification-banner__header">
+                                    <h4 class="govuk-notification-banner__title">Requirements</h4>
+                                </div>
+                                <div class="govuk-notification-banner__content">
+                                    <ul class="govuk-list govuk-list--bullet">
+                                        <li>Microsoft Copilot Studio access</li>
+                                        <li>Generative Orchestration must be enabled</li>
+                                        <li>Streamable transport support (current standard)</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <p class="govuk-body-s"><strong>Server URL:</strong></p>
+                            <div class="code-block">
+                                <button class="copy-button" onclick="copyToClipboard('copilot-url')" aria-label="Copy Microsoft Copilot MCP server URL to clipboard">Copy</button>
+                                <pre id="copilot-url">https://lex-api.victoriousdesert-f8e685e0.uksouth.azurecontainerapps.io/mcp</pre>
+                            </div>
+                        </div>
+                    </div>
+                    
                 </div>
             </div>
 
@@ -745,120 +1041,99 @@
                 <div class="govuk-grid-column-full">
                     <h2 class="govuk-heading-l">API Documentation</h2>
                     <p class="govuk-body">Interactive API documentation with live examples and comprehensive endpoint details.</p>
+                    
+                    <div class="api-docs-grid govuk-!-margin-bottom-6">
+                        <div>
+                            <h3 class="govuk-heading-m">Swagger UI</h3>
+                            <p class="govuk-body">Interactive API explorer with request and response examples for all endpoints.</p>
+                            <a href="/api/docs" class="govuk-button" role="button" target="_blank" rel="noopener noreferrer">
+                                View Swagger Documentation
+                            </a>
+                        </div>
+                        
+                        <div>
+                            <h3 class="govuk-heading-m">ReDoc</h3>
+                            <p class="govuk-body">Clean, reference-style documentation with detailed schemas and examples.</p>
+                            <a href="/api/redoc" class="govuk-button" role="button" target="_blank" rel="noopener noreferrer">
+                                View ReDoc Documentation
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="govuk-grid-row govuk-!-margin-bottom-6">
-                <div class="govuk-grid-column-full">
-                    <h3 class="govuk-heading-m">Swagger UI</h3>
-                    <p class="govuk-body">Interactive API explorer with request and response examples for all endpoints.</p>
-                    <a href="/api/docs" class="govuk-button" role="button" target="_blank" rel="noopener noreferrer">
-                        View Swagger Documentation
-                    </a>
-                </div>
-            </div>
-            
-            <div class="govuk-grid-row govuk-!-margin-bottom-9">
-                <div class="govuk-grid-column-full">
-                    <h3 class="govuk-heading-m">ReDoc</h3>
-                    <p class="govuk-body">Clean, reference-style documentation with detailed schemas and examples.</p>
-                    <a href="/api/redoc" class="govuk-button" role="button" target="_blank" rel="noopener noreferrer">
-                        View ReDoc Documentation
-                    </a>
-                </div>
-            </div>
-
-            <!-- MCP Setup section -->
+            <!-- Available Capabilities Section -->
             <div class="govuk-grid-row govuk-!-margin-bottom-8">
                 <div class="govuk-grid-column-full">
-                    <h2 class="govuk-heading-l">Model Context Protocol Setup</h2>
-                    <p class="govuk-body">Connect the Lex API to Claude Desktop via Model Context Protocol for seamless AI integration in your workflow.</p>
-                </div>
-            </div>
-
-            <div class="govuk-grid-row govuk-!-margin-bottom-6">
-                <div class="govuk-grid-column-full">
-                    <h3 class="govuk-heading-m">Configuration</h3>
-                    <p class="govuk-body">Add this configuration to your Claude Desktop configuration file:</p>
-                    <p class="govuk-body-s"><strong>Config file location:</strong> <code>~/Library/Application Support/Claude/claude_desktop_config.json</code></p>
+                    <h2 class="govuk-heading-l">Available Capabilities</h2>
+                    <p class="govuk-body">Once configured, AI assistants will have access to these comprehensive legal research capabilities:</p>
                     
-                    <div class="code-block">
-                        <button class="copy-button" onclick="copyToClipboard('mcp-config')" aria-label="Copy MCP configuration to clipboard">Copy</button>
-                        <pre id="mcp-config"><span class="json-punctuation">{</span>
-  <span class="json-key">"mcpServers"</span><span class="json-punctuation">:</span> <span class="json-punctuation">{</span>
-    <span class="json-key">"lex"</span><span class="json-punctuation">:</span> <span class="json-punctuation">{</span>
-      <span class="json-key">"command"</span><span class="json-punctuation">:</span> <span class="json-string">"npx"</span><span class="json-punctuation">,</span>
-      <span class="json-key">"args"</span><span class="json-punctuation">:</span> <span class="json-punctuation">[</span>
-        <span class="json-string">"-y"</span><span class="json-punctuation">,</span>
-        <span class="json-string">"@modelcontextprotocol/server-fetch"</span><span class="json-punctuation">,</span>
-        <span class="json-string">"https://lex-api.victoriousdesert-f8e685e0.uksouth.azurecontainerapps.io/mcp"</span>
-      <span class="json-punctuation">]</span><span class="json-punctuation">,</span>
-      <span class="json-key">"env"</span><span class="json-punctuation">:</span> <span class="json-punctuation">{}</span>
-    <span class="json-punctuation">}</span>
-  <span class="json-punctuation">}</span>
-<span class="json-punctuation">}</span></pre>
-                    </div>
-                </div>
-                
-                <div class="govuk-grid-column-one-third">
-                    <h3 class="govuk-heading-m">Available tools</h3>
-                    <p class="govuk-body-s">Once configured, Claude will have access to these legal research tools:</p>
-                    
-                    <ul class="govuk-list govuk-list--bullet">
-                        <li><strong>search_for_legislation</strong> - Search UK legislation</li>
-                        <li><strong>get_legislation_sections</strong> - Get specific sections</li>
-                        <li><strong>lookup_legislation</strong> - Find by reference</li>
-                        <li><strong>search_for_caselaw</strong> - Search court cases</li>
-                        <li><strong>search_caselaw_by_reference</strong> - Find citing cases</li>
-                    </ul>
-                </div>
-            </div>
-
-
-
-            <!-- Quick Reference section -->
-            <div class="govuk-grid-row">
-                <div class="govuk-grid-column-full">
-                    <h2 class="govuk-heading-l">Quick Reference</h2>
-                </div>
-            </div>
-
-            <div class="govuk-grid-row govuk-!-margin-bottom-6">
-                <div class="govuk-grid-column-full">
-                    <h3 class="govuk-heading-m">Base URL</h3>
-                    <div class="code-block">
-                        <pre>https://lex-api.victoriousdesert-f8e685e0.uksouth.azurecontainerapps.io</pre>
+                    <div class="govuk-grid-row">
+                        <div class="govuk-grid-column-one-half">
+                            <h3 class="govuk-heading-m">Legislation</h3>
+                            <ul class="govuk-list govuk-list--bullet">
+                                <li><code>search_for_legislation_acts</code> - Search UK legislation acts</li>
+                                <li><code>search_for_legislation_sections</code> - Search within legislation sections</li>
+                                <li><code>lookup_legislation</code> - Find legislation by reference</li>
+                                <li><code>get_legislation_sections</code> - Get specific legislation sections</li>
+                                <li><code>get_legislation_full_text</code> - Get full text of legislation</li>
+                            </ul>
+                            
+                            <h3 class="govuk-heading-m">Amendments</h3>
+                            <ul class="govuk-list govuk-list--bullet">
+                                <li><code>search_amendments</code> - Search legislative amendments</li>
+                                <li><code>search_amendment_sections</code> - Search amendment sections</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="govuk-grid-column-one-half">
+                            <h3 class="govuk-heading-m">Caselaw</h3>
+                            <ul class="govuk-list govuk-list--bullet">
+                                <li><code>search_for_caselaw</code> - Search court cases and judgements</li>
+                                <li><code>search_for_caselaw_section</code> - Search within case sections</li>
+                                <li><code>search_for_caselaw_by_reference</code> - Find cases citing legislation/caselaw</li>
+                            </ul>
+                            
+                            <h3 class="govuk-heading-m">Explanatory Notes</h3>
+                            <ul class="govuk-list govuk-list--bullet">
+                                <li><code>search_explanatory_note</code> - Search explanatory notes</li>
+                                <li><code>get_explanatory_note_by_legislation</code> - Get notes for legislation</li>
+                                <li><code>get_explanatory_note_by_section</code> - Get notes for specific sections</li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
-            
-            <div class="govuk-grid-row govuk-!-margin-bottom-6">
+
+            <!-- GitHub Self-hosting section -->
+            <div class="govuk-grid-row govuk-!-margin-bottom-8">
                 <div class="govuk-grid-column-full">
-                    <h3 class="govuk-heading-m">Key Endpoints</h3>
-                    <ul class="govuk-list govuk-list--bullet">
-                        <li><code>/legislation/search</code> - Semantic legislation search</li>
-                        <li><code>/caselaw/search</code> - Court case search</li>
-                        <li><code>/caselaw/reference/search</code> - Find citing cases</li>
-                        <li><code>/mcp</code> - MCP server endpoint</li>
-                    </ul>
+                    <div class="github-card">
+                        <div class="github-card__header">
+                            <img src="/github.svg" alt="GitHub" class="github-card__icon">
+                            <h2 class="github-card__title">Open Source & Self-Hosting</h2>
+                        </div>
+                        <p class="github-card__description govuk-body">
+                            Want to host your own instance or contribute to development? Lex API is open source under MIT licence.
+                        </p>
+                        <div class="github-card__actions">
+                            <a href="https://github.com/i-dot-ai/lex" 
+                               class="govuk-button" 
+                               target="_blank" 
+                               rel="noopener noreferrer">
+                                <span class="govuk-visually-hidden">Open </span>View Source Code
+                            </a>
+                            <a href="https://github.com/i-dot-ai/lex/blob/main/README.md#deployment" 
+                               class="govuk-button govuk-button--secondary" 
+                               target="_blank" 
+                               rel="noopener noreferrer">
+                                <span class="govuk-visually-hidden">View </span>Deployment Guide
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
-                
-            <div class="govuk-grid-row govuk-!-margin-bottom-6">
-                <div class="govuk-grid-column-full">
-                    <h3 class="govuk-heading-m">Rate Limits</h3>
-                    <ul class="govuk-list">
-                        <li><strong>Per minute:</strong> 60 requests</li>
-                        <li><strong>Per hour:</strong> 1000 requests</li>
-                        <li><strong>Authentication:</strong> None required</li>
-                        <li><strong>Cost:</strong> No cost for users</li>
-                    </ul>
-                    
-                    <a href="/api/docs" class="govuk-button govuk-button--secondary">
-                        View Full API Documentation
-                    </a>
-                </div>
-            </div>
+
 
         </main>
     </div>
@@ -866,20 +1141,66 @@
     <footer class="govuk-footer" role="contentinfo">
         <div class="govuk-width-container">
             <div class="govuk-footer__content-container">
-                <div class="govuk-footer__content">
-                    <p class="govuk-body-s">
-                        Built by the <strong>Incubator for AI</strong> to harness AI for public good
-                    </p>
-                    <p class="govuk-body-s">
-                        <a href="https://github.com/i-dot-ai/lex" class="govuk-footer__link" target="_blank" rel="noopener noreferrer">GitHub</a> • 
-                        <a href="https://ai.gov.uk/about/" class="govuk-footer__link" target="_blank" rel="noopener noreferrer">About i.AI</a>
-                    </p>
+                <div class="govuk-grid-row">
+                    <div class="govuk-grid-column-one-half">
+                        <div class="govuk-footer__content">
+                            <h3 class="govuk-heading-s" style="color: #ffffff; margin-bottom: 15px;">Acknowledgements</h3>
+                            <p class="govuk-body-xs" style="color: #ffffff; margin-bottom: 10px;">
+                                Thanks to our collaborators at <strong>The National Archives</strong> and <strong>Government Legal Department</strong>.
+                            </p>
+                            <p class="govuk-body-xs">
+                                <a href="https://caselaw.nationalarchives.gov.uk/" class="govuk-footer__link" target="_blank" rel="noopener noreferrer">Find Case Law</a> • 
+                                <a href="https://www.legislation.gov.uk/" class="govuk-footer__link" target="_blank" rel="noopener noreferrer">UK Legislation</a>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="govuk-grid-column-one-half">
+                        <div class="govuk-footer__content">
+                            <p class="govuk-body-s">
+                                Built by the <strong>Incubator for AI</strong> to harness AI for public good
+                            </p>
+                            <p class="govuk-body-s">
+                                <a href="https://github.com/i-dot-ai/lex" class="govuk-footer__link" target="_blank" rel="noopener noreferrer">GitHub</a> • 
+                                <a href="https://github.com/i-dot-ai/lex/issues/new" class="govuk-footer__link" target="_blank" rel="noopener noreferrer">Report a Bug</a> • 
+                                <a href="https://ai.gov.uk/about/" class="govuk-footer__link" target="_blank" rel="noopener noreferrer">About i.AI</a>
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </footer>
 
     <script>
+        // Tab switching functionality
+        function switchTab(tabName) {
+            // Hide all tab contents
+            const contents = document.querySelectorAll('.mcp-tabs__content');
+            contents.forEach(content => {
+                content.classList.remove('mcp-tabs__content--active');
+            });
+            
+            // Remove active class from all tabs
+            const tabs = document.querySelectorAll('.mcp-tabs__tab');
+            tabs.forEach(tab => {
+                tab.classList.remove('mcp-tabs__tab--active');
+                tab.setAttribute('aria-selected', 'false');
+            });
+            
+            // Show selected tab content
+            const selectedContent = document.getElementById(tabName + '-panel');
+            if (selectedContent) {
+                selectedContent.classList.add('mcp-tabs__content--active');
+            }
+            
+            // Add active class to selected tab
+            const selectedTab = document.getElementById(tabName + '-tab');
+            if (selectedTab) {
+                selectedTab.classList.add('mcp-tabs__tab--active');
+                selectedTab.setAttribute('aria-selected', 'true');
+            }
+        }
+        
         // Copy to clipboard functionality with proper error handling
         function copyToClipboard(elementId) {
             const element = document.getElementById(elementId);
