@@ -12,7 +12,7 @@ from qdrant_client.models import (
     Range,
 )
 
-from backend.middleware.cache import cached_search
+from backend.core.cache import cached_search
 
 from backend.caselaw.models import (
     CaselawReferenceSearch,
