@@ -43,9 +43,6 @@ class AmendmentScraper:
         Yields:
             Amendment objects
         """
-        # Sort years in descending order
-        years = sorted(years, reverse=True)
-
         count = 0
         for year_affected in years:
             page = 1

@@ -3,6 +3,7 @@
 import logging
 import os
 import xml.etree.ElementTree as ET
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from typing import Optional
 
@@ -113,7 +114,7 @@ def fetch_provision_text(provision_url: str) -> Optional[str]:
 
 
 def generate_explanation(
-    amendment: Amendment, model: str = "gpt-5-mini"
+    amendment: Amendment, model: str = "gpt-5-nano"
 ) -> tuple[str, str, datetime]:
     """
     Generate AI explanation for an amendment.
@@ -185,20 +186,23 @@ Write densely and efficiently. Favor clarity over length. Keep each part to 1-2 
 
 
 def add_explanations_to_amendments(
-    amendments: list[Amendment], model: str = "gpt-5-mini"
+    amendments: list[Amendment], model: str = "gpt-5-nano", max_workers: int = 25
 ) -> list[Amendment]:
     """
-    Generate AI explanations for a list of amendments.
+    Generate AI explanations for a list of amendments in parallel.
 
     Args:
         amendments: List of Amendment objects
-        model: Model name to use (default: gpt-5-mini)
+        model: Model name to use (default: gpt-5-nano)
+        max_workers: Number of concurrent workers (default: 10)
 
     Returns:
         List of amendments with ai_explanation fields populated
     """
-    logger.info(f"Generating explanations for {len(amendments)} amendments using {model}")
+    logger.info(f"Generating explanations for {len(amendments)} amendments using {model} ({max_workers} workers)")
 
+    # Filter to only amendments needing explanations
+    amendments_needing_explanation = []
     for i, amendment in enumerate(amendments, 1):
         # Skip if already has explanation
         if amendment.ai_explanation:
@@ -212,20 +216,43 @@ def add_explanations_to_amendments(
             logger.info(f"[{i}/{len(amendments)}] Skipping {amendment.id} - commencement order")
             continue
 
-        logger.info(f"[{i}/{len(amendments)}] Generating explanation for {amendment.id}")
+        amendments_needing_explanation.append(amendment)
 
-        try:
-            explanation, model_used, timestamp = generate_explanation(amendment, model)
+    if not amendments_needing_explanation:
+        logger.info("No amendments need explanations (all skipped)")
+        return amendments
 
-            # Update amendment object
-            amendment.ai_explanation = explanation
-            amendment.ai_explanation_model = model_used
-            amendment.ai_explanation_timestamp = timestamp
+    logger.info(f"Processing {len(amendments_needing_explanation)} amendments in parallel")
 
-        except Exception as e:
-            logger.error(f"Failed to process amendment {amendment.id}: {e}")
-            # Continue with next amendment
-            continue
+    # Generate explanations in parallel
+    completed = 0
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        # Submit all tasks
+        future_to_amendment = {
+            executor.submit(generate_explanation, amendment, model): amendment
+            for amendment in amendments_needing_explanation
+        }
+
+        # Collect results as they complete
+        for future in as_completed(future_to_amendment):
+            amendment = future_to_amendment[future]
+            completed += 1
+
+            try:
+                explanation, model_used, timestamp = future.result()
+
+                # Update amendment object
+                amendment.ai_explanation = explanation
+                amendment.ai_explanation_model = model_used
+                amendment.ai_explanation_timestamp = timestamp
+
+                if completed % 5 == 0 or completed == len(amendments_needing_explanation):
+                    logger.info(f"Progress: {completed}/{len(amendments_needing_explanation)} explanations generated")
+
+            except Exception as e:
+                logger.error(f"Failed to process amendment {amendment.id}: {e}")
+                # Continue with next amendment
+                continue
 
     explained_count = sum(1 for a in amendments if a.ai_explanation)
     logger.info(f"Generated explanations for {explained_count}/{len(amendments)} amendments")
