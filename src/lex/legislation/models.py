@@ -86,6 +86,40 @@ class LegislationType(str, Enum):
     UKMO = "ukmo"
     UKCI = "ukci"
 
+    def get_display_name(self) -> str:
+        """Get the full human-readable name for this legislation type."""
+        display_names = {
+            LegislationType.UKPGA: "UK Public General Act",
+            LegislationType.ASP: "Act of the Scottish Parliament",
+            LegislationType.ASC: "Act of Senedd Cymru",
+            LegislationType.ANAW: "Act of the National Assembly for Wales",
+            LegislationType.WSI: "Wales Statutory Instrument",
+            LegislationType.UKSI: "UK Statutory Instrument",
+            LegislationType.SSI: "Scottish Statutory Instrument",
+            LegislationType.UKCM: "Church Measure",
+            LegislationType.NISR: "Northern Ireland Statutory Rule",
+            LegislationType.NIA: "Northern Ireland Act",
+            LegislationType.EUDN: "EU Decision",
+            LegislationType.EUDR: "EU Directive",
+            LegislationType.EUR: "EU Regulation",
+            LegislationType.UKLA: "UK Local Act",
+            LegislationType.UKPPA: "UK Private and Personal Act",
+            LegislationType.APNI: "Act of the Northern Ireland Parliament",
+            LegislationType.GBLA: "Local Act of the Parliament of Great Britain",
+            LegislationType.AOSP: "Act of the Old Scottish Parliament",
+            LegislationType.AEP: "Act of the English Parliament",
+            LegislationType.APGB: "Act of the Parliament of Great Britain",
+            LegislationType.MWA: "Measure of the Welsh Assembly",
+            LegislationType.AIP: "Act of the Old Irish Parliament",
+            LegislationType.MNIA: "Measure of the Northern Ireland Assembly",
+            LegislationType.NISRO: "Northern Ireland Statutory Rule and Order",
+            LegislationType.NISI: "Northern Ireland Order in Council",
+            LegislationType.UKSRO: "UK Statutory Rule and Order",
+            LegislationType.UKMO: "UK Ministerial Order",
+            LegislationType.UKCI: "Church Instrument",
+        }
+        return display_names.get(self, self.value.upper())
+
     @staticmethod
     def filter_by_year(types: List["LegislationType"], year: int) -> List["LegislationType"]:
         """
