@@ -53,9 +53,26 @@ def create_collection_if_none(
             logger.error(f"Cannot create collection {collection_name}: schema is required")
             raise ValueError(f"Schema required to create collection {collection_name}")
 
+        # Extract payload_schema for separate index creation
+        payload_schema = schema.pop("payload_schema", None)
+
         logger.info(f"Creating collection {collection_name}")
         qdrant_client.create_collection(**schema)
         logger.info(f"Created collection {collection_name}")
+
+        # Create payload indexes if specified
+        if payload_schema:
+            logger.info(f"Creating payload indexes for {collection_name}...")
+            for field_name, field_type in payload_schema.items():
+                try:
+                    qdrant_client.create_payload_index(
+                        collection_name=collection_name,
+                        field_name=field_name,
+                        field_schema=field_type,
+                    )
+                    logger.info(f"  Created index on: {field_name}")
+                except Exception as e:
+                    logger.warning(f"  Could not create index on {field_name}: {e}")
     elif not non_interactive:
         logger.info(f"Collection {collection_name} already exists")
         user_input = input("Do you want to continue? [y/N] ")

@@ -1,5 +1,6 @@
 import logging
 import os
+import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import List, Optional, Tuple
@@ -14,9 +15,11 @@ logger = logging.getLogger(__name__)
 
 # Initialize Azure OpenAI client
 _openai_client = None
+_openai_client_lock = threading.Lock()
 
 # Initialize FastEmbed BM25 model (lazy loading)
 _sparse_model = None
+_sparse_model_lock = threading.Lock()
 
 # Rate limiting config
 MAX_RETRIES = 5
@@ -24,27 +27,33 @@ BASE_BACKOFF = 1.0  # seconds
 
 
 def get_openai_client() -> AzureOpenAI:
-    """Lazy load Azure OpenAI client."""
+    """Lazy load Azure OpenAI client (thread-safe)."""
     global _openai_client
     if _openai_client is None:
-        logger.info("Initializing Azure OpenAI client...")
-        _openai_client = AzureOpenAI(
-            api_key=os.environ.get("AZURE_OPENAI_API_KEY"),
-            api_version="2024-02-01",
-            azure_endpoint=os.environ.get("AZURE_OPENAI_ENDPOINT"),
-            max_retries=0,  # We handle retries manually
-        )
-        logger.info("Azure OpenAI client initialized")
+        with _openai_client_lock:
+            # Double-check after acquiring lock
+            if _openai_client is None:
+                logger.info("Initializing Azure OpenAI client...")
+                _openai_client = AzureOpenAI(
+                    api_key=os.environ.get("AZURE_OPENAI_API_KEY"),
+                    api_version="2024-02-01",
+                    azure_endpoint=os.environ.get("AZURE_OPENAI_ENDPOINT"),
+                    max_retries=0,  # We handle retries manually
+                )
+                logger.info("Azure OpenAI client initialized")
     return _openai_client
 
 
 def get_sparse_model() -> SparseTextEmbedding:
-    """Lazy load sparse model to avoid initialization on import."""
+    """Lazy load sparse model to avoid initialization on import (thread-safe)."""
     global _sparse_model
     if _sparse_model is None:
-        logger.info("Initializing FastEmbed BM25 model...")
-        _sparse_model = SparseTextEmbedding(model_name="Qdrant/bm25")
-        logger.info("FastEmbed BM25 model initialized")
+        with _sparse_model_lock:
+            # Double-check after acquiring lock
+            if _sparse_model is None:
+                logger.info("Initializing FastEmbed BM25 model...")
+                _sparse_model = SparseTextEmbedding(model_name="Qdrant/bm25")
+                logger.info("FastEmbed BM25 model initialized")
     return _sparse_model
 
 
@@ -108,13 +117,13 @@ def generate_dense_embedding(text: str) -> List[float]:
 
 
 def generate_dense_embeddings_batch(
-    texts: List[str], max_workers: int = 50, progress_callback=None
+    texts: List[str], max_workers: int = 25, progress_callback=None
 ) -> List[List[float]]:
     """Generate dense embeddings for multiple texts in parallel with rate limit handling.
 
     Args:
         texts: List of texts to embed
-        max_workers: Number of concurrent workers (default 50)
+        max_workers: Number of concurrent workers (default 25)
         progress_callback: Optional callback function(completed_count) for progress updates
 
     Returns:
@@ -266,14 +275,14 @@ def generate_hybrid_embeddings(text: str) -> Tuple[List[float], SparseVector]:
 
 
 def generate_hybrid_embeddings_batch(
-    texts: List[str], max_workers: int = 50, progress_callback=None
+    texts: List[str], max_workers: int = 25, progress_callback=None
 ) -> List[Tuple[List[float], SparseVector]]:
     """
     Generate hybrid embeddings for multiple texts in parallel.
 
     Args:
         texts: List of texts to embed
-        max_workers: Number of concurrent workers for dense embeddings
+        max_workers: Number of concurrent workers for dense embeddings (default 25)
         progress_callback: Optional callback for progress updates
 
     Returns:

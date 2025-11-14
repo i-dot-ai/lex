@@ -97,9 +97,9 @@ def upload_documents(
     if embedding_fields is None:
         embedding_fields = ["text"]
 
-    # Convert documents to dicts
-    document_dicts: List[Dict[str, Any]] = list(doc.model_dump() for doc in documents)
-    batch_generator = documents_to_batches(document_dicts, batch_size)
+    # Keep as list to maintain Pydantic models (for method access)
+    documents_list: List[BaseModel] = list(documents)
+    batch_generator = documents_to_batches(documents_list, batch_size)
     docs_uploaded = 0
     connection_errors = 0
 
@@ -110,19 +110,24 @@ def upload_documents(
         # Retry logic for connection errors
         for retry_attempt in range(max_retries):
             try:
-                # Generate embeddings and create points
-                points = []
+                # Collect texts and document metadata
+                texts = []
+                doc_metadata = []  # Store (doc_id, doc) pairs
+
                 for doc in batch:
-                    doc_id = doc.get(id_field, 'unknown')
+                    doc_id = getattr(doc, id_field, 'unknown')
 
-                    # Build text from specified fields
-                    text_parts = []
-                    for field in embedding_fields:
-                        value = doc.get(field, "")
-                        if value:
-                            text_parts.append(str(value))
-
-                    text = " ".join(text_parts)
+                    # Check if document has a get_embedding_text method (for rich contextual text)
+                    if hasattr(doc, 'get_embedding_text'):
+                        text = doc.get_embedding_text()
+                    else:
+                        # Fallback: build text from specified fields
+                        text_parts = []
+                        for field in embedding_fields:
+                            value = getattr(doc, field, "")
+                            if value:
+                                text_parts.append(str(value))
+                        text = " ".join(text_parts)
 
                     if not text:
                         logger.warning(
@@ -135,17 +140,27 @@ def upload_documents(
                         )
                         continue
 
-                    # Generate hybrid embeddings
-                    dense, sparse = generate_hybrid_embeddings(text)
+                    texts.append(text)
+                    doc_metadata.append((doc_id, doc))
 
+                # Generate embeddings in batch (no cache overhead)
+                from lex.core.embeddings import generate_hybrid_embeddings_batch
+                embeddings = generate_hybrid_embeddings_batch(texts, max_workers=25)
+
+                # Create points with batch embeddings
+                points = []
+                for (doc_id, doc), (dense, sparse) in zip(doc_metadata, embeddings):
                     # Convert URI to UUID for Qdrant compatibility
                     point_id = uri_to_uuid(doc_id)
+
+                    # Convert Pydantic model to dict for Qdrant payload
+                    payload = doc.model_dump() if hasattr(doc, 'model_dump') else doc
 
                     # Create point with both dense and sparse vectors
                     point = PointStruct(
                         id=point_id,
                         vector={"dense": dense, "sparse": sparse},
-                        payload=doc,  # All fields as metadata
+                        payload=payload,  # All fields as metadata
                     )
                     points.append(point)
 
