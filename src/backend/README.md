@@ -6,9 +6,9 @@ Fast, modern API for UK legal data - search 2M+ laws, cases, and legal documents
 
 ```bash
 # API is available at
-http://localhost:8000       # Main API
-http://localhost:8000/docs  # Interactive docs (Swagger)
-http://localhost:8000/redoc # Alternative docs (ReDoc)
+http://localhost:8000           # Main API
+http://localhost:8000/api/docs  # Interactive docs (Swagger)
+http://localhost:8000/api/redoc # Alternative docs (ReDoc)
 ```
 
 ## 💻 API Examples (Copy & Paste Ready)
@@ -277,7 +277,7 @@ chmod +x test_all_endpoints.sh
 ```
 
 ### Manual testing
-Use the Swagger UI at http://localhost:8000/docs for interactive testing.
+Use the Swagger UI at http://localhost:8000/api/docs for interactive testing.
 
 ## 📈 Performance
 
@@ -306,5 +306,4 @@ Use the Swagger UI at http://localhost:8000/docs for interactive testing.
 ## 📚 Further Reading
 
 - [Ingestion Pipeline](../lex/README.md) - How data gets into the system
-- [Data Models](../../docs/data-models.md) - Structure of legal documents
-- [Troubleshooting](../../docs/troubleshooting.md) - Common issues & solutions
+- [Project Documentation](../../README.md) - Project overview and setup guide

@@ -18,8 +18,10 @@ Thanks for contributing! This guide covers the essentials for getting started.
 
 3. **Load test data (optional):**
    ```bash
-   make ingest-legislation
-   make ingest-caselaw
+   make ingest-all-sample      # Load sample data (recommended for testing)
+   # or for specific types:
+   make ingest-legislation-sample
+   make ingest-caselaw-sample
    ```
 
 ## Development
