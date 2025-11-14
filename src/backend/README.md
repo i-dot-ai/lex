@@ -16,6 +16,7 @@ http://localhost:8000/api/redoc # Alternative docs (ReDoc)
 ### 📚 Legislation
 
 #### Search by title
+
 ```bash
 curl -X POST http://localhost:8000/legislation/search \
   -H "Content-Type: application/json" \
@@ -27,6 +28,7 @@ curl -X POST http://localhost:8000/legislation/search \
 ```
 
 #### Lookup specific act
+
 ```bash
 curl -X POST http://localhost:8000/legislation/lookup \
   -H "Content-Type: application/json" \
@@ -38,6 +40,7 @@ curl -X POST http://localhost:8000/legislation/lookup \
 ```
 
 #### Search sections (semantic)
+
 ```bash
 curl -X POST http://localhost:8000/legislation/section/search \
   -H "Content-Type: application/json" \
@@ -48,6 +51,7 @@ curl -X POST http://localhost:8000/legislation/section/search \
 ```
 
 #### Get full text
+
 ```bash
 curl -X POST http://localhost:8000/legislation/text \
   -H "Content-Type: application/json" \
@@ -60,6 +64,7 @@ curl -X POST http://localhost:8000/legislation/text \
 ### ⚖️ Caselaw
 
 #### Text search
+
 ```bash
 curl -X POST http://localhost:8000/caselaw/search \
   -H "Content-Type: application/json" \
@@ -72,6 +77,7 @@ curl -X POST http://localhost:8000/caselaw/search \
 ```
 
 #### Semantic search (AI-powered)
+
 ```bash
 curl -X POST http://localhost:8000/caselaw/search \
   -H "Content-Type: application/json" \
@@ -84,6 +90,7 @@ curl -X POST http://localhost:8000/caselaw/search \
 ```
 
 #### Find cases citing legislation
+
 ```bash
 curl -X POST http://localhost:8000/caselaw/reference/search \
   -H "Content-Type: application/json" \
@@ -97,6 +104,7 @@ curl -X POST http://localhost:8000/caselaw/reference/search \
 ### 📝 Explanatory Notes
 
 #### Search notes
+
 ```bash
 curl -X POST http://localhost:8000/explanatory_note/section/search \
   -H "Content-Type: application/json" \
@@ -107,6 +115,7 @@ curl -X POST http://localhost:8000/explanatory_note/section/search \
 ```
 
 #### Get notes for legislation
+
 ```bash
 curl -X POST http://localhost:8000/explanatory_note/legislation/lookup \
   -H "Content-Type: application/json" \
@@ -119,6 +128,7 @@ curl -X POST http://localhost:8000/explanatory_note/legislation/lookup \
 ### 🔄 Amendments
 
 #### Find amendments to legislation
+
 ```bash
 curl -X POST http://localhost:8000/amendment/search \
   -H "Content-Type: application/json" \
@@ -148,6 +158,7 @@ curl -X POST http://localhost:8000/amendment/search \
 ## 🎯 Common Search Patterns
 
 ### Find recent data protection laws
+
 ```bash
 curl -X POST http://localhost:8000/legislation/search \
   -H "Content-Type: application/json" \
@@ -159,6 +170,7 @@ curl -X POST http://localhost:8000/legislation/search \
 ```
 
 ### Get Supreme Court precedents on contracts
+
 ```bash
 curl -X POST http://localhost:8000/caselaw/search \
   -H "Content-Type: application/json" \
@@ -170,6 +182,7 @@ curl -X POST http://localhost:8000/caselaw/search \
 ```
 
 ### Track legislative changes
+
 ```bash
 # 1. Get the original act
 curl -X POST http://localhost:8000/legislation/lookup \
@@ -192,18 +205,21 @@ The backend includes built-in MCP support for AI assistants via `fastapi-mcp`.
 ### Setup for Claude Desktop
 
 1. **Start the API server** (in a separate terminal):
+
    ```bash
    make run
    # or: uv run src/backend/main.py
    ```
 
 2. **Find the full path to mcp-proxy**:
+
    ```bash
    which mcp-proxy
    # Example output: /Users/username/.pyenv/shims/mcp-proxy
    ```
 
 3. **Configure Claude Desktop** at `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS):
+
    ```json
    {
      "mcpServers": {
@@ -224,6 +240,7 @@ The backend includes built-in MCP support for AI assistants via `fastapi-mcp`.
 ### Example Queries
 
 Once connected, try asking Claude:
+
 - *"Find UK Supreme Court cases about employment law from 2020 onwards"*
 - *"Search for legislation about data protection passed after 2015"*
 - *"What cases cite the Data Protection Act 2018?"*
@@ -231,23 +248,27 @@ Once connected, try asking Claude:
 ## 🏗️ Architecture
 
 ### Request Flow
+
 ```
 Client Request → FastAPI Router → Search Service → Qdrant → Response
 ```
 
 ### Key Components
+
 - **Routers** (`*/router.py`) - API endpoint definitions
 - **Search Services** (`*/search.py`) - Query construction & execution  
 - **Models** (`*/models.py`) - Request/response validation
 - **Core** (`core/`) - Shared utilities & config
 
 ### Search Types
+
 - **Text Search** - Traditional keyword matching
 - **Semantic Search** - AI embeddings for conceptual matching (requires Azure OpenAI)
 
 ## ⚙️ Configuration
 
 ### Environment Variables
+
 ```bash
 # Qdrant
 QDRANT_URL=http://localhost:6333
@@ -259,17 +280,20 @@ AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/
 ```
 
 ### Collection Naming
+
 - Pattern: `{type}` or `{type}_section`
 - Collections: `legislation`, `legislation_section`, `caselaw`, `caselaw_section`, `explanatory_note`, `amendment`
 
 ## 🧪 Testing
 
 ### Run tests
+
 ```bash
 uv run pytest tests/backend/
 ```
 
 ### Test specific endpoint
+
 ```bash
 # Use test script
 chmod +x test_all_endpoints.sh
@@ -277,7 +301,8 @@ chmod +x test_all_endpoints.sh
 ```
 
 ### Manual testing
-Use the Swagger UI at http://localhost:8000/api/docs for interactive testing.
+
+Use the Swagger UI at <http://localhost:8000/api/docs> for interactive testing.
 
 ## 📈 Performance
 
@@ -291,14 +316,17 @@ Use the Swagger UI at http://localhost:8000/api/docs for interactive testing.
 ## 🐛 Troubleshooting
 
 ### No search results
+
 - Check collections have data: `curl http://localhost:6333/collections/{collection_name}`
 - Verify Qdrant is running: `curl http://localhost:6333/health`
 
 ### Semantic search errors
+
 - Check Azure OpenAI credentials in `.env`
 - Verify embeddings are being generated correctly
 
 ### Slow responses
+
 - Reduce result `limit` in queries
 - Check Qdrant timeout settings
 - Monitor batch sizes for large documents

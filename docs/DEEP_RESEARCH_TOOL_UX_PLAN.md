@@ -1,11 +1,14 @@
 # Deep Research Tool Call UX Improvements
 
 ## Problem
+
 Tool calls currently show only metadata: "search legislation acts" with query and size params.
 No visibility into actual results, relevance, or actionable data.
 
 ## Technical Discovery (AI SDK v5)
+
 **UPDATED Finding**: AI SDK v5 **DOES automatically stream tool results** to the client!
+
 - Tools execute server-side with `execute` functions
 - Client receives: tool calls (inputs), reasoning traces, text responses, AND tool results
 - Tool results available in `part.output` when `part.state === 'output-available'`
@@ -14,11 +17,13 @@ No visibility into actual results, relevance, or actionable data.
 ## Solution: Progressive Enhancement (No Overengineering)
 
 ### Phase 1: Improved Tool Call & Reasoning Display (COMPLETED)
+
 **Goal**: Make tool calls and reasoning traces more readable, show query context, and display results
 
 ✅ **Implemented:**
 
 **Tool Calls:**
+
 1. Capitalized tool names for better readability
 2. Inline layout: tool name, query (monospace), and result count on one line
 3. Query text in monospace font to distinguish it as input data
@@ -42,6 +47,7 @@ No visibility into actual results, relevance, or actionable data.
 17. Maximum 85% width for better readability
 
 **Current Format:**
+
 ```
 🔍 Search legislation acts "digital identity UK legislation" 10 results ›
    [Click to expand and see top 3 results]
@@ -51,9 +57,11 @@ No visibility into actual results, relevance, or actionable data.
 ```
 
 ### Phase 2: Future Enhancements (Optional)
+
 **No backend changes needed** - tool results already stream automatically!
 
 Possible future improvements:
+
 - Click result to open full legislation/caselaw preview modal
 - Show relevance scores if available in backend responses
 - Add "View all N results" button to open filtered search page

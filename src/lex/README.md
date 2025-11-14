@@ -77,6 +77,7 @@ make ingest-all
 ```
 
 ## Command Reference
+
 These make commands are fine for getting up and running, but they don't provide any fine grained control. For more control over the ingestion process we can use the command reference directly.
 
 ### Main Entry Point
@@ -88,7 +89,7 @@ The main entry point is `src/lex/main.py`. This provides a unified interface to 
 - `-m, --model`: Data model to process (legislation, legislation-section, explanatory-note, amendment, caselaw, caselaw-section)
 - `-y, --years`: Year(s) of legislation to include (e.g., 2022 or multiple years as 2022 2023, or 2020-2025)
 - `-t, --types`: Legislation types to include (e.g., ukpga, uksi, etc.). When indexing caselaw this also accepts UK courts (e.g. uksc, ukpc, etc.)
-- `-l, --limit`: Limit the number of documents to process. For the `legislation-section` and `caselaw-section` endpoints this limits the number of 
+- `-l, --limit`: Limit the number of documents to process. For the `legislation-section` and `caselaw-section` endpoints this limits the number of
 - `--batch-size`: Number of documents to process in each batch
 - `--non-interactive`: Skip confirmation prompts
 - `--from-file`: [Legislation only] Load documents from local files instead of scraping from the web
@@ -98,11 +99,13 @@ The main entry point is `src/lex/main.py`. This provides a unified interface to 
 There are three ways to use this command-line, that all do the same thing under the hood. We recommend using Docker although using uv can be faster if you're iterating locally. We'll only give docker examples in this README but the syntax is identical if using the other methods. Always run these commands from the root directory.
 
 **Docker:**
+
 ```bash
 docker compose exec pipeline uv run src/lex/main.py -m [model] -y [years] -t [types] [options]
 ```
 
 **Direct Python:**
+
 ```bash
 python src/lex/main.py -m [model] -y [years] -t [types] [options]
 ```
@@ -110,6 +113,7 @@ python src/lex/main.py -m [model] -y [years] -t [types] [options]
 NB. if you are using python directly you'll need a virtual environment. Run `uv sync` to create one.
 
 **With uv:**
+
 ```bash
 uv run src/lex/main.py -m [model] -y [years] -t [types] [options]
 ```
@@ -117,6 +121,7 @@ uv run src/lex/main.py -m [model] -y [years] -t [types] [options]
 ### Using Docker Services
 
 Ensure the docker services are running:
+
 ```bash
 docker-compose up -d
 ```
@@ -124,6 +129,7 @@ docker-compose up -d
 Then we can use this container to upload legislation
 
 **Legislation Examples:**
+
 ```bash
 # Upload UK Primary General Acts from 2020 to 2025
 docker compose exec pipeline uv run src/lex/main.py -m legislation --non-interactive --types ukpga --years 2020-2025
@@ -133,16 +139,19 @@ docker compose exec pipeline uv run src/lex/main.py -m legislation-section --non
 ```
 
 **Explanatory Notes:**
+
 ```bash
 docker compose exec pipeline uv run src/lex/main.py -m explanatory-note --non-interactive --types ukpga --years 2022 --limit 100
 ```
 
 **Amendments:**
+
 ```bash
 docker compose exec pipeline uv run src/lex/main.py -m amendment --non-interactive --types ukpga --years 2013 --limit 100
 ```
 
 **Caselaw:**
+
 ```bash
 # Court of Appeal cases from 2018
 docker compose exec pipeline uv run src/lex/main.py -m caselaw --non-interactive -t ewca --years 2018
@@ -163,6 +172,7 @@ For faster processing or offline work, you can use pre-downloaded "Statute Book 
    - We are hoping to provide a seperate download of this legislation, although it doesn't yet exist.
 
 2. **Extract to Correct Location**:
+
    ```bash
    # Create the directory structure
    mkdir -p data/raw/legislation
@@ -173,6 +183,7 @@ For faster processing or offline work, you can use pre-downloaded "Statute Book 
    ```
 
 3. **Expected Directory Structure**:
+
    ```
    data/raw/legislation/
    ├── 2020/
@@ -193,6 +204,7 @@ For faster processing or offline work, you can use pre-downloaded "Statute Book 
 Once you have the data in place, use the `--from-file` argument to process legislation from local files instead of scraping. This can be used as a drop in replacement.
 
 **Docker Commands:**
+
 ```bash
 # Process legislation metadata from files
 docker compose exec pipeline uv run src/lex/main.py -m legislation --from-file --non-interactive --types ukpga --years 2020 2021 2022
@@ -203,18 +215,20 @@ docker compose exec pipeline uv run src/lex/main.py -m legislation-section --fro
 
 **Note**: The `--from-file` option is only available for `legislation` and `legislation-section` models. Other document types (caselaw, explanatory notes, amendments) still require web scraping.
 
-
 ## Qdrant Setup
 
 This project uses Qdrant as the vector database for all document storage and search.
 
 **Local Qdrant (Default)**
+
 - Run `docker-compose up` to start Qdrant locally
-- Access Qdrant dashboard at http://localhost:6333/dashboard
-- Qdrant API will be available at http://localhost:6333
+- Access Qdrant dashboard at <http://localhost:6333/dashboard>
+- Qdrant API will be available at <http://localhost:6333>
 
 **Environment Configuration**
+
 - Qdrant URL is configured in `.env`:
+
   ```
   QDRANT_URL=http://localhost:6333
   ```
@@ -222,6 +236,7 @@ This project uses Qdrant as the vector database for all document storage and sea
 ### Embeddings
 
 Embeddings are generated during the ingestion pipeline using:
+
 - **Dense vectors**: Azure OpenAI text-embedding-3-large (1024 dimensions)
 - **Sparse vectors**: FastEmbed BM25 for keyword matching
 
@@ -237,12 +252,14 @@ Although most content is taken from The National Archives, we implement HTTP cac
 Lex includes a sophisticated checkpointing system that enables reliable processing of large datasets with automatic resume capability.
 
 ### Key Features
+
 - **Persistent Progress Tracking**: Automatically saves progress for each year/type combination
 - **Intelligent Resume**: Continues from exactly where processing was interrupted  
 - **Error Recovery**: Distinguishes between retryable and permanent failures
 - **Memory Efficiency**: Skips already-processed documents and combinations
 
 ### Using Checkpoints
+
 Checkpointing is enabled by default. If processing is interrupted:
 
 ```bash
@@ -251,6 +268,7 @@ docker compose exec pipeline uv run src/lex/main.py -m legislation --types ukpga
 ```
 
 ### Managing Checkpoints
+
 ```bash
 # Clear checkpoint state to restart from beginning
 docker compose exec pipeline uv run src/lex/main.py -m legislation --types ukpga --years 2020-2025 --clear-checkpoint
@@ -259,7 +277,9 @@ docker compose exec pipeline uv run src/lex/main.py -m legislation --types ukpga
 ```
 
 ### How It Works
+
 The system tracks:
+
 - Successfully processed document URLs
 - Failed URLs with error details  
 - Current position in each year/type combination
@@ -287,6 +307,7 @@ To add support for new document types, you can follow one of two patterns:
 4. Update the `index_mapping` in `main.py`
 
 The pattern to choose depends on the structure of the content:
+
 - Use the standard pattern for content that can be cleanly separated into scraping and parsing steps
 - Use the combined pattern for content that requires sequential fetching of multiple pages or complex state management during processing
 
@@ -328,12 +349,14 @@ The system uses Pydantic models to represent legal documents:
 The pipeline orchestrates the data flow:
 
 For standard document types (Legislation, Amendments, Caselaw):
+
 1. Calls the appropriate scraper to get content (BeautifulSoup objects)
 2. Passes the content to the parser to create models
 3. Generates embeddings (dense + sparse vectors)
 4. Uploads the models to Qdrant with hybrid vectors
 
 For explanatory notes:
+
 1. Calls the `ExplanatoryNoteScraperAndParser` which handles both scraping and parsing in one operation
 2. Receives models directly from the scraper-parser
 3. Generates embeddings (dense + sparse vectors)
@@ -344,4 +367,3 @@ For explanatory notes:
 - `embeddings.py`: Generates dense (Azure OpenAI) and sparse (FastEmbed BM25) vectors
 - `qdrant_client.py`: Provides Qdrant client singleton
 - `pipeline_utils.py`: Manages batching and document processing
-

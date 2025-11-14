@@ -7,7 +7,7 @@ Built by the [Incubator for AI](https://ai.gov.uk) to harness AI for public good
 ## Architecture
 
 - **Azure Container Apps**: Hosts the FastAPI backend with scale-to-zero
-- **Azure Cache for Redis**: Caching and rate limiting 
+- **Azure Cache for Redis**: Caching and rate limiting
 - **Azure Container Registry**: Stores the container images
 - **Application Insights**: Monitoring and telemetry
 - **Static Files**: Documentation served directly from Container App
@@ -112,6 +112,7 @@ Configure Claude Desktop to use the MCP server:
 ## Scaling
 
 The Container Apps deployment:
+
 - Scales to zero when idle (cost savings)
 - Scales up to 10 instances based on HTTP requests
 - 50 concurrent requests per instance trigger scaling
@@ -119,6 +120,7 @@ The Container Apps deployment:
 ## Support
 
 For questions or issues:
+
 - GitHub: [github.com/i-dot-ai/lex](https://github.com/i-dot-ai/lex)
 - Email: [lex@cabinetoffice.gov.uk](mailto:lex@cabinetoffice.gov.uk)
 - Website: [ai.gov.uk](https://ai.gov.uk)

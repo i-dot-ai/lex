@@ -43,6 +43,7 @@ open http://localhost:3000
 ### Option 3: Full Local Setup (Complete System)
 
 #### 3A. Local Frontend + Public API Backend
+
 ```bash
 # 1. Setup frontend (as above)
 git clone https://github.com/i-dot-ai/lex.git && cd lex
@@ -57,6 +58,7 @@ bun dev
 ```
 
 #### 3B. Local Frontend + Local Backend + Data
+
 ```bash
 # 1. Clone and setup
 git clone https://github.com/i-dot-ai/lex.git && cd lex
@@ -77,7 +79,7 @@ bun dev
 open http://localhost:3000
 ```
 
-**Complete system**: Web UI at http://localhost:3000 and API docs at http://localhost:8000/docs 📚
+**Complete system**: Web UI at <http://localhost:3000> and API docs at <http://localhost:8000/docs> 📚
 
 ## 🎯 What You Get
 
@@ -90,6 +92,7 @@ open http://localhost:3000
 *📈 Stats from October 2025 - continuously growing with new legislation and cases*
 
 All searchable via:
+
 - 🌐 **Web Interface** - Next.js frontend with modern UI
 - 🔌 **REST API** - FastAPI with full OpenAPI docs
 - 🤖 **MCP Tools** - Direct integration with Claude Desktop
@@ -98,6 +101,7 @@ All searchable via:
 ## 💻 API Examples
 
 ### Search legislation
+
 ```bash
 curl -X POST http://localhost:8000/legislation/search \
   -H "Content-Type: application/json" \
@@ -109,6 +113,7 @@ curl -X POST http://localhost:8000/legislation/search \
 ```
 
 ### Find case law
+
 ```bash
 curl -X POST http://localhost:8000/caselaw/search \
   -H "Content-Type: application/json" \
@@ -120,6 +125,7 @@ curl -X POST http://localhost:8000/caselaw/search \
 ```
 
 ### Get specific act
+
 ```bash
 curl -X POST http://localhost:8000/legislation/lookup \
   -H "Content-Type: application/json" \
@@ -133,6 +139,7 @@ curl -X POST http://localhost:8000/legislation/lookup \
 ## 🤖 MCP Integration
 
 **Option 1: Public API** (no local setup required):
+
 ```json
 {
   "mcpServers": {
@@ -145,6 +152,7 @@ curl -X POST http://localhost:8000/legislation/lookup \
 ```
 
 **Option 2: Local setup**:
+
 ```json
 {
   "mcpServers": {
@@ -161,6 +169,7 @@ Then ask Claude: *"Search for UK laws about data protection from 2018"*
 ## 📦 Data Loading Options
 
 ### Quick samples for testing
+
 ```bash
 make ingest-legislation-sample      # ⚡ 5 min - Recent laws
 make ingest-caselaw-sample         # ⚡ 5 min - Recent cases
@@ -168,6 +177,7 @@ make ingest-all-sample            # ⚡ 15 min - Everything sampled
 ```
 
 ### Full datasets
+
 ```bash
 make ingest-legislation-full      # ☕ 2 hrs - All laws (1963+)
 make ingest-caselaw-full         # 🌙 8 hrs - All cases (2001+)
@@ -175,10 +185,13 @@ make ingest-all-full            # 🌙 24 hrs - Complete database
 ```
 
 ### Optimize query performance
+
 After ingesting data, create payload indexes for fast filtering:
+
 ```bash
 uv run python scripts/create_payload_indexes.py  # Creates indexes on filtered fields
 ```
+
 This improves filter query performance from 60s → 10ms (6000x faster). Indexes build in background (~2-5 minutes).
 
 ## 🏗️ Architecture
@@ -193,6 +206,7 @@ lex/
 ```
 
 Each component handles 4 document types:
+
 - **Legislation** - Primary & secondary laws
 - **Caselaw** - Court judgments
 - **Explanatory Notes** - Legislative context
@@ -201,12 +215,14 @@ Each component handles 4 document types:
 ## 🔧 Development
 
 ### Prerequisites
+
 - Python 3.12+
 - [uv](https://docs.astral.sh/uv/)
 - Docker & Docker Compose
 - Azure OpenAI credentials
 
 ### Local development
+
 ```bash
 # Install dependencies
 make install
@@ -222,14 +238,18 @@ make run
 ```
 
 ### Cloud Qdrant
+
 Switch between local and cloud Qdrant in `.env`:
+
 ```bash
 USE_CLOUD_QDRANT=false  # Local (default)
 USE_CLOUD_QDRANT=true   # Cloud
 ```
+
 Then restart: `docker compose restart backend`
 
 ### Export data
+
 ```bash
 # List available indices
 python tools/export_data.py list
@@ -256,12 +276,14 @@ python tools/export_data.py export --index lex-dev-caselaw --format jsonl
 | **Total** | **~3.8M** | **~70GB** | *Growing with new legislation & cases* |
 
 ### Hosting Requirements
+
 - **Minimum**: 100GB disk space (allows for growth)
 - **Recommended**: 150GB+ disk space
 - **Memory**: 8GB RAM (Qdrant can use up to 8GB, backend ~2GB)
 - **Note**: Dataset grows continuously as new legislation is enacted and cases are published
 
 ### Ingestion Times (Full Dataset)
+
 - Legislation: ~2-3 hours
 - Legislation Sections: ~2-3 days
 - Caselaw: ~1-2 days
@@ -271,6 +293,7 @@ python tools/export_data.py export --index lex-dev-caselaw --format jsonl
 ## 🐛 Troubleshooting
 
 ### Qdrant or services won't start
+
 ```bash
 # Check memory limits and clean up
 docker system prune
@@ -278,12 +301,14 @@ docker compose down && docker compose up -d
 ```
 
 ### Slow ingestion
+
 ```bash
 # Adjust batch size in .env
 PIPELINE_BATCH_SIZE=50  # Lower for less memory
 ```
 
 ### API returns no results
+
 ```bash
 # Check collections are populated
 curl http://localhost:6333/collections | jq '.result.collections[] | {name, points_count}'
