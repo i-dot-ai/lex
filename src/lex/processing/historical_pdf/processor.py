@@ -22,7 +22,7 @@ from tenacity import (
     wait_exponential,
 )
 
-from lex.pdf_digitization.models import ExtractionProvenance, ExtractionResult, LegislationMetadata
+from lex.processing.historical_pdf.models import ExtractionProvenance, ExtractionResult, LegislationMetadata
 
 logger = logging.getLogger(__name__)
 

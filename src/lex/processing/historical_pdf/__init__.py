@@ -1,15 +1,15 @@
 """PDF digitization module for historical UK legislation."""
 
-from lex.pdf_digitization.blob_uploader import LegislationBlobUploader
-from lex.pdf_digitization.downloader import LegislationPDFDownloader, download_from_csv
-from lex.pdf_digitization.metadata import fetch_pdf_metadata, fetch_xml_metadata
-from lex.pdf_digitization.models import (
+from lex.processing.historical_pdf.blob_uploader import LegislationBlobUploader
+from lex.processing.historical_pdf.downloader import LegislationPDFDownloader, download_from_csv
+from lex.processing.historical_pdf.metadata import fetch_pdf_metadata, fetch_xml_metadata
+from lex.processing.historical_pdf.models import (
                                              ExtractionProvenance,
                                              ExtractionResult,
                                              LegislationMetadata,
                                              PDFMetadata,
 )
-from lex.pdf_digitization.processor import LegislationPDFProcessor
+from lex.processing.historical_pdf.processor import LegislationPDFProcessor
 
 __all__ = [
     "LegislationPDFProcessor",

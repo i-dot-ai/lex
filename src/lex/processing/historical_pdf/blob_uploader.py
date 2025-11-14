@@ -17,7 +17,7 @@ import aiohttp
 from azure.storage.blob import BlobSasPermissions, BlobServiceClient, generate_blob_sas
 from tqdm import tqdm
 
-from lex.pdf_digitization.pdf_splitter import split_pdf_into_chunks
+from lex.processing.historical_pdf.pdf_splitter import split_pdf_into_chunks
 
 logger = logging.getLogger(__name__)
 

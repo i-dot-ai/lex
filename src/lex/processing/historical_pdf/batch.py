@@ -11,10 +11,10 @@ from typing import AsyncGenerator, Optional
 
 import aiohttp
 
-from lex.pdf_digitization.blob_uploader import LegislationBlobUploader
-from lex.pdf_digitization.metadata import fetch_xml_metadata
-from lex.pdf_digitization.models import ExtractionResult
-from lex.pdf_digitization.processor import LegislationPDFProcessor
+from lex.processing.historical_pdf.blob_uploader import LegislationBlobUploader
+from lex.processing.historical_pdf.metadata import fetch_xml_metadata
+from lex.processing.historical_pdf.models import ExtractionResult
+from lex.processing.historical_pdf.processor import LegislationPDFProcessor
 
 logger = logging.getLogger(__name__)
 

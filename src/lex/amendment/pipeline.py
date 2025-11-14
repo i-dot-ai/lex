@@ -3,8 +3,8 @@ import uuid
 from typing import Iterator
 
 from lex.core.pipeline_utils import PipelineMonitor, process_documents
+from lex.processing.amendment_explanations.explanation_generator import add_explanations_to_amendments
 
-from .explanation_generator import add_explanations_to_amendments
 from .models import Amendment
 from .parser import AmendmentParser
 from .scraper import AmendmentScraper

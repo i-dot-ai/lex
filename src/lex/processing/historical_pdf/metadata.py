@@ -12,7 +12,7 @@ from bs4 import BeautifulSoup
 from pypdf import PdfReader
 
 from lex.core.http import HttpClient
-from lex.pdf_digitization.models import LegislationMetadata, PDFMetadata
+from lex.processing.historical_pdf.models import LegislationMetadata, PDFMetadata
 
 logger = logging.getLogger(__name__)
 

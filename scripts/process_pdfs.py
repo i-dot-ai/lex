@@ -18,7 +18,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from lex.pdf_digitization.batch import process_pdf_batch_from_csv, process_single_pdf
+from lex.processing.historical_pdf.batch import process_pdf_batch_from_csv, process_single_pdf
 
 # Load environment variables
 load_dotenv(override=True)
