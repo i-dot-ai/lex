@@ -3,17 +3,21 @@ Azure Blob Storage uploader for historical UK legislation PDFs.
 
 Downloads PDFs from legislation.gov.uk and uploads to Azure Blob Storage
 with SAS token generation for Azure OpenAI access.
+
+Supports automatic PDF chunking for large documents.
 """
 
 import asyncio
 import logging
 import os
 from datetime import datetime, timedelta
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Union
 
 import aiohttp
 from azure.storage.blob import BlobSasPermissions, BlobServiceClient, generate_blob_sas
 from tqdm import tqdm
+
+from lex.pdf_digitization.pdf_splitter import split_pdf_into_chunks
 
 logger = logging.getLogger(__name__)
 
@@ -80,21 +84,30 @@ class LegislationBlobUploader:
                 return part.split("=", 1)[1]
         raise ValueError("AccountKey not found in connection string")
 
-    def get_blob_name(self, legislation_type: str, identifier: str) -> str:
+    def get_blob_name(
+        self, legislation_type: str, identifier: str, chunk_num: Optional[int] = None
+    ) -> str:
         """
         Get blob name for a PDF, preserving legislation.gov.uk structure.
 
         Args:
             legislation_type: Type code (e.g., 'aep', 'ukla')
             identifier: Identifier (e.g., 'Ja1/7/18', 'Geo3/46/122')
+            chunk_num: Optional chunk number (for split PDFs)
 
         Returns:
             Blob name like: aep/Ja1/7/18/pdfs/aep_Ja170018_en.pdf
+            Or for chunks: aep/Ja1/7/18/pdfs/aep_Ja170018_en_chunk_001.pdf
         """
         # Generate filename from identifier
-        # Convert identifier like "Ja1/7/18" to "aep_Ja170018_en.pdf"
+        # Convert identifier like "Ja1/7/18" to "aep_Ja170018_en"
         identifier_parts = identifier.replace("/", "")
-        filename = f"{legislation_type}_{identifier_parts}_en.pdf"
+        base_filename = f"{legislation_type}_{identifier_parts}_en"
+
+        if chunk_num is not None:
+            filename = f"{base_filename}_chunk_{chunk_num:03d}.pdf"
+        else:
+            filename = f"{base_filename}.pdf"
 
         # Build path: type/identifier/pdfs/filename
         blob_name = f"{legislation_type}/{identifier}/pdfs/{filename}"
@@ -180,6 +193,102 @@ class LegislationBlobUploader:
             error = f"Failed to process {pdf_url}: {e}"
             logger.error(error)
             return False, "", blob_name, error
+
+    async def process_pdf_with_chunking(
+        self,
+        session: aiohttp.ClientSession,
+        pdf_url: str,
+        legislation_type: str,
+        identifier: str,
+        page_count: int,
+        chunk_size_pages: int = 40,
+    ) -> Union[
+        Tuple[bool, str, Optional[str], Optional[str]],
+        List[Tuple[bool, str, Optional[str], Optional[str], int, int]],
+    ]:
+        """
+        Download PDF and upload to Azure Blob Storage with automatic chunking for large PDFs.
+
+        If page_count > chunk_size_pages, splits PDF into chunks and uploads separately.
+        Otherwise uploads as single PDF.
+
+        Args:
+            session: aiohttp ClientSession
+            pdf_url: URL to PDF on legislation.gov.uk
+            legislation_type: Type code
+            identifier: Identifier
+            page_count: Total number of pages in PDF
+            chunk_size_pages: Maximum pages per chunk (default: 40)
+
+        Returns:
+            If single PDF: (success, sas_url, blob_name, error_message)
+            If chunked: List of (success, sas_url, blob_name, error_message, start_page, end_page)
+        """
+        # Check if chunking is needed
+        if page_count <= chunk_size_pages:
+            logger.info(f"PDF has {page_count} pages (<={chunk_size_pages}), single upload")
+            result = await self.process_pdf(session, pdf_url, legislation_type, identifier)
+            return result
+
+        logger.info(
+            f"PDF has {page_count} pages (>{chunk_size_pages}), splitting into chunks"
+        )
+
+        try:
+            # Download original PDF
+            async with session.get(pdf_url, timeout=self.timeout, allow_redirects=True) as response:
+                response.raise_for_status()
+                pdf_bytes = await response.read()
+
+            # Split into chunks
+            chunks = split_pdf_into_chunks(pdf_bytes, chunk_size_pages)
+
+            # Upload each chunk
+            results = []
+            for chunk_num, (chunk_bytes, start_page, end_page) in enumerate(chunks, 1):
+                # Generate blob name for this chunk
+                blob_name = self.get_blob_name(legislation_type, identifier, chunk_num=chunk_num)
+                blob_client = self.container_client.get_blob_client(blob_name)
+
+                # Check if chunk already exists
+                try:
+                    if blob_client.exists():
+                        logger.debug(f"Reusing existing chunk blob: {blob_name}")
+                        sas_url = self.generate_sas_url(blob_name)
+                        results.append((True, sas_url, blob_name, None, start_page, end_page))
+                        continue
+                except Exception as e:
+                    logger.warning(f"Error checking chunk blob existence: {e}")
+
+                # Upload chunk
+                blob_client.upload_blob(chunk_bytes, overwrite=False)
+
+                # Generate SAS URL
+                sas_url = self.generate_sas_url(blob_name)
+
+                results.append((True, sas_url, blob_name, None, start_page, end_page))
+
+                logger.info(
+                    f"Uploaded chunk {chunk_num}/{len(chunks)}: {blob_name} "
+                    f"(pages {start_page+1}-{end_page}, {len(chunk_bytes) / 1024:.1f}KB)"
+                )
+
+            return results
+
+        except asyncio.TimeoutError:
+            error = f"Timeout downloading {pdf_url}"
+            logger.error(error)
+            return [(False, "", "", error, 0, 0)]
+
+        except aiohttp.ClientError as e:
+            error = f"HTTP error downloading {pdf_url}: {e}"
+            logger.error(error)
+            return [(False, "", "", error, 0, 0)]
+
+        except Exception as e:
+            error = f"Failed to process chunked PDF {pdf_url}: {e}"
+            logger.error(error)
+            return [(False, "", "", error, 0, 0)]
 
     async def process_batch(
         self,

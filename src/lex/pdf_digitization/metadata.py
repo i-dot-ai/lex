@@ -4,10 +4,12 @@ Fetch minimal metadata from legislation.gov.uk XML for PDF OCR enrichment.
 Reuses existing XML parsing infrastructure.
 """
 
+import io
 import logging
 from typing import Optional
 
 from bs4 import BeautifulSoup
+from pypdf import PdfReader
 
 from lex.core.http import HttpClient
 from lex.pdf_digitization.models import LegislationMetadata, PDFMetadata
@@ -28,22 +30,27 @@ def fetch_pdf_metadata(pdf_url: str) -> Optional[PDFMetadata]:
     try:
         http_client = HttpClient()
 
-        # Get file size via HEAD request
-        response = http_client.head(pdf_url)
+        # Download PDF to extract accurate page count
+        response = http_client.get(pdf_url)
         if response.status_code != 200:
-            logger.warning(f"Failed to HEAD PDF: {pdf_url} (status {response.status_code})")
+            logger.warning(f"Failed to fetch PDF: {pdf_url} (status {response.status_code})")
             return None
 
-        file_size = None
-        if "content-length" in response.headers:
-            file_size = int(response.headers["content-length"])
+        file_size = len(response.content)
 
-        # Note: Page count requires downloading/parsing PDF which is expensive
-        # We'll leave it as None for now - could be added from blob metadata later
+        # Extract page count using pypdf
+        page_count = None
+        try:
+            pdf_stream = io.BytesIO(response.content)
+            pdf_reader = PdfReader(pdf_stream)
+            page_count = len(pdf_reader.pages)
+            logger.debug(f"PDF has {page_count} pages ({file_size / 1024:.0f}KB)")
+        except Exception as e:
+            logger.warning(f"Could not extract page count from PDF {pdf_url}: {e}")
 
         return PDFMetadata(
             file_size_bytes=file_size,
-            page_count=None,  # TODO: Could extract from blob metadata if needed
+            page_count=page_count,
             pdf_url=pdf_url,
         )
 

@@ -10,7 +10,7 @@ import logging
 import os
 import time
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 from langfuse import Langfuse, observe
 from openai import AsyncAzureOpenAI, RateLimitError
@@ -250,16 +250,18 @@ Handle document quality issues:
         identifier: Optional[str] = None,
         metadata: Optional[LegislationMetadata] = None,
         trace_name: Optional[str] = None,
+        max_pages_single_shot: int = 45,
     ) -> ExtractionResult:
         """
-        Process a PDF using Azure OpenAI Responses API.
+        Process a PDF using Azure OpenAI Responses API with adaptive chunking.
 
         This method handles:
         - Direct URL access to PDFs (from legislation.gov.uk)
         - Single or multi-page PDFs
+        - **Automatic chunking for PDFs >45 pages** (adaptive routing)
         - Automatic retries for rate limits
         - Langfuse tracing
-        - Context preservation for large documents
+        - Context preservation for large documents via previous_response_id
         - Metadata enrichment of OCR prompt
 
         Args:
@@ -268,11 +270,16 @@ Handle document quality issues:
             identifier: Optional identifier (e.g., 'Geo3/46/122')
             metadata: Optional metadata from legislation.gov.uk XML
             trace_name: Optional name for Langfuse trace
+            max_pages_single_shot: Maximum pages for single-shot processing (default: 45)
 
         Returns:
             ExtractionResult with extracted data and provenance
         """
         start_time = time.time()
+
+        # Note: Chunking for large PDFs happens at blob upload stage
+        # The blob uploader splits PDFs and passes chunk URLs to this method
+        # This method receives either a single SAS URL or is called via process_large_pdf_chunked()
 
         try:
             logger.info(f"Processing PDF from URL: {pdf_url}")
@@ -440,6 +447,240 @@ Handle document quality issues:
         )
 
         return results
+
+    async def process_large_pdf_chunked(
+        self,
+        chunk_urls: List[Tuple[str, int, int]],
+        legislation_type: Optional[str] = None,
+        identifier: Optional[str] = None,
+        metadata: Optional[LegislationMetadata] = None,
+    ) -> ExtractionResult:
+        """
+        Process large PDF using pre-split chunks from blob storage.
+
+        Each chunk is a separate PDF blob with its own SAS URL.
+        Uses previous_response_id to maintain context across chunks.
+
+        Args:
+            chunk_urls: List of (chunk_sas_url, start_page, end_page) tuples
+            legislation_type: Optional legislation type
+            identifier: Optional identifier
+            metadata: Optional metadata from legislation.gov.uk XML
+
+        Returns:
+            ExtractionResult with merged sections from all chunks
+        """
+        start_time = time.time()
+        total_pages = chunk_urls[-1][2] if chunk_urls else 0
+        logger.info(f"Processing {len(chunk_urls)} pre-split PDF chunks ({total_pages} total pages)")
+
+        # Process each chunk with context continuation
+        chunk_results = []
+        previous_response_id = None
+
+        for chunk_num, (chunk_url, start_page, end_page) in enumerate(chunk_urls, 1):
+            try:
+                # Build chunk-specific prompt
+                base_prompt = self.extraction_prompt
+
+                # Add metadata context if available
+                if metadata:
+                    context = metadata.to_prompt_context()
+                    if context:
+                        base_prompt = f"""KNOWN METADATA FROM legislation.gov.uk:
+{context}
+
+{base_prompt}"""
+
+                # Add chunking instructions
+                is_first_chunk = chunk_num == 1
+                chunk_prompt = f"""
+{base_prompt}
+
+**CHUNKING INSTRUCTIONS - IMPORTANT:**
+- This is PART {chunk_num} of {len(chunk_urls)} (pages {start_page+1}-{end_page} of {total_pages} total)
+- {"This is the FIRST chunk: Extract metadata, preamble, and sections from these pages." if is_first_chunk else "CONTINUE from previous chunk: Maintain section numbering continuity. Only extract new sections from these pages."}
+- Ensure section numbers continue sequentially from previous chunk
+"""
+
+                logger.info(f"Processing chunk {chunk_num}/{len(chunk_urls)} (pages {start_page+1}-{end_page})")
+
+                # Make API request with continuation
+                # Each chunk has its own URL → no image accumulation!
+                response = await self._make_responses_request(
+                    pdf_url=chunk_url,
+                    prompt=chunk_prompt,
+                    previous_response_id=previous_response_id
+                )
+
+                chunk_results.append({
+                    "chunk_num": chunk_num,
+                    "start_page": start_page,
+                    "end_page": end_page,
+                    "response": response,
+                })
+
+                # Chain for next chunk
+                previous_response_id = response["id"]
+
+                logger.info(
+                    f"Chunk {chunk_num} complete: {response['usage']['input_tokens']} input tokens, "
+                    f"{response['usage']['output_tokens']} output tokens"
+                )
+
+            except Exception as e:
+                logger.error(f"Failed to process chunk {chunk_num} (pages {start_page+1}-{end_page}): {e}")
+                raise
+
+        # Merge chunk results
+        try:
+            merged_result = self._merge_chunk_results(
+                chunks=chunk_results,
+                pdf_url=chunk_urls[0][0],  # Use first chunk URL as reference
+                legislation_type=legislation_type,
+                identifier=identifier,
+                page_count=total_pages,
+                total_time=time.time() - start_time,
+            )
+
+            logger.info(
+                f"Large PDF processing complete: {total_pages} pages in {len(chunk_urls)} chunks - "
+                f"{merged_result.provenance.input_tokens} total input tokens, "
+                f"{merged_result.provenance.output_tokens} total output tokens"
+            )
+
+            return merged_result
+
+        except Exception as e:
+            logger.error(f"Failed to merge chunk results: {e}")
+            raise
+
+    def _merge_chunk_results(
+        self,
+        chunks: List[Dict],
+        pdf_url: str,
+        legislation_type: Optional[str],
+        identifier: Optional[str],
+        page_count: int,
+        total_time: float,
+    ) -> ExtractionResult:
+        """
+        Merge JSON from multiple chunks into single ExtractionResult.
+
+        Args:
+            chunks: List of chunk result dicts with response data
+            pdf_url: PDF source URL
+            legislation_type: Legislation type
+            identifier: Identifier
+            page_count: Total page count
+            total_time: Total processing time
+
+        Returns:
+            Merged ExtractionResult
+        """
+        import json
+
+        logger.info(f"Merging {len(chunks)} chunk results")
+
+        # Parse first chunk for metadata/preamble
+        first_chunk_data = json.loads(chunks[0]["response"]["output"])
+
+        merged = {
+            "metadata": first_chunk_data.get("metadata", {}),
+            "preamble": first_chunk_data.get("preamble", ""),
+            "sections": [],
+            "schedules": []
+        }
+
+        # Concatenate sections and schedules from all chunks
+        for chunk in chunks:
+            try:
+                chunk_data = json.loads(chunk["response"]["output"])
+
+            except json.JSONDecodeError as e:
+                # Try to recover if there's "extra data" after valid JSON
+                if "Extra data" in str(e):
+                    try:
+                        # Use JSONDecoder to get first complete object
+                        decoder = json.JSONDecoder()
+                        chunk_data, _ = decoder.raw_decode(chunk["response"]["output"])
+                        logger.warning(
+                            f"Chunk {chunk['chunk_num']} had extra data after JSON, recovered first object"
+                        )
+                    except Exception as e2:
+                        logger.error(f"Failed to parse chunk {chunk['chunk_num']} JSON even after recovery: {e2}")
+                        continue
+                else:
+                    logger.error(f"Failed to parse chunk {chunk['chunk_num']} JSON: {e}")
+                    continue
+
+            # Add sections from this chunk
+            chunk_sections = chunk_data.get("sections", [])
+            merged["sections"].extend(chunk_sections)
+
+            # Add schedules from this chunk
+            chunk_schedules = chunk_data.get("schedules", [])
+            merged["schedules"].extend(chunk_schedules)
+
+            logger.debug(
+                f"Chunk {chunk['chunk_num']}: {len(chunk_sections)} sections, "
+                f"{len(chunk_schedules)} schedules"
+            )
+
+        # Aggregate token usage and provenance
+        total_input_tokens = sum(c["response"]["usage"]["input_tokens"] for c in chunks)
+        total_output_tokens = sum(c["response"]["usage"]["output_tokens"] for c in chunks)
+        total_cached_tokens = sum(c["response"]["usage"]["cached_tokens"] for c in chunks)
+
+        # Use last chunk's response ID as primary reference
+        final_response_id = chunks[-1]["response"]["id"]
+
+        # Build provenance with chunking metadata
+        provenance = ExtractionProvenance(
+            model=self.model,
+            prompt_version=f"{PROMPT_VERSION}_chunked_{len(chunks)}",
+            timestamp=datetime.utcnow(),
+            processing_time_seconds=total_time,
+            input_tokens=total_input_tokens,
+            output_tokens=total_output_tokens,
+            cached_tokens=total_cached_tokens,
+            response_id=final_response_id,
+        )
+
+        logger.info(
+            f"Merged {len(merged['sections'])} sections and {len(merged['schedules'])} schedules "
+            f"from {len(chunks)} chunks"
+        )
+
+        # Basic validation: warn about potential section numbering issues
+        if merged["sections"]:
+            section_numbers = []
+            for section in merged["sections"]:
+                num = section.get("number", "")
+                # Try to extract numeric part (handles "1", "I", "1A", etc.)
+                if num and num[0].isdigit():
+                    try:
+                        section_numbers.append(int(num.split()[0]))
+                    except (ValueError, IndexError):
+                        pass
+
+            if section_numbers and len(section_numbers) > 1:
+                # Check if roughly sequential (allow some gaps for schedules/appendices)
+                expected = list(range(1, len(section_numbers) + 1))
+                if section_numbers != expected:
+                    logger.warning(
+                        f"Section numbering may have gaps: found {len(section_numbers)} numeric sections, "
+                        f"first={section_numbers[0]}, last={section_numbers[-1]}"
+                    )
+
+        return ExtractionResult(
+            extracted_data=json.dumps(merged, indent=2),
+            provenance=provenance,
+            success=True,
+            pdf_source=pdf_url,
+            legislation_type=legislation_type,
+            identifier=identifier,
+        )
 
     async def close(self):
         """Close the Azure OpenAI client and flush Langfuse traces."""

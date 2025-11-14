@@ -126,7 +126,14 @@ async def process_pdf_batch_from_csv(
                         )
                         metadata = fetch_xml_metadata(legislation_type, identifier)
 
-                        # Step 2: Upload to Azure Blob (or reuse existing)
+                        # Get page count for chunking decision
+                        page_count = (
+                            metadata.pdf.page_count
+                            if metadata and metadata.pdf and metadata.pdf.page_count
+                            else None
+                        )
+
+                        # Step 2: Upload to Azure Blob (with automatic chunking for large PDFs)
                         async with aiohttp.ClientSession(
                             timeout=aiohttp.ClientTimeout(
                                 total=900,  # 15 min total per request
@@ -134,23 +141,56 @@ async def process_pdf_batch_from_csv(
                                 sock_read=120,  # 120s between socket reads
                             )
                         ) as session:
-                            success, sas_url, blob_name, error = await uploader.process_pdf(
-                                session, pdf_url, legislation_type, identifier
+                            if page_count:
+                                # Use chunking-aware uploader
+                                upload_result = await uploader.process_pdf_with_chunking(
+                                    session, pdf_url, legislation_type, identifier, page_count
+                                )
+                            else:
+                                # Fallback to single upload if page count unknown
+                                upload_result = await uploader.process_pdf(
+                                    session, pdf_url, legislation_type, identifier
+                                )
+
+                        # Step 3: Process PDF with OCR (handle both single and chunked results)
+                        if isinstance(upload_result, list):
+                            # Chunked result: List[(success, sas_url, blob_name, error, start_page, end_page)]
+                            if not upload_result or not upload_result[0][0]:
+                                logger.error(f"Failed to upload chunks for {pdf_url}")
+                                completed += 1
+                                return None
+
+                            # Extract chunk URLs
+                            chunk_urls = [
+                                (sas_url, start_page, end_page)
+                                for success, sas_url, blob_name, error, start_page, end_page in upload_result
+                                if success
+                            ]
+
+                            logger.info(f"Processing {len(chunk_urls)} chunks for {legislation_type}/{identifier}")
+
+                            result = await processor.process_large_pdf_chunked(
+                                chunk_urls=chunk_urls,
+                                legislation_type=legislation_type,
+                                identifier=identifier,
+                                metadata=metadata,
                             )
+                        else:
+                            # Single PDF result: (success, sas_url, blob_name, error)
+                            success, sas_url, blob_name, error = upload_result
 
-                        if not success:
-                            logger.error(f"Failed to upload {pdf_url}: {error}")
-                            completed += 1
-                            return None
+                            if not success:
+                                logger.error(f"Failed to upload {pdf_url}: {error}")
+                                completed += 1
+                                return None
 
-                        # Step 3: Process PDF with OCR
-                        result = await processor.process_pdf(
-                            pdf_url=sas_url,
-                            legislation_type=legislation_type,
-                            identifier=identifier,
-                            metadata=metadata,
-                            trace_name=f"batch_{legislation_type}_{identifier.replace('/', '_')}",
-                        )
+                            result = await processor.process_pdf(
+                                pdf_url=sas_url,
+                                legislation_type=legislation_type,
+                                identifier=identifier,
+                                metadata=metadata,
+                                trace_name=f"batch_{legislation_type}_{identifier.replace('/', '_')}",
+                            )
 
                         completed += 1
                         logger.info(
