@@ -5,7 +5,6 @@ __pycache__/
 
 files/*
 files
-docs/*
 json/*
 data/legislation
 data/all
