@@ -10,9 +10,9 @@ logger = logging.getLogger(__name__)
 # Create a more resilient HTTP client for caselaw scraping
 from lex.core.rate_limiter import AdaptiveRateLimiter
 
-# Create custom rate limiter with longer backoffs
+# Create custom rate limiter with longer backoffs and proactive throttling
 rate_limiter = AdaptiveRateLimiter(
-    min_delay=0.0,
+    min_delay=0.2,  # Proactive rate limiting (5 req/sec max)
     max_delay=300.0,  # Max 5 minutes between requests
     success_reduction_factor=0.98,  # Slower reduction
     failure_increase_factor=3.0,  # More aggressive backoff

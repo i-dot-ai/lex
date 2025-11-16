@@ -113,8 +113,8 @@ class HttpClient:
         """Make request with retry logic."""
         response = self.session.request(method=method, url=url, timeout=self.timeout, **kwargs)
 
-        # Check for rate limiting
-        if response.status_code == 429:
+        # Check for rate limiting (429 standard, 436 used by legislation.gov.uk)
+        if response.status_code in [429, 436]:
             retry_after_header = response.headers.get("Retry-After")
             retry_after: Optional[int] = None
             if retry_after_header:
@@ -126,18 +126,20 @@ class HttpClient:
             self.rate_limiter.record_rate_limit(retry_after)
 
             logger.warning(
-                f"Rate limited: {url}",
+                f"Rate limited (HTTP {response.status_code}): {url}",
                 extra={
                     "event_type": "rate_limit",
                     "url": url,
                     "retry_after": retry_after,
                     "current_delay": self.rate_limiter.get_current_delay(),
-                    "status_code": 429,
+                    "status_code": response.status_code,
                 },
             )
 
             # Convert to RateLimitException so circuit breaker can track it
-            raise RateLimitException(f"Rate limited on {url}", retry_after)
+            raise RateLimitException(
+                f"Rate limited (HTTP {response.status_code}) on {url}", retry_after
+            )
 
         response.raise_for_status()
         return response

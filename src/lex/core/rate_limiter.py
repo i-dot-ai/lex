@@ -11,12 +11,16 @@ logger = logging.getLogger(__name__)
 
 
 class AdaptiveRateLimiter:
-    """Adaptive rate limiter that adjusts delay based on server responses."""
+    """Adaptive rate limiter that adjusts delay based on server responses.
+
+    Note: legislation.gov.uk enforces a limit of 1500 requests per 5-minute window.
+    Default min_delay of 0.2s allows ~5 req/sec per process, staying well under the limit.
+    """
 
     def __init__(
         self,
-        min_delay: float = 0.0,
-        max_delay: float = 5.0,
+        min_delay: float = 0.2,
+        max_delay: float = 300.0,
         success_reduction_factor: float = 0.95,
         failure_increase_factor: float = 2.0,
     ):
@@ -24,14 +28,14 @@ class AdaptiveRateLimiter:
         Initialize the adaptive rate limiter.
 
         Args:
-            min_delay: Minimum delay between requests (seconds)
-            max_delay: Maximum delay between requests (seconds)
+            min_delay: Minimum delay between requests in seconds (default 0.2s = 5 req/sec max)
+            max_delay: Maximum delay between requests in seconds (default 300s = 5 minutes)
             success_reduction_factor: Factor to reduce delay after success (0-1)
             failure_increase_factor: Factor to increase delay after rate limit
         """
         self.successful_requests: deque[float] = deque(maxlen=10000)  # Track last 10k requests
-        self.rate_limit_events: deque[Dict[str, Any]] = deque(maxlen=100)  # Track 429 responses
-        self.current_delay = min_delay  # Start with no delay
+        self.rate_limit_events: deque[Dict[str, Any]] = deque(maxlen=100)  # Track 429/436 responses
+        self.current_delay = min_delay  # Start with minimum delay
         self.min_delay = min_delay
         self.max_delay = max_delay
         self.success_reduction_factor = success_reduction_factor

@@ -32,22 +32,31 @@ class LegislationPDFDownloader:
     """
 
     def __init__(
-        self, cache_dir: str = "data/pdfs", max_concurrent: int = 10, timeout_seconds: int = 60
+        self,
+        cache_dir: str = "data/pdfs",
+        max_concurrent: int = 5,
+        timeout_seconds: int = 60,
+        rate_limit_delay: float = 0.2,
     ):
         """
         Initialize PDF downloader.
 
         Args:
             cache_dir: Root directory for cached PDFs
-            max_concurrent: Maximum concurrent downloads (default 10)
+            max_concurrent: Maximum concurrent downloads (default 5, reduced to avoid rate limits)
             timeout_seconds: HTTP timeout in seconds (default 60)
+            rate_limit_delay: Minimum delay between requests in seconds (default 0.2s)
         """
         self.cache_dir = Path(cache_dir)
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         self.max_concurrent = max_concurrent
         self.timeout = aiohttp.ClientTimeout(total=timeout_seconds)
+        self.rate_limit_delay = rate_limit_delay
 
-        logger.info(f"PDF cache directory: {self.cache_dir.absolute()}")
+        logger.info(
+            f"PDF cache directory: {self.cache_dir.absolute()}, "
+            f"max_concurrent: {max_concurrent}, rate_limit_delay: {rate_limit_delay}s"
+        )
 
     def get_local_path(self, pdf_url: str, legislation_type: str, identifier: str) -> Path:
         """
@@ -100,33 +109,64 @@ class LegislationPDFDownloader:
         # Create parent directories
         local_path.parent.mkdir(parents=True, exist_ok=True)
 
-        try:
-            # Download PDF
-            async with session.get(pdf_url, timeout=self.timeout) as response:
-                response.raise_for_status()
+        # Retry logic for rate limiting
+        max_retries = 3
+        base_delay = 1.0
 
-                # Write to file
-                pdf_bytes = await response.read()
-                with open(local_path, "wb") as f:
-                    f.write(pdf_bytes)
+        for attempt in range(max_retries):
+            try:
+                # Add rate limiting delay before request
+                if attempt == 0 and self.rate_limit_delay > 0:
+                    await asyncio.sleep(self.rate_limit_delay)
 
-                logger.info(f"Downloaded: {pdf_url} -> {local_path}")
-                return True, str(local_path), None
+                # Download PDF
+                async with session.get(pdf_url, timeout=self.timeout) as response:
+                    # Handle rate limiting
+                    if response.status == 429 or response.status == 436:
+                        if attempt < max_retries - 1:
+                            delay = base_delay * (2 ** attempt)
+                            logger.warning(
+                                f"Rate limited (HTTP {response.status}) downloading {pdf_url}, "
+                                f"retrying in {delay}s (attempt {attempt + 1}/{max_retries})"
+                            )
+                            await asyncio.sleep(delay)
+                            continue
+                        else:
+                            error = f"Rate limited after {max_retries} attempts: {pdf_url}"
+                            logger.error(error)
+                            return False, str(local_path), error
 
-        except asyncio.TimeoutError:
-            error = f"Timeout downloading {pdf_url}"
-            logger.error(error)
-            return False, str(local_path), error
+                    response.raise_for_status()
 
-        except aiohttp.ClientError as e:
-            error = f"HTTP error downloading {pdf_url}: {e}"
-            logger.error(error)
-            return False, str(local_path), error
+                    # Write to file
+                    pdf_bytes = await response.read()
+                    with open(local_path, "wb") as f:
+                        f.write(pdf_bytes)
 
-        except Exception as e:
-            error = f"Failed to download {pdf_url}: {e}"
-            logger.error(error)
-            return False, str(local_path), error
+                    logger.info(f"Downloaded: {pdf_url} -> {local_path}")
+                    return True, str(local_path), None
+
+            except asyncio.TimeoutError:
+                if attempt < max_retries - 1:
+                    logger.warning(f"Timeout downloading {pdf_url}, retrying...")
+                    continue
+                error = f"Timeout downloading {pdf_url}"
+                logger.error(error)
+                return False, str(local_path), error
+
+            except aiohttp.ClientError as e:
+                # Don't retry client errors (except rate limits handled above)
+                error = f"HTTP error downloading {pdf_url}: {e}"
+                logger.error(error)
+                return False, str(local_path), error
+
+            except Exception as e:
+                error = f"Failed to download {pdf_url}: {e}"
+                logger.error(error)
+                return False, str(local_path), error
+
+        # Should not reach here but return error just in case
+        return False, str(local_path), "Max retries exceeded"
 
     async def download_batch(
         self,
@@ -191,7 +231,7 @@ class LegislationPDFDownloader:
 async def download_from_csv(
     csv_path: str,
     cache_dir: str = "data/pdfs",
-    max_concurrent: int = 10,
+    max_concurrent: int = 5,
     limit: Optional[int] = None,
 ) -> List[Tuple[bool, str, Optional[str]]]:
     """
@@ -200,7 +240,7 @@ async def download_from_csv(
     Args:
         csv_path: Path to CSV file (with headers)
         cache_dir: Root directory for cached PDFs
-        max_concurrent: Maximum concurrent downloads
+        max_concurrent: Maximum concurrent downloads (default 5 to avoid rate limits)
         limit: Optional limit on number of PDFs to download
 
     Returns:

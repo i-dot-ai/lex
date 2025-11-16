@@ -1,3 +1,5 @@
+import asyncio
+import logging
 import traceback
 from datetime import datetime, timedelta
 from typing import List
@@ -23,6 +25,8 @@ from backend.legislation.search import (
     legislation_section_search,
 )
 from lex.legislation.models import Legislation, LegislationSection
+
+logger = logging.getLogger(__name__)
 
 # Simple in-memory cache for legislation HTML
 # Format: {legislation_id: (content_bytes, content_type, cached_at)}
@@ -214,33 +218,71 @@ async def proxy_legislation_data(legislation_id: str):
                 },
             )
 
-        # Cache miss - fetch from legislation.gov.uk
+        # Cache miss - fetch from legislation.gov.uk with retry logic
         url = f"https://www.legislation.gov.uk/{legislation_id}"
 
+        # Retry logic for rate limiting (429/436) with exponential backoff
+        max_retries = 5
+        base_delay = 1.0
+
         async with httpx.AsyncClient(timeout=30.0) as client:
-            response = await client.get(url, follow_redirects=True)
+            for attempt in range(max_retries):
+                try:
+                    response = await client.get(url, follow_redirects=True)
 
-            if response.status_code == 404:
-                raise HTTPException(
-                    status_code=404, detail=f"Legislation not found: {legislation_id}"
-                )
+                    # Handle rate limiting - retry with exponential backoff
+                    if response.status_code in [429, 436]:
+                        if attempt < max_retries - 1:
+                            # Calculate backoff delay
+                            delay = base_delay * (2 ** attempt)
+                            retry_after = response.headers.get("Retry-After")
+                            if retry_after:
+                                try:
+                                    delay = int(retry_after)
+                                except ValueError:
+                                    pass
 
-            response.raise_for_status()
+                            logger.warning(
+                                f"Rate limited (HTTP {response.status_code}) fetching {url}, "
+                                f"retrying in {delay}s (attempt {attempt + 1}/{max_retries})"
+                            )
+                            await asyncio.sleep(delay)
+                            continue
+                        else:
+                            # Final attempt failed
+                            raise HTTPException(
+                                status_code=429,
+                                detail="Rate limited by external API. Please try again later."
+                            )
 
-            # Cache the response
-            content_type = response.headers.get("content-type", "text/html")
-            _cache_html(legislation_id, response.content, content_type)
+                    if response.status_code == 404:
+                        raise HTTPException(
+                            status_code=404, detail=f"Legislation not found: {legislation_id}"
+                        )
 
-            # Return the HTML content with appropriate headers
-            return Response(
-                content=response.content,
-                media_type=content_type,
-                headers={
-                    "Access-Control-Allow-Origin": "*",
-                    "Cache-Control": "public, max-age=86400",  # 24 hours
-                    "X-Cache": "MISS",
-                },
-            )
+                    response.raise_for_status()
+
+                    # Cache the response
+                    content_type = response.headers.get("content-type", "text/html")
+                    _cache_html(legislation_id, response.content, content_type)
+
+                    # Return the HTML content with appropriate headers
+                    return Response(
+                        content=response.content,
+                        media_type=content_type,
+                        headers={
+                            "Access-Control-Allow-Origin": "*",
+                            "Cache-Control": "public, max-age=86400",  # 24 hours
+                            "X-Cache": "MISS",
+                        },
+                    )
+
+                except httpx.HTTPStatusError as e:
+                    # Let other HTTP errors (non-429/436) fall through
+                    if e.response.status_code not in [429, 436]:
+                        raise HTTPException(status_code=502, detail=f"External API error: {str(e)}")
+                    # For 429/436, continue to next retry iteration
+                    continue
 
     except httpx.HTTPStatusError as e:
         raise HTTPException(status_code=502, detail=f"External API error: {str(e)}")
