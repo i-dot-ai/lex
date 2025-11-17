@@ -108,7 +108,12 @@ class AmendmentParser:
         x = soup.find("a")
         if x:
             try:
-                return self.base_url + x["href"]
+                href = x["href"]
+                # If href is already a full URL, return it as-is
+                if href.startswith("http://") or href.startswith("https://"):
+                    return href
+                # Otherwise, prepend base_url
+                return self.base_url + href
             except KeyError:
                 return None
         return None
