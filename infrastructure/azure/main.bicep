@@ -27,6 +27,13 @@ param azureOpenAIEndpoint string
 @description('Azure OpenAI Embedding Model')
 param azureOpenAIEmbeddingModel string = 'text-embedding-3-large'
 
+@description('PostHog API Key')
+@secure()
+param posthogKey string = ''
+
+@description('PostHog Host URL')
+param posthogHost string = 'https://eu.i.posthog.com'
+
 @description('Rate limit per minute')
 param rateLimitPerMinute int = 60
 
@@ -169,6 +176,10 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
           name: 'redis-primary-key'
           value: redisCache.listKeys().primaryKey
         }
+        {
+          name: 'posthog-key'
+          value: posthogKey
+        }
       ]
     }
     template: {
@@ -232,6 +243,14 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
             {
               name: 'RATE_LIMIT_PER_HOUR'
               value: string(rateLimitPerHour)
+            }
+            {
+              name: 'POSTHOG_KEY'
+              secretRef: 'posthog-key'
+            }
+            {
+              name: 'POSTHOG_HOST'
+              value: posthogHost
             }
           ]
           probes: [

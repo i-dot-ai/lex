@@ -124,6 +124,8 @@ deploy_infrastructure() {
         AZURE_OPENAI_API_KEY=$(grep "^AZURE_OPENAI_API_KEY=" .env | cut -d '=' -f2)
         AZURE_OPENAI_ENDPOINT=$(grep "^AZURE_OPENAI_ENDPOINT=" .env | cut -d '=' -f2)
         AZURE_OPENAI_EMBEDDING_MODEL=$(grep "^AZURE_OPENAI_EMBEDDING_MODEL=" .env | cut -d '=' -f2)
+        POSTHOG_KEY=$(grep "^POSTHOG_KEY=" .env | cut -d '=' -f2)
+        POSTHOG_HOST=$(grep "^POSTHOG_HOST=" .env | cut -d '=' -f2)
     fi
     
     # Set default embedding model if not specified
@@ -151,7 +153,9 @@ deploy_infrastructure() {
             qdrantCloudApiKey="$QDRANT_CLOUD_API_KEY" \
             azureOpenAIApiKey="$AZURE_OPENAI_API_KEY" \
             azureOpenAIEndpoint="$AZURE_OPENAI_ENDPOINT" \
-            azureOpenAIEmbeddingModel="$AZURE_OPENAI_EMBEDDING_MODEL"
+            azureOpenAIEmbeddingModel="$AZURE_OPENAI_EMBEDDING_MODEL" \
+            posthogKey="$POSTHOG_KEY" \
+            posthogHost="$POSTHOG_HOST"
     
     log_success "Infrastructure deployment completed"
 }
