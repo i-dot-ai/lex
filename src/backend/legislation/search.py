@@ -142,9 +142,17 @@ async def legislation_act_search(input: LegislationActSearch) -> dict:
     # Batch lookup legislation metadata (single query instead of N queries)
     lookup_start = time.time()
     leg_by_id = {}
+    
+    # Apply same year filters to legislation lookup to ensure consistency
+    lookup_conditions = [FieldCondition(key="id", match=MatchAny(any=unique_leg_ids))]
+    if input.year_from:
+        lookup_conditions.append(FieldCondition(key="year", range=Range(gte=input.year_from)))
+    if input.year_to:
+        lookup_conditions.append(FieldCondition(key="year", range=Range(lte=input.year_to)))
+    
     points = qdrant_client.scroll(
         collection_name=LEGISLATION_COLLECTION,
-        scroll_filter=Filter(must=[FieldCondition(key="id", match=MatchAny(any=unique_leg_ids))]),
+        scroll_filter=Filter(must=lookup_conditions),
         limit=len(unique_leg_ids),
         with_payload=True,
         with_vectors=False,
@@ -154,6 +162,12 @@ async def legislation_act_search(input: LegislationActSearch) -> dict:
         leg_id = point.payload.get("id")
         if leg_id:
             leg_by_id[leg_id] = Legislation(**point.payload)
+
+    # Log if parent documents are missing (data consistency issue)
+    missing_docs = set(unique_leg_ids) - set(leg_by_id.keys())
+    if missing_docs:
+        logger.warning(f"Parent legislation not found in main collection (potential data consistency issue): {len(missing_docs)} documents")
+        logger.debug(f"Missing legislation IDs: {list(missing_docs)[:5]}...")  # Log first 5 for debugging
 
     lookup_time = time.time() - lookup_start
     logger.info(f"Looked up {len(leg_by_id)} acts in {lookup_time:.3f}s")
