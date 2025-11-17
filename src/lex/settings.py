@@ -96,3 +96,7 @@ YEARS = list(range(1267, CURRENT_YEAR + 1))  # Includes current year
 # Azure OpenAI embedding configuration
 EMBEDDING_DIMENSIONS = 1024
 EMBEDDING_DEPLOYMENT = os.environ.get("AZURE_OPENAI_EMBEDDING_DEPLOYMENT", "text-embedding-3-large")
+
+# PostHog Analytics configuration (cookieless, EU region, GDPR compliant)
+POSTHOG_KEY = os.environ.get("POSTHOG_KEY", "")
+POSTHOG_HOST = os.environ.get("POSTHOG_HOST", "https://eu.i.posthog.com")
