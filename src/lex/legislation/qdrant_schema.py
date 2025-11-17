@@ -52,6 +52,7 @@ def get_legislation_schema():
             "type": PayloadSchemaType.KEYWORD,  # Exact match lookups
             "year": PayloadSchemaType.INTEGER,  # Range queries
             "number": PayloadSchemaType.INTEGER,  # Exact match lookups
+            "provenance_source": PayloadSchemaType.KEYWORD,  # Filter by source (xml/llm_ocr)
         },
     }
 
@@ -89,5 +90,6 @@ def get_legislation_section_schema():
             "legislation_type": PayloadSchemaType.KEYWORD,  # Filter by legislation type
             "legislation_year": PayloadSchemaType.INTEGER,  # Range queries (year_from/year_to)
             "provision_type": PayloadSchemaType.KEYWORD,  # Filter by section/schedule type
+            "provenance_source": PayloadSchemaType.KEYWORD,  # Filter by source (xml/llm_ocr)
         },
     }
