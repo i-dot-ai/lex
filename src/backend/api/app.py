@@ -13,6 +13,7 @@ from backend.core.middleware import monitoring_and_rate_limit_middleware
 from backend.core.telemetry import instrument_fastapi_app
 from backend.explanatory_note.router import router as explanatory_note_router
 from backend.legislation.router import router as legislation_router
+from backend.stats.router import router as stats_router
 from backend.mcp.server import create_mcp_server
 from backend.monitoring import monitoring
 
@@ -46,6 +47,7 @@ def create_base_app():
     base_app.include_router(caselaw_router)
     base_app.include_router(explanatory_note_router)
     base_app.include_router(amendment_router)
+    base_app.include_router(stats_router)
 
     # Health check endpoint
     @base_app.get("/healthcheck")
