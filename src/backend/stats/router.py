@@ -4,7 +4,7 @@ from typing import Dict, Any, Optional
 from functools import lru_cache
 
 from fastapi import APIRouter
-from qdrant_client.models import CountRequest, FieldCondition, Filter, MatchValue
+from qdrant_client.models import FieldCondition, Filter, MatchValue
 
 from lex.core.qdrant_client import qdrant_client
 from lex.settings import (
@@ -32,59 +32,55 @@ def _calculate_live_stats() -> Dict[str, Any]:
     # Get document counts from each collection
     legislation_count = qdrant_client.count(
         collection_name=LEGISLATION_COLLECTION,
-        count_request=CountRequest(exact=True)
+        exact=True
     ).count
     
     sections_count = qdrant_client.count(
         collection_name=LEGISLATION_SECTION_COLLECTION,
-        count_request=CountRequest(exact=True)
+        exact=True
     ).count
     
     caselaw_count = qdrant_client.count(
         collection_name=CASELAW_COLLECTION,
-        count_request=CountRequest(exact=True)
+        exact=True
     ).count
     
     caselaw_sections_count = qdrant_client.count(
         collection_name=CASELAW_SECTION_COLLECTION,
-        count_request=CountRequest(exact=True)
+        exact=True
     ).count
     
     explanatory_count = qdrant_client.count(
         collection_name=EXPLANATORY_NOTE_COLLECTION,
-        count_request=CountRequest(exact=True)
+        exact=True
     ).count
     
     amendments_count = qdrant_client.count(
         collection_name=AMENDMENT_COLLECTION,
-        count_request=CountRequest(exact=True)
+        exact=True
     ).count
     
     # Count PDF-derived legislation (LLM OCR provenance)
     pdf_legislation_count = qdrant_client.count(
         collection_name=LEGISLATION_COLLECTION,
-        count_request=CountRequest(
-            exact=True,
-            filter=Filter(
-                must=[FieldCondition(
-                    key="provenance_source",
-                    match=MatchValue(value="llm_ocr")
-                )]
-            )
+        exact=True,
+        count_filter=Filter(
+            must=[FieldCondition(
+                key="provenance_source",
+                match=MatchValue(value="llm_ocr")
+            )]
         )
     ).count
     
     # Count PDF-derived sections
     pdf_sections_count = qdrant_client.count(
         collection_name=LEGISLATION_SECTION_COLLECTION,
-        count_request=CountRequest(
-            exact=True,
-            filter=Filter(
-                must=[FieldCondition(
-                    key="provenance_source",
-                    match=MatchValue(value="llm_ocr")
-                )]
-            )
+        exact=True,
+        count_filter=Filter(
+            must=[FieldCondition(
+                key="provenance_source",
+                match=MatchValue(value="llm_ocr")
+            )]
         )
     ).count
     
