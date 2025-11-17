@@ -142,7 +142,11 @@ def merge_xml_and_pdf(xml_meta: dict[str, Any], pdf_result: dict[str, Any]) -> L
     # Parse extracted_data if it's a string
     extracted_data = pdf_result.get("extracted_data", {})
     if isinstance(extracted_data, str):
-        extracted_data = json.loads(extracted_data)
+        try:
+            extracted_data = json.loads(extracted_data)
+        except json.JSONDecodeError as e:
+            logger.error(f"Malformed JSON in extracted_data: {e}")
+            raise ValueError(f"Invalid JSON in extracted_data: {e}")
 
     extracted = extracted_data
     pdf_meta = extracted.get("metadata", {})
@@ -408,11 +412,15 @@ def process_jsonl_file(
                 continue
 
             # Create records
-            legislation = merge_xml_and_pdf(xml_meta, pdf_result)
-            sections = create_section_records(legislation, pdf_result)
+            try:
+                legislation = merge_xml_and_pdf(xml_meta, pdf_result)
+                sections = create_section_records(legislation, pdf_result)
 
-            legislation_records.append(legislation)
-            section_records.extend(sections)
+                legislation_records.append(legislation)
+                section_records.extend(sections)
+            except (ValueError, json.JSONDecodeError) as e:
+                logger.warning(f"Skipping {legislation_id} due to malformed data: {e}")
+                continue
 
             # Save JSON backup if requested
             if json_backup_dir:
