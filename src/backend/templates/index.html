@@ -967,49 +967,6 @@
                 </div>
             </div>
 
-            <!-- Dataset Coverage section -->
-            <div class="govuk-grid-row govuk-!-margin-bottom-8">
-                <div class="govuk-grid-column-full">
-                    <h2 class="govuk-heading-l">Dataset Coverage</h2>
-                    <p class="govuk-body">This experimental service provides access to comprehensive UK legal data for research and development purposes.</p>
-                    
-                    <div class="govuk-grid-row">
-                        <div class="govuk-grid-column-one-half">
-                            <h3 class="govuk-heading-m">Available Documents</h3>
-                            <ul class="govuk-list govuk-list--bullet">
-                                <li><strong id="acts-count">~125,000</strong> Acts and Statutory Instruments</li>
-                                <li><strong id="provisions-count">~1M</strong> individual legal provisions</li>
-                                <li><strong id="judgments-count">~30,000</strong> court judgments and decisions</li>
-                                <li><strong id="paragraphs-count">~2.4M</strong> court case paragraphs</li>
-                                <li><strong id="explanatory-count">~82,000</strong> explanatory note sections</li>
-                                <li><strong id="amendments-count">~310,000</strong> legislative amendments</li>
-                            </ul>
-                            
-                            <h3 class="govuk-heading-m">PDF Digitisation</h3>
-                            <p class="govuk-body-s">Historical legislation digitised using AI for improved accessibility:</p>
-                            <ul class="govuk-list govuk-list--bullet govuk-body-s">
-                                <li><strong id="pdf-legislation-count">20</strong> PDF-sourced Acts (LLM extracted)</li>
-                                <li><strong id="pdf-provisions-count">712</strong> PDF-sourced provisions (LLM extracted)</li>
-                            </ul>
-                        </div>
-                        
-                        <div class="govuk-grid-column-one-half">
-                            <h3 class="govuk-heading-m">Temporal Coverage</h3>
-                            <ul class="govuk-list govuk-list--bullet">
-                                <li><strong>Legislation:</strong> 1267-present (complete from 1963)</li>
-                                <li><strong>Court cases:</strong> 2001-present</li>
-                                <li><strong>Search capabilities:</strong> Both semantic and exact matching</li>
-                                <li><strong>Updates:</strong> Dataset grows as new legislation and cases are published</li>
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <div class="govuk-inset-text">
-                        <p>This service is provided for research and development. The dataset is updated regularly to include new legislation and court decisions as they become available.</p>
-                    </div>
-                </div>
-            </div>
-
             <!-- MCP Setup section -->
             <div class="govuk-grid-row govuk-!-margin-bottom-8">
                 <div class="govuk-grid-column-full">
@@ -1100,6 +1057,49 @@
                         </div>
                     </div>
                     
+                </div>
+            </div>
+
+            <!-- Dataset Coverage section -->
+            <div class="govuk-grid-row govuk-!-margin-bottom-8">
+                <div class="govuk-grid-column-full">
+                    <h2 class="govuk-heading-l">Dataset Coverage</h2>
+                    <p class="govuk-body">This experimental service provides access to comprehensive UK legal data for research and development purposes.</p>
+                    
+                    <div class="govuk-grid-row">
+                        <div class="govuk-grid-column-one-half">
+                            <h3 class="govuk-heading-m">Available Documents</h3>
+                            <ul class="govuk-list govuk-list--bullet">
+                                <li><strong id="acts-count">X</strong> Acts and Statutory Instruments</li>
+                                <li><strong id="provisions-count">X</strong> individual legal provisions</li>
+                                <li><strong id="judgments-count">X</strong> court judgments and decisions</li>
+                                <li><strong id="paragraphs-count">X</strong> court case paragraphs</li>
+                                <li><strong id="explanatory-count">X</strong> explanatory note sections</li>
+                                <li><strong id="amendments-count">X</strong> legislative amendments</li>
+                            </ul>
+                            
+                            <h3 class="govuk-heading-m">PDF Digitisation</h3>
+                            <p class="govuk-body-s">Historical legislation digitised using AI for improved accessibility:</p>
+                            <ul class="govuk-list govuk-list--bullet govuk-body-s">
+                                <li><strong id="pdf-legislation-count">X</strong> PDF-sourced Acts (LLM extracted)</li>
+                                <li><strong id="pdf-provisions-count">X</strong> PDF-sourced provisions (LLM extracted)</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="govuk-grid-column-one-half">
+                            <h3 class="govuk-heading-m">Temporal Coverage</h3>
+                            <ul class="govuk-list govuk-list--bullet">
+                                <li><strong>Legislation:</strong> 1267-present (complete from 1963)</li>
+                                <li><strong>Court cases:</strong> 2001-present</li>
+                                <li><strong>Search capabilities:</strong> Both semantic and exact matching</li>
+                                <li><strong>Updates:</strong> Dataset grows as new legislation and cases are published</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="govuk-inset-text">
+                        <p>This service is provided for research and development. The dataset is updated regularly to include new legislation and court decisions as they become available.</p>
+                    </div>
                 </div>
             </div>
 
@@ -1396,12 +1396,12 @@
             }
         }
         
-        // Update stats on page load and refresh every hour
+        // Update stats on page load and refresh every 30 seconds for live updates
         document.addEventListener('DOMContentLoaded', function() {
             updateLiveStats();
             
-            // Refresh every hour (3,600,000 milliseconds)
-            setInterval(updateLiveStats, 3600000);
+            // Refresh every 30 seconds (30,000 milliseconds) for live updates
+            setInterval(updateLiveStats, 30000);
         });
 
         // Analytics placeholder - track download events
