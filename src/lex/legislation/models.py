@@ -1,6 +1,6 @@
-from datetime import date
+from datetime import date, datetime
 from enum import Enum
-from typing import Dict, List, Optional
+from typing import Dict, List, Literal, Optional
 
 from pydantic import BaseModel, Field, computed_field, field_validator, model_validator
 
@@ -85,6 +85,112 @@ class LegislationType(str, Enum):
     UKSRO = "uksro"
     UKMO = "ukmo"
     UKCI = "ukci"
+
+    def get_display_name(self) -> str:
+        """Get the full human-readable name for this legislation type."""
+        display_names = {
+            LegislationType.UKPGA: "UK Public General Act",
+            LegislationType.ASP: "Act of the Scottish Parliament",
+            LegislationType.ASC: "Act of Senedd Cymru",
+            LegislationType.ANAW: "Act of the National Assembly for Wales",
+            LegislationType.WSI: "Wales Statutory Instrument",
+            LegislationType.UKSI: "UK Statutory Instrument",
+            LegislationType.SSI: "Scottish Statutory Instrument",
+            LegislationType.UKCM: "Church Measure",
+            LegislationType.NISR: "Northern Ireland Statutory Rule",
+            LegislationType.NIA: "Northern Ireland Act",
+            LegislationType.EUDN: "EU Decision",
+            LegislationType.EUDR: "EU Directive",
+            LegislationType.EUR: "EU Regulation",
+            LegislationType.UKLA: "UK Local Act",
+            LegislationType.UKPPA: "UK Private and Personal Act",
+            LegislationType.APNI: "Act of the Northern Ireland Parliament",
+            LegislationType.GBLA: "Local Act of the Parliament of Great Britain",
+            LegislationType.AOSP: "Act of the Old Scottish Parliament",
+            LegislationType.AEP: "Act of the English Parliament",
+            LegislationType.APGB: "Act of the Parliament of Great Britain",
+            LegislationType.MWA: "Measure of the Welsh Assembly",
+            LegislationType.AIP: "Act of the Old Irish Parliament",
+            LegislationType.MNIA: "Measure of the Northern Ireland Assembly",
+            LegislationType.NISRO: "Northern Ireland Statutory Rule and Order",
+            LegislationType.NISI: "Northern Ireland Order in Council",
+            LegislationType.UKSRO: "UK Statutory Rule and Order",
+            LegislationType.UKMO: "UK Ministerial Order",
+            LegislationType.UKCI: "Church Instrument",
+        }
+        return display_names.get(self, self.value.upper())
+
+    @staticmethod
+    def filter_by_year(types: List["LegislationType"], year: int) -> List["LegislationType"]:
+        """
+        Filter legislation types by their historical active years.
+
+        Based on legislation.gov.uk documentation:
+        - AEP (1267-1707) - Acts of English Parliament
+        - AOSP (1424-1707) - Acts of Old Scottish Parliament
+        - AIP (1495-1800) - Acts of Old Irish Parliament
+        - UKPPA (1539-present) - UK Private and Personal Acts
+        - APGB (1707-1800) - Acts of Parliament of Great Britain
+        - UKLA (1797-present) - UK Local Acts
+        - GBLA (1797-1800) - Local Acts of Parliament of GB
+        - UKPGA (1801-present) - UK Public General Acts
+        - UKSRO (1894-1947) - UK Statutory Rules and Orders
+        - UKCM (1920-present) - Church Measures
+        - APNI (1921-1972) - Acts of NI Parliament
+        - UKSI (1948-present) - UK Statutory Instruments
+        - ASP (1999-present) - Acts of Scottish Parliament
+        - Other modern types (1999+)
+
+        Args:
+            types: List of legislation types to filter
+            year: Year to filter by
+
+        Returns:
+            List of legislation types valid for the given year
+        """
+        type_year_ranges = {
+            LegislationType.AEP: (1267, 1707),
+            LegislationType.AOSP: (1424, 1707),
+            LegislationType.AIP: (1495, 1800),
+            LegislationType.UKPPA: (1539, 9999),
+            LegislationType.APGB: (1707, 1800),
+            LegislationType.UKLA: (1797, 9999),
+            LegislationType.GBLA: (1797, 1800),
+            LegislationType.UKPGA: (1801, 9999),
+            LegislationType.UKSRO: (1894, 1947),
+            LegislationType.UKCM: (1920, 9999),
+            LegislationType.APNI: (1921, 1972),
+            LegislationType.UKSI: (1948, 9999),
+            LegislationType.ASP: (1999, 9999),
+            LegislationType.SSI: (1999, 9999),
+            LegislationType.NIA: (2000, 9999),
+            LegislationType.NISR: (2000, 9999),
+            LegislationType.MWA: (2008, 2011),
+            LegislationType.ANAW: (2012, 2020),
+            LegislationType.WSI: (2012, 9999),
+            LegislationType.ASC: (2020, 9999),
+            # EU types (1973-2020)
+            LegislationType.EUR: (1973, 2020),
+            LegislationType.EUDR: (1973, 2020),
+            LegislationType.EUDN: (1973, 2020),
+            # Other secondary types
+            LegislationType.NISRO: (1922, 1974),
+            LegislationType.NISI: (1974, 9999),
+            LegislationType.UKCI: (1991, 9999),
+            LegislationType.MNIA: (1974, 1974),
+            # UKMO - various years, keep always
+            LegislationType.UKMO: (1800, 9999),
+        }
+
+        filtered = []
+        for leg_type in types:
+            year_range = type_year_ranges.get(leg_type)
+            if year_range:
+                start_year, end_year = year_range
+                if start_year <= year <= end_year:
+                    filtered.append(leg_type)
+
+        return filtered
 
 
 class ReferenceType(str, Enum):
@@ -318,6 +424,12 @@ class Legislation(LexModel):
     status: str
     extent: List[GeographicalExtent] = Field(default_factory=list)
     number_of_provisions: int
+    # Provenance tracking (for LLM-extracted PDF content)
+    provenance_source: Optional[Literal["xml", "llm_ocr"]] = None
+    provenance_model: Optional[str] = None
+    provenance_prompt_version: Optional[str] = None
+    provenance_timestamp: Optional[datetime] = None
+    provenance_response_id: Optional[str] = None
 
 
 class LegislationWithContent(Legislation):
@@ -368,9 +480,15 @@ class LegislationSection(LexModel):
     uri: str
     legislation_id: str = Field(description="The ID of the legislation.")
     title: str = Field(default_factory=str, description="The title of the section.")
-    text: str = Field(description="The text of the section.")
+    text: str = Field(default="", description="The text of the section.")
     extent: List[GeographicalExtent] = Field(default_factory=list)
     provision_type: ProvisionType = ProvisionType.SECTION
+    # Provenance tracking (for LLM-extracted PDF content)
+    provenance_source: Optional[Literal["xml", "llm_ocr"]] = None
+    provenance_model: Optional[str] = None
+    provenance_prompt_version: Optional[str] = None
+    provenance_timestamp: Optional[datetime] = None
+    provenance_response_id: Optional[str] = None
 
     @computed_field
     @property
@@ -410,7 +528,7 @@ class LegislationSection(LexModel):
     @field_validator("text", mode="before")
     @classmethod
     def coerce_text_from_dict(cls, value):
-        """If the input value is a dict with a 'text' key, extract it. This is to enable compatibility with the Elasticsearch output."""
+        """If the input value is a dict with a 'text' key, extract it. This handles nested text fields from data sources."""
         if isinstance(value, dict) and "text" in value:
             return value["text"]
         return value

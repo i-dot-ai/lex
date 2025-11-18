@@ -1,24 +1,25 @@
 import os
 from datetime import datetime
 
-# Index names from environment variables
-CASELAW_INDEX = os.getenv("ELASTIC_CASELAW_INDEX", "lex-dev-caselaw")
-CASELAW_SECTION_INDEX = os.getenv("ELASTIC_CASELAW_SECTION_INDEX", "lex-dev-caselaw-section")
-LEGISLATION_INDEX = os.getenv("ELASTIC_LEGISLATION_INDEX", "lex-dev-legislation")
-LEGISLATION_SECTION_INDEX = os.getenv(
-    "ELASTIC_LEGISLATION_SECTION_INDEX", "lex-dev-legislation-section"
-)
-EXPLANATORY_NOTE_INDEX = os.getenv("ELASTIC_EXPLANATORY_NOTE_INDEX", "lex-dev-explanatory-note")
-AMENDMENT_INDEX = os.getenv("ELASTIC_AMENDMENT_INDEX", "lex-dev-amendment")
-INFERENCE_ID = os.getenv("ELASTIC_INFERENCE_ID", "lex-dev-inference-endpoint")
+# Qdrant configuration
+USE_CLOUD_QDRANT = os.environ.get("USE_CLOUD_QDRANT", "false").lower() == "true"
 
-# Elasticsearch configuration
-ELASTIC_MODE = os.environ.get("ELASTIC_MODE", "local")
-ELASTIC_HOST = os.environ.get("ELASTIC_HOST", "http://localhost:9200")
-ELASTIC_CLOUD_ID = os.environ.get("ELASTIC_CLOUD_ID", "")
-ELASTIC_API_KEY = os.environ.get("ELASTIC_API_KEY", "")
-ELASTIC_USERNAME = os.environ.get("ELASTIC_USERNAME", "")
-ELASTIC_PASSWORD = os.environ.get("ELASTIC_PASSWORD", "")
+# Local Qdrant (default)
+QDRANT_HOST = os.environ.get("QDRANT_HOST", "http://localhost:6333")
+QDRANT_GRPC_PORT = int(os.environ.get("QDRANT_GRPC_PORT", "6334"))
+QDRANT_API_KEY = os.environ.get("QDRANT_API_KEY", None)
+
+# Cloud Qdrant (when USE_CLOUD_QDRANT=true)
+QDRANT_CLOUD_URL = os.environ.get("QDRANT_CLOUD_URL")
+QDRANT_CLOUD_API_KEY = os.environ.get("QDRANT_CLOUD_API_KEY")
+
+# Collection names (replacing index names)
+LEGISLATION_COLLECTION = "legislation"
+LEGISLATION_SECTION_COLLECTION = "legislation_section"
+CASELAW_COLLECTION = "caselaw"
+CASELAW_SECTION_COLLECTION = "caselaw_section"
+EXPLANATORY_NOTE_COLLECTION = "explanatory_note"
+AMENDMENT_COLLECTION = "amendment"
 
 LEGISLATION_TYPES = [
     "ukpga",
@@ -92,5 +93,10 @@ LEGISLATION_NAME_MAPPING = {
 CURRENT_YEAR = datetime.now().year
 YEARS = list(range(1267, CURRENT_YEAR + 1))  # Includes current year
 
+# Azure OpenAI embedding configuration
 EMBEDDING_DIMENSIONS = 1024
-EMBEDDING_MODEL = "text-embedding-3-large"
+EMBEDDING_DEPLOYMENT = os.environ.get("AZURE_OPENAI_EMBEDDING_DEPLOYMENT", "text-embedding-3-large")
+
+# PostHog Analytics configuration (cookieless, EU region, GDPR compliant)
+POSTHOG_KEY = os.environ.get("POSTHOG_KEY", "")
+POSTHOG_HOST = os.environ.get("POSTHOG_HOST", "https://eu.i.posthog.com")

@@ -5,11 +5,11 @@ __pycache__/
 
 files/*
 files
-docs/*
 json/*
 data/legislation
 data/all
 data/elasticsearch/data/*
+data/qdrant/
 data/revised-all-versions-xml.zip
 .DS_Store
 *.db
@@ -27,7 +27,7 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+/lib/
 lib64/
 parts/
 sdist/
@@ -193,6 +193,7 @@ cython_debug/
 
 # javascript stuff
 .next/
+.playwright-mcp/
 
 # Analysis output files
 analysis/*.json
@@ -203,6 +204,38 @@ analysis/analysis/
 # Cache and checkpoint directories
 data/cache/
 data/checkpoints/
+data/migration_checkpoints/
+
+# Export directories
+data/exports/
 
 CLAUDE.md
 .claude/settings.local.json
+logs/
+
+# PDF digitization processing files
+data/pdf_only_legislation*.csv
+data/pdf_only_legislation*.txt
+data/pdf_from_logs*.csv
+data/extract_pdfs.sh
+data/*_results*.jsonl
+test_*.py
+verify_*.py
+
+# Runtime data
+data/tracking/
+data/*_gap_analysis.json
+data/pdf_*.csv
+data/results_*.jsonl*
+data/*_sample_analysis.json
+CLAUDE.md
+
+# Temporary exports
+lex_exports_*/
+
+# Backup files
+*.bak
+
+# Migration scripts (add to repo if needed)
+scripts/migrate_to_cloud_qdrant.py
+data/pdf_legislation*.jsonl

@@ -1,6 +1,7 @@
 FROM python:3.12-slim
 
-# Install uv
+# Install curl for healthcheck and uv
+RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
 RUN pip install uv
 
 WORKDIR /app
@@ -14,7 +15,7 @@ COPY src/ ./src/
 # Install dependencies
 RUN uv sync
 
-EXPOSE 8080
+EXPOSE 8000
 
 # Use uv to run the application
-CMD ["uv", "run", "uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8080"]
+CMD ["uv", "run", "uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]

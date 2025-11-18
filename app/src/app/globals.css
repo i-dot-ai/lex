@@ -1,0 +1,598 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@plugin "@tailwindcss/typography";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+:root {
+  --radius: 0.625rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  /* Legislation-specific styling */
+  .legislation-markdown {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.6;
+  }
+
+  .legislation-markdown p {
+    margin-bottom: 1rem;
+  }
+
+  .legislation-markdown ol,
+  .legislation-markdown ul {
+    margin-left: 2rem;
+    margin-bottom: 1rem;
+  }
+
+  .legislation-markdown li {
+    margin-bottom: 0.5rem;
+  }
+
+  .legislation-markdown code {
+    font-family: "Courier New", Courier, monospace;
+    white-space: pre-wrap;
+  }
+
+  /* Nested list styling for legal documents */
+  .legislation-markdown ol ol {
+    list-style-type: lower-alpha;
+    margin-left: 2rem;
+  }
+
+  .legislation-markdown ol ol ol {
+    list-style-type: lower-roman;
+    margin-left: 2rem;
+  }
+
+  /* Raw HTML from legislation.gov.uk styling - based on actual legislation.gov.uk CSS */
+  .legislation-content {
+    font-family: arial, helvetica, verdana, sans-serif;
+    font-size: 0.875rem; /* 14px - matches app text size */
+    line-height: 1.5;
+    color: #0b0c0c;
+  }
+
+  /* Hide metadata section */
+  .legislation-content .meta {
+    display: none;
+  }
+
+  /* Crown/Crest - Royal coat of arms */
+  .legislation-content .crest {
+    text-align: center !important;
+    margin: 1em 0 !important;
+  }
+
+  .legislation-content .crest img {
+    display: inline-block !important;
+    margin: 0 auto !important;
+  }
+
+  /* Header/Banner elements */
+  .legislation-content .block.banner {
+    text-align: center;
+    font-weight: bold;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5em !important;
+    margin-top: 1em;
+    margin-bottom: 0.5em;
+  }
+
+  .legislation-content .block.number {
+    text-align: center;
+    margin-bottom: 1em;
+  }
+
+  .legislation-content .block.number .docNumber {
+    font-weight: bold;
+  }
+
+  .legislation-content .container.subjects {
+    text-align: center;
+    margin-bottom: 1em;
+  }
+
+  .legislation-content .block.subject {
+    font-style: italic;
+  }
+
+  .legislation-content h1.block.title {
+    text-align: center;
+    font-size: 1.25rem;
+    font-weight: bold;
+    margin: 1.5em 0;
+    line-height: 1.4;
+  }
+
+  /* Dates section - Official legislation.gov.uk styling */
+
+  /* Legacy format (LegDate classes) */
+  .legislation-content div.LegDate {
+    clear: both !important;
+    text-align: center !important;
+    width: 70% !important;
+    margin: 0 auto !important;
+    padding-top: 0 !important;
+  }
+
+  .legislation-content .LegDateText {
+    float: left !important;
+    margin-top: 0 !important;
+    width: 58% !important;
+    text-align: left !important;
+    font-style: italic !important;
+    margin-bottom: 0 !important;
+    padding-bottom: 0.5em !important;
+  }
+
+  .legislation-content .LegDateText em {
+    font-style: normal;
+  }
+
+  .legislation-content .LegDateDate {
+    float: right !important;
+    margin-top: 0 !important;
+    width: 41% !important;
+    text-align: right !important;
+    font-style: italic !important;
+    margin-bottom: 0 !important;
+  }
+
+  /* Modern HTML5 format (block.madeDate etc.) */
+  .legislation-content .container.dates {
+    clear: both !important;
+    text-align: center !important;
+    width: 70% !important;
+    margin: 0 auto !important;
+    margin-bottom: 2em !important;
+  }
+
+  .legislation-content .block.madeDate,
+  .legislation-content .block.laidDate,
+  .legislation-content .block.commenceDate {
+    clear: both !important;
+    margin-bottom: 0.5em !important;
+  }
+
+  .legislation-content .block.madeDate .span,
+  .legislation-content .block.laidDate .span,
+  .legislation-content .block.commenceDate .span {
+    float: left !important;
+    width: 58% !important;
+    text-align: left !important;
+    font-style: italic !important;
+    font-weight: normal !important;
+  }
+
+  .legislation-content .block.madeDate time,
+  .legislation-content .block.laidDate time,
+  .legislation-content .block.commenceDate time {
+    float: right !important;
+    width: 41% !important;
+    text-align: right !important;
+    font-style: italic !important;
+    font-weight: normal !important;
+  }
+
+  /* Basic elements */
+  .legislation-content section,
+  .legislation-content .hcontainer {
+    position: relative;
+    margin-top: 1em;
+  }
+
+  .legislation-content h1,
+  .legislation-content h2,
+  .legislation-content h3,
+  .legislation-content h4,
+  .legislation-content h5,
+  .legislation-content h6 {
+    position: relative;
+    margin: 0;
+    font-weight: normal;
+    font-size: inherit;
+  }
+
+  .legislation-content p,
+  .legislation-content .p {
+    margin-top: 1em;
+    margin-bottom: 0;
+  }
+
+  /* Part headings */
+  .legislation-content .part {
+    margin-top: 2em;
+  }
+
+  .legislation-content .part > h2 > * {
+    display: block;
+    margin-top: 0.5em;
+    text-align: center;
+  }
+
+  .legislation-content .part > h2 > .num {
+    font-variant: small-caps;
+    font-weight: bold;
+  }
+
+  .legislation-content .part > h2 > .heading {
+    font-variant: small-caps;
+  }
+
+  /* Crossheading */
+  .legislation-content .crossheading:not([data-ukl-name=P1group]) {
+    margin-top: 2em;
+  }
+
+  .legislation-content .crossheading:not([data-ukl-name=P1group]) > h2 {
+    font-style: italic;
+  }
+
+  .legislation-content .crossheading:not([data-ukl-name=P1group]) > h2 > * {
+    display: block;
+    margin-top: 0.5em;
+    text-align: center;
+  }
+
+  /* Section */
+  .legislation-content .section {
+    margin-top: 1.5em;
+    padding-left: 3.75em;
+  }
+
+  .legislation-content .section > h2 {
+    margin-left: -3.75em;
+    font-weight: bold;
+  }
+
+  .legislation-content .section > h2 > .num {
+    display: inline-block;
+    min-width: calc(3.75em - 1ch);
+    padding-right: 1ch;
+  }
+
+  /* Subsections */
+  .legislation-content .subsection {
+    margin-left: 2.5em;
+    margin-top: 1em;
+  }
+
+  .legislation-content .subsection > h2 {
+    position: absolute;
+    margin-left: -5em;
+    width: 4em;
+    text-align: right;
+  }
+
+  .legislation-content .subsection .intro,
+  .legislation-content .subsection .content {
+    display: block;
+  }
+
+  /* Level/para items (a), (b), (c) */
+  .legislation-content .level,
+  .legislation-content .para1,
+  .legislation-content .para2,
+  .legislation-content .para3,
+  .legislation-content .para4 {
+    margin-top: 1em;
+    margin-left: 2.5em;
+  }
+
+  .legislation-content .level > h3:not(.with-heading),
+  .legislation-content .level > h4:not(.with-heading),
+  .legislation-content .level > h5:not(.with-heading),
+  .legislation-content .level > h6:not(.with-heading),
+  .legislation-content .para1 > h3:not(.with-heading),
+  .legislation-content .para1 > h4:not(.with-heading),
+  .legislation-content .para1 > h5:not(.with-heading),
+  .legislation-content .para1 > h6:not(.with-heading),
+  .legislation-content .para2 > h3:not(.with-heading),
+  .legislation-content .para2 > h4:not(.with-heading),
+  .legislation-content .para2 > h5:not(.with-heading),
+  .legislation-content .para2 > h6:not(.with-heading),
+  .legislation-content .para3 > h3:not(.with-heading),
+  .legislation-content .para3 > h4:not(.with-heading),
+  .legislation-content .para3 > h5:not(.with-heading),
+  .legislation-content .para3 > h6:not(.with-heading),
+  .legislation-content .para4 > h3:not(.with-heading),
+  .legislation-content .para4 > h4:not(.with-heading),
+  .legislation-content .para4 > h5:not(.with-heading),
+  .legislation-content .para4 > h6:not(.with-heading) {
+    position: absolute;
+    margin-left: -5em;
+    width: 4em;
+    text-align: right;
+  }
+
+  /* Intro content should be inline for subsections in some cases */
+  .legislation-content .subsection > .intro > p:first-child,
+  .legislation-content .subsection > .content > p:first-child {
+    display: block;
+    margin-top: 0;
+  }
+
+  /* Quotes (substituted text) */
+  .legislation-content q::before,
+  .legislation-content q::after {
+    content: "";
+  }
+
+  /* Modifications */
+  .legislation-content .mod {
+    display: inline;
+  }
+
+  /* Citations and links */
+  .legislation-content cite {
+    font-style: normal;
+  }
+
+  .legislation-content cite.operative {
+    font-weight: bold;
+  }
+
+  .legislation-content a {
+    color: #0A64D7;
+    text-decoration: none;
+  }
+
+  .legislation-content a:hover {
+    text-decoration: underline;
+  }
+
+  /* Annotations footer */
+  .legislation-content .annotations {
+    margin: 1em;
+    border: thin solid grey;
+    padding: 1em;
+    font-size: smaller;
+  }
+
+  .legislation-content .annotations > div + div {
+    margin-top: 1em;
+  }
+
+  .legislation-content .annotations > div:first-child {
+    font-weight: bold;
+  }
+
+  .legislation-content .annotations > div > div {
+    margin-top: 1em;
+  }
+
+  .legislation-content .annotations > div > div:first-child {
+    border-top: thin dotted gray;
+    padding-top: 1em;
+    font-weight: bold;
+  }
+
+  .legislation-content .annotations > div > div > p:first-child {
+    margin-left: 3em;
+    text-indent: -3em;
+  }
+
+  .legislation-content .annotations > div > div > p > span.marker {
+    display: inline-block;
+    text-indent: initial;
+    min-width: 2em;
+    padding-right: 1em;
+  }
+
+  /* blockquote */
+  .legislation-content blockquote {
+    margin: 1em 0 0 2.5em;
+  }
+
+  /* Semantic relevance highlighting */
+  @keyframes section-highlight-pulse {
+    0%, 100% {
+      border-left-color: rgb(251 146 60 / 0.5);
+      background-color: rgb(254 240 138 / 0.1);
+    }
+    50% {
+      border-left-color: rgb(251 146 60);
+      background-color: rgb(254 240 138 / 0.2);
+    }
+  }
+
+  .legislation-content .section-highlighted-primary,
+  .legislation-content .hcontainer.regulation.section-highlighted-primary {
+    animation: section-highlight-pulse 1.5s ease-in-out 2;
+    border-left: 3px solid rgb(251 146 60);
+    background: rgb(254 240 138 / 0.15);
+    padding-left: calc(3.75em - 3px) !important; /* Adjust for border */
+    scroll-margin-top: 20px;
+  }
+
+  .legislation-content .section-highlighted-secondary,
+  .legislation-content .hcontainer.regulation.section-highlighted-secondary {
+    border-left: 3px solid rgb(251 146 60 / 0.3);
+    background: rgb(254 240 138 / 0.08);
+    padding-left: calc(3.75em - 3px) !important; /* Adjust for border */
+    scroll-margin-top: 20px;
+  }
+
+  .legislation-content .section-highlighted-tertiary,
+  .legislation-content .hcontainer.regulation.section-highlighted-tertiary {
+    border-left: 2px solid rgb(251 146 60 / 0.15);
+    background: rgb(254 240 138 / 0.04);
+    padding-left: calc(3.75em - 2px) !important; /* Adjust for border */
+    scroll-margin-top: 20px;
+  }
+
+  /* Dark mode variants */
+  .dark .legislation-content .section-highlighted-primary,
+  .dark .legislation-content .hcontainer.regulation.section-highlighted-primary {
+    background: rgb(133 77 14 / 0.2);
+    border-left-color: rgb(234 88 12);
+  }
+
+  .dark .legislation-content .section-highlighted-secondary,
+  .dark .legislation-content .hcontainer.regulation.section-highlighted-secondary {
+    background: rgb(133 77 14 / 0.1);
+    border-left-color: rgb(234 88 12 / 0.4);
+  }
+
+  .dark .legislation-content .section-highlighted-tertiary,
+  .dark .legislation-content .hcontainer.regulation.section-highlighted-tertiary {
+    background: rgb(133 77 14 / 0.05);
+    border-left-color: rgb(234 88 12 / 0.2);
+  }
+
+  /* Loading animation keyframes */
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  @keyframes breathe {
+    0%, 100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.02);
+    }
+  }
+
+  @keyframes fadeInUp {
+    0% {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes floatIn {
+    0% {
+      opacity: 0;
+      transform: translateY(10px) scale(0.95);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+}

@@ -1,10 +1,10 @@
 import logging
 import os
 import time
-from typing import Any, Dict, Optional, Type, Union
+from typing import Any, Dict, Optional, Union
 
 import requests
-from diskcache import Cache
+from diskcache import FanoutCache
 from tenacity import (
     before_sleep_log,
     retry,
@@ -24,16 +24,16 @@ class HttpClient:
 
     def __init__(
         self,
-        max_retries: int = 5,
+        max_retries: int = 30,
         initial_delay: float = 1.0,
-        max_delay: float = 60.0,
-        timeout: Optional[Union[float, tuple]] = 10,
+        max_delay: float = 600.0,
+        timeout: Optional[Union[float, tuple[float, float]]] = 30,
         session: Optional[requests.Session] = None,
-        retry_exceptions: Optional[tuple[Type[Exception], ...]] = None,
+        retry_exceptions: Optional[tuple[type[Exception], ...]] = None,
         enable_cache: bool = True,
         cache_dir: Optional[str] = None,
         cache_size_limit: int = 1_000_000_000,  # 1GB default
-        cache_ttl: int = 3600,  # 1 hour in seconds
+        cache_ttl: int = 28800,  # 8 hours in seconds
     ):
         """
         Initialize the HTTP client.
@@ -57,9 +57,10 @@ class HttpClient:
         self.max_delay = max_delay
         self.enable_cache = enable_cache
         self.cache_ttl = cache_ttl
+        self.cache_size_limit = cache_size_limit
 
         # Default exceptions to retry on
-        self.retry_exceptions = retry_exceptions or (
+        self.retry_exceptions: tuple[type[Exception], ...] = retry_exceptions or (
             requests.exceptions.RequestException,
             requests.exceptions.HTTPError,
             requests.exceptions.ConnectionError,
@@ -92,11 +93,15 @@ class HttpClient:
             # Ensure cache directory exists
             os.makedirs(cache_dir, exist_ok=True)
 
-            self._cache = Cache(
+            # Use FanoutCache for better concurrency (shards across multiple SQLite files)
+            # timeout=60 prevents immediate failures on lock contention
+            self._cache = FanoutCache(
                 directory=cache_dir,
                 size_limit=cache_size_limit,
+                timeout=60,  # Wait up to 60s for locks instead of failing immediately
+                shards=8,  # Distribute across 8 SQLite files for better concurrency
             )
-            logger.debug(f"Cache initialized at {cache_dir}")
+            logger.debug(f"FanoutCache initialized at {cache_dir} with 8 shards")
 
         # Initialize rate limiter and circuit breaker
         self.rate_limiter = AdaptiveRateLimiter()
@@ -105,36 +110,36 @@ class HttpClient:
         )
 
     def _make_request(self, method: str, url: str, **kwargs: Any) -> requests.Response:
-        """
-        Internal method that makes the actual request.
-        This is decorated with retry logic.
-        """
+        """Make request with retry logic."""
         response = self.session.request(method=method, url=url, timeout=self.timeout, **kwargs)
 
-        # Check for rate limiting
-        if response.status_code == 429:
-            retry_after = response.headers.get("Retry-After")
-            if retry_after:
+        # Check for rate limiting (429 standard, 436 used by legislation.gov.uk)
+        if response.status_code in [429, 436]:
+            retry_after_header = response.headers.get("Retry-After")
+            retry_after: Optional[int] = None
+            if retry_after_header:
                 try:
-                    retry_after = int(retry_after)
+                    retry_after = int(retry_after_header)
                 except ValueError:
                     retry_after = None
 
             self.rate_limiter.record_rate_limit(retry_after)
 
             logger.warning(
-                f"Rate limited: {url}",
+                f"Rate limited (HTTP {response.status_code}): {url}",
                 extra={
                     "event_type": "rate_limit",
                     "url": url,
                     "retry_after": retry_after,
                     "current_delay": self.rate_limiter.get_current_delay(),
-                    "status_code": 429,
+                    "status_code": response.status_code,
                 },
             )
 
             # Convert to RateLimitException so circuit breaker can track it
-            raise RateLimitException(f"Rate limited on {url}", retry_after)
+            raise RateLimitException(
+                f"Rate limited (HTTP {response.status_code}) on {url}", retry_after
+            )
 
         response.raise_for_status()
         return response
@@ -151,7 +156,7 @@ class HttpClient:
 
         try:
             # Use circuit breaker to protect against cascading failures
-            response = self.circuit_breaker.call(
+            response: requests.Response = self.circuit_breaker.call(
                 self._retry_decorator(self._make_request), method, url, **kwargs
             )
             self.rate_limiter.record_success()
@@ -200,12 +205,17 @@ class HttpClient:
 
         # Check cache
         try:
-            cached_response = self._cache.get(cache_key)
+            cached_response: Optional[requests.Response] = self._cache.get(cache_key)
             if cached_response is not None:
                 logger.debug(f"Cache hit for {url}")
                 return cached_response
         except Exception as e:
-            logger.warning(f"Cache read error for {url}: {e}. Continuing without cache.")
+            # Auto-recreate cache if corrupted
+            if "database disk image is malformed" in str(e):
+                logger.warning(f"Cache corrupted, recreating: {e}")
+                self._recreate_cache()
+            else:
+                logger.warning(f"Cache read error for {url}: {e}. Continuing without cache.")
             # Continue without cache on read errors
 
         # Cache miss - make request
@@ -216,7 +226,14 @@ class HttpClient:
             self._cache.set(cache_key, response, expire=self.cache_ttl)
             logger.debug(f"Cached response for {url}")
         except Exception as e:
-            logger.warning(f"Cache write error for {url}: {e}. Response returned without caching.")
+            # Auto-recreate cache if corrupted
+            if "database disk image is malformed" in str(e):
+                logger.warning(f"Cache corrupted, recreating: {e}")
+                self._recreate_cache()
+            else:
+                logger.warning(
+                    f"Cache write error for {url}: {e}. Response returned without caching."
+                )
 
         return response
 
@@ -240,7 +257,7 @@ class HttpClient:
             try:
                 # Close existing cache
                 self._cache.close()
-            except:
+            except Exception:
                 pass
 
             # Get cache directory
@@ -257,11 +274,13 @@ class HttpClient:
 
             # Recreate cache
             os.makedirs(cache_dir, exist_ok=True)
-            self._cache = Cache(
+            self._cache = FanoutCache(
                 directory=cache_dir,
                 size_limit=self.cache_size_limit,
+                timeout=60,
+                shards=8,
             )
-            logger.info("Cache recreated successfully")
+            logger.info("FanoutCache recreated successfully")
 
     def get_cache_info(self) -> Dict[str, Any]:
         """

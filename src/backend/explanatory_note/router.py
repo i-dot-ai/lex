@@ -1,10 +1,8 @@
 import traceback
 from typing import List
 
-from elasticsearch import AsyncElasticsearch
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, HTTPException
 
-from backend.core.dependencies import get_es_client
 from backend.explanatory_note.models import (
     ExplanatoryNoteLookup,
     ExplanatoryNoteSearch,
@@ -28,13 +26,12 @@ router = APIRouter(
     "/section/search",
     response_model=List[ExplanatoryNote],
     operation_id="search_explanatory_note",
+    summary="Search explanatory notes by content",
+    description="Find explanatory notes by text content across all legislation types.",
 )
-async def search_explanatory_note_endpoint(
-    search: ExplanatoryNoteSearch,
-    es_client: AsyncElasticsearch = Depends(get_es_client),
-):
+async def search_explanatory_note_endpoint(search: ExplanatoryNoteSearch):
     try:
-        result = await search_explanatory_note(search, es_client)
+        result = await search_explanatory_note(search)
         return result
     except Exception as e:
         error_detail = {
@@ -49,17 +46,15 @@ async def search_explanatory_note_endpoint(
     "/legislation/lookup",
     response_model=List[ExplanatoryNote],
     operation_id="get_explanatory_note_by_legislation",
+    summary="Get explanatory notes for specific legislation",
+    description="Retrieve all explanatory notes associated with a particular Act or SI.",
     responses={404: {"description": "Explanatory notes not found for the specified legislation"}},
 )
-async def get_explanatory_note_by_legislation_endpoint(
-    lookup: ExplanatoryNoteLookup,
-    es_client: AsyncElasticsearch = Depends(get_es_client),
-):
+async def get_explanatory_note_by_legislation_endpoint(lookup: ExplanatoryNoteLookup):
     try:
         notes = await get_explanatory_note_by_legislation_id(
             legislation_id=lookup.legislation_id,
             limit=lookup.limit,
-            es_client=es_client,
         )
         if not notes:
             raise HTTPException(
@@ -82,17 +77,15 @@ async def get_explanatory_note_by_legislation_endpoint(
     "/section/lookup",
     response_model=ExplanatoryNote,
     operation_id="get_explanatory_note_by_section",
+    summary="Get explanatory note for specific section",
+    description="Retrieve the explanatory note that explains a particular section of legislation.",
     responses={404: {"description": "Explanatory note section not found"}},
 )
-async def get_explanatory_note_by_section_endpoint(
-    lookup: ExplanatoryNoteSectionLookup,
-    es_client: AsyncElasticsearch = Depends(get_es_client),
-):
+async def get_explanatory_note_by_section_endpoint(lookup: ExplanatoryNoteSectionLookup):
     try:
         note = await get_explanatory_note_by_section(
             legislation_id=lookup.legislation_id,
             section_number=lookup.section_number,
-            es_client=es_client,
         )
         if note is None:
             raise HTTPException(

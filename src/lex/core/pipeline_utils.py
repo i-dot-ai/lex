@@ -1,10 +1,10 @@
-"""Pipeline utilities for cross-cutting concerns like monitoring, logging, and checkpointing."""
+"""Pipeline utilities for cross-cutting concerns like monitoring and logging."""
 
 import logging
 import re
 import time
 from functools import wraps
-from typing import Any, Callable, Dict, Iterator, Type, TypeVar
+from typing import Any, Callable, Dict, Iterator, Optional, Protocol, Type, TypeVar
 
 from lex.core.document import generate_documents
 from lex.core.models import LexModel
@@ -12,12 +12,26 @@ from lex.core.models import LexModel
 T = TypeVar("T", bound=LexModel)
 
 
-class PipelineMonitor:
-    """Decorator for pipeline monitoring and structured logging.
+class ContentLoader(Protocol):
+    """Protocol for content loaders/scrapers."""
 
-    This decorator adds consistent logging and performance monitoring
-    to pipeline functions without cluttering the business logic.
-    """
+    def load_content(
+        self, years: list[int], types: list[Any], limit: Optional[int] = None
+    ) -> Iterator[tuple[str, Any]]:
+        """Load content yielding (url, soup) tuples."""
+        ...
+
+
+class ContentParser(Protocol):
+    """Protocol for content parsers."""
+
+    def parse_content(self, soup: Any) -> Any:
+        """Parse content from soup object."""
+        ...
+
+
+class PipelineMonitor:
+    """Decorator for pipeline monitoring and structured logging."""
 
     def __init__(self, doc_type: str, track_progress: bool = True, progress_interval: int = 10):
         """Initialize the pipeline monitor.
@@ -35,13 +49,12 @@ class PipelineMonitor:
         """Wrap the pipeline function with monitoring capabilities."""
 
         @wraps(func)
-        def wrapper(*args, **kwargs) -> Iterator[T]:
+        def wrapper(*args: Any, **kwargs: Any) -> Iterator[T]:
             logger = logging.getLogger(func.__module__)
             start_time = time.time()
             doc_count = 0
             last_progress_time = start_time
 
-            # Extract meaningful parameters for logging
             params_info = self._extract_params_info(args, kwargs)
 
             logger.info(
@@ -53,11 +66,10 @@ class PipelineMonitor:
                 for doc in func(*args, **kwargs):
                     doc_count += 1
 
-                    # Log successful processing with document metadata
                     doc_metadata = self._extract_doc_metadata(doc)
 
                     logger.info(
-                        f"Processed {self.doc_type} document: {doc.id}",
+                        f"Processed {self.doc_type} document: {getattr(doc, 'id', 'unknown')}",
                         extra={
                             "doc_type": self.doc_type,
                             "processing_status": "success",
@@ -66,7 +78,6 @@ class PipelineMonitor:
                         },
                     )
 
-                    # Progress tracking
                     if self.track_progress:
                         current_time = time.time()
                         if current_time - last_progress_time >= self.progress_interval:
@@ -88,7 +99,6 @@ class PipelineMonitor:
                     yield doc
 
             except Exception as e:
-                # Pipeline-level error - log and re-raise
                 logger.error(
                     f"Pipeline failure in {self.doc_type}: {str(e)}",
                     exc_info=True,
@@ -101,7 +111,6 @@ class PipelineMonitor:
                 raise
 
             finally:
-                # Final summary
                 elapsed = time.time() - start_time
                 rate = doc_count / elapsed if elapsed > 0 else 0
 
@@ -119,11 +128,10 @@ class PipelineMonitor:
 
         return wrapper
 
-    def _extract_params_info(self, args: tuple, kwargs: dict) -> Dict[str, Any]:
+    def _extract_params_info(self, args: tuple[Any, ...], kwargs: dict[str, Any]) -> Dict[str, Any]:
         """Extract relevant parameters for logging."""
         info = {}
 
-        # Common parameters across pipelines
         if "years" in kwargs:
             info["years"] = kwargs["years"]
         elif len(args) > 1 and isinstance(args[1], list):
@@ -143,11 +151,9 @@ class PipelineMonitor:
         """Extract metadata from a document for logging."""
         metadata = {}
 
-        # Common fields across document types
         if hasattr(doc, "id"):
             metadata["doc_id"] = doc.id
 
-            # Try to extract year and type from ID
             year_match = re.search(r"/(\d{4})/", str(doc.id))
             if year_match:
                 metadata["doc_year"] = int(year_match.group(1))
@@ -157,118 +163,115 @@ class PipelineMonitor:
                 metadata["doc_subtype"] = type_match.group(1)
 
         if hasattr(doc, "title"):
-            metadata["doc_title"] = doc.title[:100]  # Truncate long titles
+            metadata["doc_title"] = doc.title[:100]
 
         return metadata
 
 
-from lex.core.checkpoint import CheckpointCombination
-from lex.core.loader import LexLoader
-from lex.core.parser import LexParser
-
-
-def process_checkpoints(
-    checkpoints: list[CheckpointCombination],
-    loader_or_scraper: LexLoader,
-    parser: LexParser,
+def process_documents(
+    years: list[int],
+    types: list[Any],
+    loader_or_scraper: ContentLoader,
+    parser: ContentParser,
     document_type: Type[LexModel],
-    limit: int,
+    limit: Optional[int],
     wrap_result: bool = False,
+    doc_type_name: Optional[str] = None,
+    run_id: Optional[str] = None,
+    clear_tracking: bool = False,
 ) -> Iterator[LexModel]:
-    """Abstract common checkpoint processing logic.
+    """Process documents with URL tracking, relying on Qdrant UUID5 idempotency.
 
     Args:
-        checkpoints: List of checkpoints to process
+        years: List of years to process
+        types: List of document types to process
         loader_or_scraper: Content loader or scraper instance
         parser: Parser instance with parse_content method
         document_type: The document model class to generate
-        limit: Processing limit
-        wrap_result: Whether to wrap the parser result in a list before passing to generate_documents
+        limit: Processing limit (None = no limit)
+        wrap_result: Whether to wrap the parser result in a list
+        doc_type_name: Document type name for tracking (e.g., 'legislation', 'caselaw')
+        run_id: Run ID for this pipeline execution
+        clear_tracking: Whether to clear existing tracking files
 
     Yields:
         Processed documents of the specified type
     """
+    import uuid
+
+    from lex.core.document import uri_to_uuid
+    from lex.core.exceptions import ProcessedException
+    from lex.core.url_tracker import URLTracker
+    from lex.core.url_tracker import clear_tracking as clear_tracking_fn
+
     logger = logging.getLogger(__name__)
 
+    if clear_tracking and doc_type_name:
+        clear_tracking_fn(doc_type_name)
+
+    run_id = run_id or str(uuid.uuid4())
     remaining_limit = limit if limit is not None else float("inf")
 
-    for checkpoint in checkpoints:
-        with checkpoint as ctx:
-            # Handle different load_content signatures based on whether doc_type exists
-            if hasattr(checkpoint, "doc_type") and checkpoint.doc_type is not None:
-                # For pipelines with types (legislation, caselaw, explanatory_note)
-                # Pass None for limit if we want all documents
-                passed_limit = None if limit is None else int(remaining_limit)
-                content_iterator = loader_or_scraper.load_content(
-                    years=[checkpoint.year], types=[checkpoint.doc_type], limit=passed_limit
+    for year in years:
+        if remaining_limit <= 0:
+            logger.info(f"Document limit reached at year {year}")
+            break
+
+        for doc_type in types:
+            if remaining_limit <= 0:
+                logger.info(f"Document limit reached at type {doc_type.value}, year {year}")
+                break
+
+            type_value = doc_type.value if hasattr(doc_type, "value") else str(doc_type)
+            tracker = URLTracker(doc_type_name, year, type_value, run_id) if doc_type_name else None
+
+            if tracker:
+                stats = tracker.get_stats()
+                logger.info(
+                    f"Processing {type_value} for year {year}: {stats['success']} done, {stats['failures']} failed"
                 )
             else:
-                # For pipelines without types (amendment)
-                passed_limit = None if limit is None else int(remaining_limit)
-                content_iterator = loader_or_scraper.load_content(
-                    [checkpoint.year], limit=passed_limit
-                )
+                logger.info(f"Processing {type_value} for year {year}")
+
+            passed_limit = None if limit is None else int(remaining_limit)
+            content_iterator = loader_or_scraper.load_content(
+                years=[year], types=[doc_type], limit=passed_limit
+            )
 
             for url, soup in content_iterator:
                 if remaining_limit <= 0:
                     logger.info("Document limit reached during processing")
-                    ctx.mark_limit_hit()
                     return
 
-                result = ctx.process_item(url, lambda: parser.parse_content(soup))
-                if result:
-                    remaining_limit -= 1
-                    # Handle the difference between single results and lists
-                    data_to_process = [result] if wrap_result else result
-                    yield from generate_documents(data_to_process, document_type)
+                if tracker and tracker.is_processed(url):
+                    logger.debug(f"Skipping already processed: {url}")
+                    continue
 
+                try:
+                    result = parser.parse_content(soup)
+                    if result:
+                        data_to_process = [result] if wrap_result else result
 
-def process_checkpoints_with_combined_scraper_parser(
-    checkpoints: list[CheckpointCombination],
-    scraper_parser: Any,
-    document_type: Type[LexModel],
-    limit: int,
-    wrap_result: bool = False,
-) -> Iterator[LexModel]:
-    """Abstract checkpoint processing for combined scraper-parser classes.
+                        for doc in generate_documents(data_to_process, document_type):
+                            if tracker:
+                                doc_uuid = uri_to_uuid(getattr(doc, "id", str(doc)))
+                                doc_date = None
+                                if hasattr(doc, "date") and doc.date:
+                                    doc_date = str(doc.date)
+                                tracker.record_success(url, doc_uuid, doc_date)
 
-    This function handles pipelines where scraping and parsing are combined
-    into a single class (like ExplanatoryNoteScraperAndParser).
+                            remaining_limit -= 1
+                            yield doc
 
-    Args:
-        checkpoints: List of checkpoints to process
-        scraper_parser: Combined scraper-parser instance with scrape_and_parse_content method
-        document_type: The document model class to generate
-        limit: Processing limit (modified in place)
-        wrap_result: Whether to wrap the result in a list before passing to generate_documents
+                except ProcessedException as e:
+                    if tracker:
+                        tracker.record_failure(url, f"ProcessedException: {str(e)}")
+                    logger.info(f"Skipping {url}: {str(e)}")
+                    continue
 
-    Yields:
-        Processed documents of the specified type
-    """
-    logger = logging.getLogger(__name__)
-
-    for checkpoint in checkpoints:
-        with checkpoint as ctx:
-            # Handle different scrape_and_parse_content signatures based on whether doc_type exists
-            if hasattr(checkpoint, "doc_type") and checkpoint.doc_type is not None:
-                # For pipelines with types (explanatory_note)
-                content_iterator = scraper_parser.scrape_and_parse_content(
-                    [checkpoint.year], [checkpoint.doc_type]
-                )
-            else:
-                # For pipelines without types (if any future ones exist)
-                content_iterator = scraper_parser.scrape_and_parse_content([checkpoint.year])
-
-            for url, parsed_content in content_iterator:
-                if limit <= 0:
-                    logger.info("Document limit reached during processing")
-                    ctx.mark_limit_hit()
-                    break
-
-                # Content is already parsed, so we just pass it through
-                result = ctx.process_item(url, lambda: parsed_content)
-                if result:
-                    limit -= 1
-                    # Handle the difference between single results and lists
-                    data_to_process = [result] if wrap_result else result
-                    yield from generate_documents(data_to_process, document_type)
+                except Exception as e:
+                    error_msg = f"{type(e).__name__}: {str(e)}"
+                    if tracker:
+                        tracker.record_failure(url, error_msg)
+                    logger.warning(f"Failed to parse {url}: {e}", exc_info=False)
+                    continue

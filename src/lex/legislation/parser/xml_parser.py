@@ -6,7 +6,7 @@ from typing import Dict, List, Optional, Tuple
 from bs4 import BeautifulSoup, Tag
 from pydantic import ValidationError
 
-from lex.core.exceptions import LexParsingError, PDFParsingException
+from lex.core.exceptions import LexParsingError, ProcessedException
 from lex.legislation.models import (
     Commentary,
     CommentaryCitation,
@@ -470,7 +470,7 @@ class UKXMLParser(XMLParser):
         # Extract and parse sections from the body with citable Ids
         body = xml_soup.find("Body")
         if not body:
-            raise PDFParsingException("This legislation only exists as a PDF, not as XML")
+            raise ProcessedException("This legislation only exists as a PDF, not as XML")
         for section_elem in body.find_all("P1", attrs={"IdURI": True}):
             section = self._parse_section(section_elem, extent, legislation_id)
             sections[section.id] = section

@@ -3,11 +3,10 @@ from typing import Iterator
 
 from bs4 import BeautifulSoup
 
-from lex.core.loader import LexLoader
 from lex.legislation.models import LegislationType
 
 
-class LegislationLoader(LexLoader):
+class LegislationLoader:
     """Loader for legislation content."""
 
     def __init__(self, input_path: str = "data/raw/legislation"):

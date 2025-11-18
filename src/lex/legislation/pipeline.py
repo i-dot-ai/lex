@@ -1,8 +1,8 @@
 import logging
+import uuid
 from typing import Iterator
 
-from lex.core.checkpoint import get_checkpoints
-from lex.core.pipeline_utils import PipelineMonitor, process_checkpoints
+from lex.core.pipeline_utils import PipelineMonitor, process_documents
 from lex.legislation.loader import LegislationLoader
 from lex.legislation.models import Legislation, LegislationSection, LegislationType
 from lex.legislation.parser import LegislationParser, LegislationSectionParser
@@ -18,25 +18,26 @@ def pipe_legislation(
     scraper = LegislationScraper()
     parser = LegislationParser()
     loader = LegislationLoader()
+    run_id = str(uuid.uuid4())
 
     if kwargs.get("from_file"):
         loader_or_scraper = loader
-        logging.info("Loading legislation from file")
+        logger.info(f"Loading legislation from file: run_id={run_id}")
     else:
         loader_or_scraper = scraper
-        logging.info("Parsing legislation from web")
+        logger.info(f"Parsing legislation from web: run_id={run_id}")
 
-    checkpoints = get_checkpoints(
-        years, types, "legislation", kwargs.get("clear_checkpoint", False)
-    )
-
-    yield from process_checkpoints(
-        checkpoints=checkpoints,
+    yield from process_documents(
+        years=years,
+        types=types,
         loader_or_scraper=loader_or_scraper,
         parser=parser,
         document_type=Legislation,
         limit=limit,
         wrap_result=True,
+        doc_type_name="legislation",
+        run_id=run_id,
+        clear_tracking=kwargs.get("clear_checkpoint", False),
     )
 
 
@@ -47,23 +48,24 @@ def pipe_legislation_sections(
     scraper = LegislationScraper()
     loader = LegislationLoader()
     parser = LegislationSectionParser()
+    run_id = str(uuid.uuid4())
 
     if kwargs.get("from_file"):
         loader_or_scraper = loader
-        logging.info("Loading legislation sections from file")
+        logger.info(f"Loading legislation sections from file: run_id={run_id}")
     else:
         loader_or_scraper = scraper
-        logging.info("Parsing legislation sections from web")
+        logger.info(f"Parsing legislation sections from web: run_id={run_id}")
 
-    checkpoints = get_checkpoints(
-        years, types, "legislation_section", kwargs.get("clear_checkpoint", False)
-    )
-
-    yield from process_checkpoints(
-        checkpoints=checkpoints,
+    yield from process_documents(
+        years=years,
+        types=types,
         loader_or_scraper=loader_or_scraper,
         parser=parser,
         document_type=LegislationSection,
         limit=limit,
         wrap_result=False,
+        doc_type_name="legislation_section",
+        run_id=run_id,
+        clear_tracking=kwargs.get("clear_checkpoint", False),
     )

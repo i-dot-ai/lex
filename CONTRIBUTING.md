@@ -5,6 +5,7 @@ Thanks for contributing! This guide covers the essentials for getting started.
 ## Quick Setup
 
 1. **Clone and setup:**
+
    ```bash
    git clone https://github.com/i-dot-ai/lex.git
    cd lex
@@ -12,30 +13,37 @@ Thanks for contributing! This guide covers the essentials for getting started.
    ```
 
 2. **Start services:**
+
    ```bash
    docker compose up -d
    ```
 
 3. **Load test data (optional):**
+
    ```bash
-   make ingest-legislation
-   make ingest-caselaw
+   make ingest-all-sample      # Load sample data (recommended for testing)
+   # or for specific types:
+   make ingest-legislation-sample
+   make ingest-caselaw-sample
    ```
 
 ## Development
 
 ### Code Style
+
 - Use `ruff format` and `ruff check` before committing
 - Line length: 100 characters
 - Follow PEP 8 conventions
 
 ### Testing
+
 ```bash
 uv run pytest                    # Run all tests
 uv run pytest --cov            # With coverage
 ```
 
 ### Branch Naming
+
 - `feature/description`
 - `fix/description`
 - `docs/description`
@@ -50,6 +58,7 @@ uv run pytest --cov            # With coverage
 ## Issues
 
 Use the appropriate template:
+
 - **Bug Report**: For bugs with reproduction steps
 - **Feature Request**: For new features
 - **Documentation**: For doc improvements
@@ -61,4 +70,4 @@ Use the appropriate template:
 - Search existing issues
 - Create a new issue with the "Question" template
 
-Thanks for contributing! 
+Thanks for contributing!

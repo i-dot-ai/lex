@@ -1,21 +1,19 @@
 from pydantic import BaseModel, Field
 
-from lex.legislation.models import (
-    Legislation,
-    LegislationCategory,
-    LegislationType,
-)
+from lex.legislation.models import Legislation, LegislationCategory, LegislationType
 
 
 class LegislationSectionSearch(BaseModel):
     "Search for legislation that is relevant to a specific query. Useful for finding sections of legislation that are relevant to a specific topic."
 
     query: str = Field(
-        description="The natural language query to search for sections of legislation. If empty will return all sections matching filters."
+        description="The natural language query to search for sections of legislation. If empty will return all sections matching filters.",
+        examples=["employment termination procedures", "data protection rights", ""],
     )
     legislation_id: str | None = Field(
         default=None,
-        description="The legislation_id to search within. Use this if you only want to search within a specific piece of legislation. If not provided, all legislation will be included based on the other filters.",
+        description="The legislation_id to search within. Use this if you only want to search within a specific piece of legislation. Accepts both short format (e.g., 'ukpga/1994/13') and full URL format (e.g., 'http://www.legislation.gov.uk/id/ukpga/1994/13'). If not provided, all legislation will be included based on the other filters.",
+        examples=["ukpga/1998/42", "ukpga/2018/12"],
     )
     legislation_category: list[LegislationCategory] | None = Field(
         default=None,
@@ -33,40 +31,60 @@ class LegislationSectionSearch(BaseModel):
         default=None,
         description="The ending year for the legislation to filter by. If not provided, no filtering will be applied.",
     )
+    offset: int = Field(
+        default=0,
+        ge=0,
+        description="The number of results to skip (for pagination).",
+    )
     size: int = Field(
         default=10,
         description="The number of results to return.",
     )
+    include_text: bool = Field(
+        default=True,
+        description="Whether to include full text in results. Set to False for faster performance when only metadata is needed.",
+    )
 
 
 class LegislationActSearch(BaseModel):
-    """Search for legislation by title with additional filtering options.
+    """Search for legislation using semantic hybrid search.
 
-    This model provides more control over the title search by allowing:
-    - Year range filtering
-    - Type filtering
-    - Choice of search algorithm
-    - Custom result limit
+    Searches section content using dense (semantic) + sparse (BM25) embeddings,
+    then returns parent legislation ranked by best matching sections.
     """
 
     query: str = Field(
-        description="The title of the legislation to search for, if empty will return all matching legislation."
+        description="The search query - can be a concept, question, or keywords.",
+        examples=[
+            "human rights protections",
+            "What are the penalties for tax evasion?",
+            "data protection compliance",
+        ],
     )
     year_from: int | None = Field(
         default=None,
-        description="The starting year for the legislation to filter by. If not provided, no filtering will be applied.",
+        description="Starting year filter (optional).",
     )
     year_to: int | None = Field(
         default=None,
-        description="The ending year for the legislation to filter by. If not provided, no filtering will be applied.",
+        description="Ending year filter (optional).",
     )
     legislation_type: list[LegislationType] | None = Field(
         default=None,
-        description="List of legislation types to filter by. If not provided, all subtypes will be included.",
+        description="List of legislation types to filter by (optional).",
+    )
+    offset: int = Field(
+        default=0,
+        ge=0,
+        description="Number of results to skip (pagination).",
     )
     limit: int = Field(
         default=10,
-        description="The number of results to return.",
+        description="Number of results to return.",
+    )
+    include_text: bool = Field(
+        default=True,
+        description="Whether to include full section text in results. Set to False for faster performance when only metadata is needed.",
     )
 
 
@@ -79,15 +97,20 @@ class LegislationLookup(BaseModel):
     http://www.legislation.gov.uk/id/{legislation_type}/{year}/{number}
     """
 
-    legislation_type: LegislationType = Field(description="The specific type of legislation")
-    year: int = Field(description="The year the legislation was enacted.")
-    number: int = Field(description="The number of the legislation.")
+    legislation_type: LegislationType = Field(
+        description="The specific type of legislation", examples=["ukpga", "uksi"]
+    )
+    year: int = Field(description="The year the legislation was enacted.", examples=[1998, 2018])
+    number: int = Field(description="The number of the legislation.", examples=[42, 12])
 
 
 class LegislationSectionLookup(BaseModel):
     """Lookup all the sections of a piece of legislation by legislation title."""
 
-    legislation_id: str = Field(description="The ID of the legislation to search for.")
+    legislation_id: str = Field(
+        description="The ID of the legislation to search for.",
+        examples=["ukpga/1998/42", "ukpga/2018/12"],
+    )
     limit: int = Field(
         default=10,
         description="The number of results to return.",
@@ -100,7 +123,10 @@ class LegislationFullTextLookup(BaseModel):
     This model allows retrieval of legislation full text with optional inclusion of schedules.
     """
 
-    legislation_id: str = Field(description="The full ID of the legislation document.")
+    legislation_id: str = Field(
+        description="The full ID of the legislation document.",
+        examples=["ukpga/1998/42", "ukpga/2018/12"],
+    )
     include_schedules: bool = Field(
         default=False,
         description="Whether to include schedules in the response. If False, only sections are returned. If True, sections are returned first, then schedules. Only request schedules if you are sure you need them.",
@@ -118,3 +144,14 @@ class LegislationFullText(BaseModel):
     full_text: str = Field(
         description="The full text of the legislation, concatenated from all sections."
     )
+
+
+class LegislationSearchResponse(BaseModel):
+    """Response model for legislation search with pagination metadata."""
+
+    results: list[dict] = Field(
+        description="List of legislation results (may include sections array)"
+    )
+    total: int = Field(description="Total number of results available")
+    offset: int = Field(description="Current offset")
+    limit: int = Field(description="Number of results per page")

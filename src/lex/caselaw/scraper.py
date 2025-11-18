@@ -5,15 +5,14 @@ from bs4 import BeautifulSoup
 
 from lex.caselaw.models import Court
 from lex.core.http import HttpClient
-from lex.core.scraper import LexScraper
 
 logger = logging.getLogger(__name__)
 # Create a more resilient HTTP client for caselaw scraping
 from lex.core.rate_limiter import AdaptiveRateLimiter
 
-# Create custom rate limiter with longer backoffs
+# Create custom rate limiter with longer backoffs and proactive throttling
 rate_limiter = AdaptiveRateLimiter(
-    min_delay=0.0,
+    min_delay=0.2,  # Proactive rate limiting (5 req/sec max)
     max_delay=300.0,  # Max 5 minutes between requests
     success_reduction_factor=0.98,  # Slower reduction
     failure_increase_factor=3.0,  # More aggressive backoff
@@ -32,7 +31,7 @@ http_client = HttpClient(
 http_client.rate_limiter = rate_limiter
 
 
-class CaselawScraper(LexScraper):
+class CaselawScraper:
     """Scraper for caselaw content from the National Archives."""
 
     def __init__(self):

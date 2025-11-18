@@ -3,18 +3,24 @@
 import logging
 import time
 from collections import deque
-from typing import Any, Dict, Optional
+from typing import Any, Callable, Dict, Optional, TypeVar
+
+T = TypeVar("T")
 
 logger = logging.getLogger(__name__)
 
 
 class AdaptiveRateLimiter:
-    """Adaptive rate limiter that adjusts delay based on server responses."""
+    """Adaptive rate limiter that adjusts delay based on server responses.
+
+    Note: legislation.gov.uk enforces a limit of 1500 requests per 5-minute window.
+    Default min_delay of 0.2s allows ~5 req/sec per process, staying well under the limit.
+    """
 
     def __init__(
         self,
-        min_delay: float = 0.0,
-        max_delay: float = 5.0,
+        min_delay: float = 0.2,
+        max_delay: float = 300.0,
         success_reduction_factor: float = 0.95,
         failure_increase_factor: float = 2.0,
     ):
@@ -22,20 +28,20 @@ class AdaptiveRateLimiter:
         Initialize the adaptive rate limiter.
 
         Args:
-            min_delay: Minimum delay between requests (seconds)
-            max_delay: Maximum delay between requests (seconds)
+            min_delay: Minimum delay between requests in seconds (default 0.2s = 5 req/sec max)
+            max_delay: Maximum delay between requests in seconds (default 300s = 5 minutes)
             success_reduction_factor: Factor to reduce delay after success (0-1)
             failure_increase_factor: Factor to increase delay after rate limit
         """
-        self.successful_requests = deque(maxlen=10000)  # Track last 10k requests
-        self.rate_limit_events = deque(maxlen=100)  # Track 429 responses
-        self.current_delay = min_delay  # Start with no delay
+        self.successful_requests: deque[float] = deque(maxlen=10000)  # Track last 10k requests
+        self.rate_limit_events: deque[Dict[str, Any]] = deque(maxlen=100)  # Track 429/436 responses
+        self.current_delay = min_delay  # Start with minimum delay
         self.min_delay = min_delay
         self.max_delay = max_delay
         self.success_reduction_factor = success_reduction_factor
         self.failure_increase_factor = failure_increase_factor
 
-    def record_success(self):
+    def record_success(self) -> None:
         """Record a successful request and potentially reduce delay."""
         self.successful_requests.append(time.time())
 
@@ -44,7 +50,7 @@ class AdaptiveRateLimiter:
             self.current_delay *= self.success_reduction_factor
             self.current_delay = max(self.current_delay, self.min_delay)
 
-    def record_rate_limit(self, retry_after: Optional[int] = None):
+    def record_rate_limit(self, retry_after: Optional[int] = None) -> None:
         """Record a rate limit event and increase delay."""
         event = {"time": time.time(), "retry_after": retry_after}
         self.rate_limit_events.append(event)
@@ -108,10 +114,10 @@ class CircuitBreaker:
         self.recovery_timeout = recovery_timeout
         self.expected_exception = expected_exception
         self.failure_count = 0
-        self.last_failure_time = None
+        self.last_failure_time: Optional[float] = None
         self.state = "closed"  # closed, open, half-open
 
-    def call(self, func, *args, **kwargs):
+    def call(self, func: Callable[..., T], *args: Any, **kwargs: Any) -> T:
         """
         Call the protected function with circuit breaker logic.
 
@@ -119,7 +125,10 @@ class CircuitBreaker:
             Exception: If circuit is open
         """
         if self.state == "open":
-            if time.time() - self.last_failure_time > self.recovery_timeout:
+            if (
+                self.last_failure_time
+                and time.time() - self.last_failure_time > self.recovery_timeout
+            ):
                 self.state = "half-open"
                 logger.info("Circuit breaker entering half-open state")
             else:
@@ -133,14 +142,14 @@ class CircuitBreaker:
             self._on_failure()
             raise
 
-    def _on_success(self):
+    def _on_success(self) -> None:
         """Handle successful call."""
         if self.state == "half-open":
             self.state = "closed"
             logger.info("Circuit breaker closed after successful recovery")
         self.failure_count = 0
 
-    def _on_failure(self):
+    def _on_failure(self) -> None:
         """Handle failed call."""
         self.failure_count += 1
         self.last_failure_time = time.time()
