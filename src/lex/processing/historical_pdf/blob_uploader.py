@@ -230,9 +230,7 @@ class LegislationBlobUploader:
             result = await self.process_pdf(session, pdf_url, legislation_type, identifier)
             return result
 
-        logger.info(
-            f"PDF has {page_count} pages (>{chunk_size_pages}), splitting into chunks"
-        )
+        logger.info(f"PDF has {page_count} pages (>{chunk_size_pages}), splitting into chunks")
 
         try:
             # Download original PDF
@@ -270,7 +268,7 @@ class LegislationBlobUploader:
 
                 logger.info(
                     f"Uploaded chunk {chunk_num}/{len(chunks)}: {blob_name} "
-                    f"(pages {start_page+1}-{end_page}, {len(chunk_bytes) / 1024:.1f}KB)"
+                    f"(pages {start_page + 1}-{end_page}, {len(chunk_bytes) / 1024:.1f}KB)"
                 )
 
             return results

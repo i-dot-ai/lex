@@ -3,6 +3,7 @@
 import asyncio
 import time
 from statistics import mean, median, stdev
+
 import httpx
 
 API_URL = "http://localhost:8000"
@@ -54,7 +55,7 @@ async def profile_endpoint(endpoint: str, endpoint_name: str, payload_builder) -
                 times.append(elapsed)
                 print(f"   ✓ {elapsed:.3f}s")
             else:
-                print(f"   ✗ Failed")
+                print("   ✗ Failed")
 
     if not times:
         return {"endpoint": endpoint_name, "error": "All requests failed"}

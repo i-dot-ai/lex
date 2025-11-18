@@ -4,7 +4,7 @@ import logging
 import re
 import time
 from functools import wraps
-from typing import Any, Callable, Dict, Iterator, Optional, Protocol, Type, TypeVar, Union
+from typing import Any, Callable, Dict, Iterator, Optional, Protocol, Type, TypeVar
 
 from lex.core.document import generate_documents
 from lex.core.models import LexModel
@@ -14,15 +14,17 @@ T = TypeVar("T", bound=LexModel)
 
 class ContentLoader(Protocol):
     """Protocol for content loaders/scrapers."""
-    
-    def load_content(self, years: list[int], types: list[Any], limit: Optional[int] = None) -> Iterator[tuple[str, Any]]:
+
+    def load_content(
+        self, years: list[int], types: list[Any], limit: Optional[int] = None
+    ) -> Iterator[tuple[str, Any]]:
         """Load content yielding (url, soup) tuples."""
         ...
 
 
 class ContentParser(Protocol):
     """Protocol for content parsers."""
-    
+
     def parse_content(self, soup: Any) -> Any:
         """Parse content from soup object."""
         ...
@@ -252,7 +254,7 @@ def process_documents(
 
                         for doc in generate_documents(data_to_process, document_type):
                             if tracker:
-                                doc_uuid = uri_to_uuid(getattr(doc, 'id', str(doc)))
+                                doc_uuid = uri_to_uuid(getattr(doc, "id", str(doc)))
                                 doc_date = None
                                 if hasattr(doc, "date") and doc.date:
                                     doc_date = str(doc.date)

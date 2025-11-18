@@ -234,7 +234,7 @@ async def proxy_legislation_data(legislation_id: str):
                     if response.status_code in [429, 436]:
                         if attempt < max_retries - 1:
                             # Calculate backoff delay
-                            delay = base_delay * (2 ** attempt)
+                            delay = base_delay * (2**attempt)
                             retry_after = response.headers.get("Retry-After")
                             if retry_after:
                                 try:
@@ -252,7 +252,7 @@ async def proxy_legislation_data(legislation_id: str):
                             # Final attempt failed
                             raise HTTPException(
                                 status_code=429,
-                                detail="Rate limited by external API. Please try again later."
+                                detail="Rate limited by external API. Please try again later.",
                             )
 
                     if response.status_code == 404:

@@ -5,7 +5,7 @@ import time
 from collections import deque
 from typing import Any, Callable, Dict, Optional, TypeVar
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 logger = logging.getLogger(__name__)
 
@@ -125,7 +125,10 @@ class CircuitBreaker:
             Exception: If circuit is open
         """
         if self.state == "open":
-            if self.last_failure_time and time.time() - self.last_failure_time > self.recovery_timeout:
+            if (
+                self.last_failure_time
+                and time.time() - self.last_failure_time > self.recovery_timeout
+            ):
                 self.state = "half-open"
                 logger.info("Circuit breaker entering half-open state")
             else:

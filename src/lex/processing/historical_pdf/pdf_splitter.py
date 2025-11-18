@@ -38,9 +38,7 @@ def split_pdf_into_chunks(
     reader = PdfReader(BytesIO(pdf_bytes))
     total_pages = len(reader.pages)
 
-    logger.info(
-        f"Splitting {total_pages}-page PDF into chunks of {chunk_size_pages} pages"
-    )
+    logger.info(f"Splitting {total_pages}-page PDF into chunks of {chunk_size_pages} pages")
 
     chunks = []
 
@@ -61,7 +59,7 @@ def split_pdf_into_chunks(
         chunks.append((chunk_bytes, chunk_start, chunk_end))
 
         logger.debug(
-            f"Created chunk {len(chunks)}: pages {chunk_start+1}-{chunk_end} "
+            f"Created chunk {len(chunks)}: pages {chunk_start + 1}-{chunk_end} "
             f"({len(chunk_bytes) / 1024:.1f}KB)"
         )
 

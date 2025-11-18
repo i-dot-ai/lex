@@ -12,7 +12,6 @@ depending on collection size.
 
 import logging
 import sys
-import time
 
 from qdrant_client import QdrantClient
 from qdrant_client.models import ScalarQuantization, ScalarQuantizationConfig, ScalarType
@@ -44,7 +43,7 @@ def enable_quantization(client: QdrantClient, collection_name: str):
         )
 
         logger.info(f"✓ Quantization enabled for {collection_name}")
-        logger.info(f"  Background optimization started - this may take 10-30 minutes")
+        logger.info("  Background optimization started - this may take 10-30 minutes")
         logger.info(f"  Check status: curl http://localhost:6333/collections/{collection_name}")
 
     except Exception as e:

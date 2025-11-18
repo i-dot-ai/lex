@@ -74,7 +74,7 @@ async def main():
         if args.csv:
             # Batch processing from CSV
             print(f"\n{'=' * 80}")
-            print(f"BATCH PDF PROCESSING")
+            print("BATCH PDF PROCESSING")
             print(f"{'=' * 80}")
             print(f"CSV: {args.csv}")
             print(f"Max Concurrent: {args.max_concurrent}")
@@ -115,7 +115,7 @@ async def main():
                 output_file.close()
 
             print(f"\n{'=' * 80}")
-            print(f"BATCH COMPLETE")
+            print("BATCH COMPLETE")
             print(f"{'=' * 80}")
             print(f"Processed: {processed}")
             print(f"Successful: {successful}")
@@ -125,7 +125,7 @@ async def main():
         else:
             # Single PDF processing
             print(f"\n{'=' * 80}")
-            print(f"SINGLE PDF PROCESSING")
+            print("SINGLE PDF PROCESSING")
             print(f"{'=' * 80}")
             print(f"Type: {args.legislation_type}")
             print(f"Identifier: {args.identifier}")
@@ -135,7 +135,7 @@ async def main():
             result = await process_single_pdf(args.url, args.legislation_type, args.identifier)
 
             print(f"\n{'=' * 80}")
-            print(f"RESULTS")
+            print("RESULTS")
             print(f"{'=' * 80}")
             print(f"Success: {result.success}")
             print(f"Model: {result.provenance.model}")
@@ -146,8 +146,8 @@ async def main():
             print(f"Extracted Length: {len(result.extracted_data):,} chars")
 
             if result.success:
-                print(f"\nExtracted Data (first 500 chars):")
-                print(f"-" * 80)
+                print("\nExtracted Data (first 500 chars):")
+                print("-" * 80)
                 print(
                     result.extracted_data[:500] + "..."
                     if len(result.extracted_data) > 500

@@ -142,11 +142,11 @@ async def legislation_act_search(input: LegislationActSearch) -> dict:
     # Batch lookup legislation metadata (single query instead of N queries)
     lookup_start = time.time()
     leg_by_id = {}
-    
+
     # Apply same year filters to legislation lookup to ensure consistency
     lookup_conditions = [FieldCondition(key="id", match=MatchAny(any=unique_leg_ids))]
     lookup_conditions.extend(build_year_filters(input.year_from, input.year_to, year_field="year"))
-    
+
     points = qdrant_client.scroll(
         collection_name=LEGISLATION_COLLECTION,
         scroll_filter=Filter(must=lookup_conditions),
@@ -163,14 +163,18 @@ async def legislation_act_search(input: LegislationActSearch) -> dict:
     # Log if parent documents are missing (data consistency issue)
     missing_docs = set(unique_leg_ids) - set(leg_by_id.keys())
     if missing_docs:
-        logger.warning(f"Parent legislation not found: {len(missing_docs)} documents missing from main collection")
+        logger.warning(
+            f"Parent legislation not found: {len(missing_docs)} documents missing from main collection"
+        )
         logger.debug(f"Missing IDs sample: {list(missing_docs)[:3]}")
-        
+
         # Extract years from missing documents for diagnosis
         missing_years = {
-            sections_data[0]["section"].legislation_year 
-            for leg_id, sections_data in legislation_sections.items() 
-            if leg_id in missing_docs and sections_data and hasattr(sections_data[0]["section"], 'legislation_year')
+            sections_data[0]["section"].legislation_year
+            for leg_id, sections_data in legislation_sections.items()
+            if leg_id in missing_docs
+            and sections_data
+            and hasattr(sections_data[0]["section"], "legislation_year")
         }
         if missing_years:
             logger.warning(f"Missing documents from years: {sorted(missing_years)}")
@@ -244,7 +248,9 @@ def normalize_legislation_id(legislation_id: str) -> str:
     return f"http://www.legislation.gov.uk/id/{legislation_id}"
 
 
-def build_year_filters(year_from: int = None, year_to: int = None, year_field: str = "legislation_year") -> list:
+def build_year_filters(
+    year_from: int = None, year_to: int = None, year_field: str = "legislation_year"
+) -> list:
     """Build consistent year filter conditions."""
     filters = []
     if year_from:

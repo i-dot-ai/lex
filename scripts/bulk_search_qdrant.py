@@ -89,16 +89,12 @@ def build_filters(
         if year_to:
             range_filter["lte"] = year_to
         # Try both year (for legislation collection) and legislation_year (for section collection)
-        conditions.append(
-            FieldCondition(key="legislation_year", range=Range(**range_filter))
-        )
+        conditions.append(FieldCondition(key="legislation_year", range=Range(**range_filter)))
 
     # Type filter (for legislation_section, filter by legislation_type)
     if types:
         for leg_type in types:
-            conditions.append(
-                FieldCondition(key="legislation_type", match={"value": leg_type})
-            )
+            conditions.append(FieldCondition(key="legislation_type", match={"value": leg_type}))
 
     return Filter(must=conditions) if conditions else None
 
@@ -115,13 +111,13 @@ def semantic_search(
 
     Returns results with scores and all fields including text content.
     """
-    console.print(f"\n[cyan]Performing semantic search...[/cyan]")
+    console.print("\n[cyan]Performing semantic search...[/cyan]")
     console.print(f"[cyan]Query:[/cyan] {query}")
     console.print(f"[cyan]Collection:[/cyan] {collection_name}")
     console.print(f"[cyan]Limit:[/cyan] {limit}")
 
     # Generate hybrid embeddings (dense + sparse)
-    console.print(f"[yellow]Generating embeddings...[/yellow]")
+    console.print("[yellow]Generating embeddings...[/yellow]")
     dense, sparse = generate_hybrid_embeddings(query)
 
     # Hybrid search with DBSF fusion
@@ -241,9 +237,7 @@ def display_results_table(results: List[Dict[str, Any]], max_rows: int = 10):
     if not results:
         return
 
-    table = Table(
-        title=f"\n🔍 Top {min(max_rows, len(results))} Results", show_lines=True
-    )
+    table = Table(title=f"\n🔍 Top {min(max_rows, len(results))} Results", show_lines=True)
 
     table.add_column("Score", justify="right", style="green", width=8)
     table.add_column("Title", style="white", max_width=50)
@@ -418,6 +412,7 @@ Examples:
     except Exception as e:
         console.print(f"[red]✗[/red] Search failed: {e}")
         import traceback
+
         traceback.print_exc()
         return
 
@@ -437,7 +432,7 @@ Examples:
         console.print(f"[red]✗[/red] Export failed: {e}")
         return
 
-    console.print(f"\n[bold green]✓ Complete![/bold green]")
+    console.print("\n[bold green]✓ Complete![/bold green]")
     console.print(f"[dim]Query: {args.query}[/dim]")
     console.print(f"[dim]Results: {len(results)}[/dim]")
 

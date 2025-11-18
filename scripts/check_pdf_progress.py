@@ -62,7 +62,7 @@ def check_progress(jsonl_path: Path):
 
     # Print summary
     print(f"\n{'=' * 80}")
-    print(f"PDF DIGITIZATION PROGRESS")
+    print("PDF DIGITIZATION PROGRESS")
     print(f"{'=' * 80}")
     print(f"File: {jsonl_path}")
     print(f"\nTotal Processed: {total:,}")
@@ -71,7 +71,7 @@ def check_progress(jsonl_path: Path):
 
     if successful > 0:
         print(f"\n{'=' * 80}")
-        print(f"TOKEN USAGE (Successful Only)")
+        print("TOKEN USAGE (Successful Only)")
         print(f"{'=' * 80}")
         print(f"Input Tokens: {total_input_tokens:,}")
         print(f"Output Tokens: {total_output_tokens:,}")
@@ -86,7 +86,7 @@ def check_progress(jsonl_path: Path):
         total_cost = input_cost + output_cost + cached_cost
 
         print(f"\n{'=' * 80}")
-        print(f"COST ESTIMATE (GPT-5-mini)")
+        print("COST ESTIMATE (GPT-5-mini)")
         print(f"{'=' * 80}")
         print(f"Input Cost: ${input_cost:.2f}")
         print(f"Output Cost: ${output_cost:.2f}")
@@ -95,7 +95,7 @@ def check_progress(jsonl_path: Path):
 
     if by_type:
         print(f"\n{'=' * 80}")
-        print(f"BREAKDOWN BY LEGISLATION TYPE")
+        print("BREAKDOWN BY LEGISLATION TYPE")
         print(f"{'=' * 80}")
         for leg_type in sorted(by_type.keys()):
             stats = by_type[leg_type]

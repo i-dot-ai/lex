@@ -22,7 +22,11 @@ from tenacity import (
     wait_exponential,
 )
 
-from lex.processing.historical_pdf.models import ExtractionProvenance, ExtractionResult, LegislationMetadata
+from lex.processing.historical_pdf.models import (
+    ExtractionProvenance,
+    ExtractionResult,
+    LegislationMetadata,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -472,7 +476,9 @@ Handle document quality issues:
         """
         start_time = time.time()
         total_pages = chunk_urls[-1][2] if chunk_urls else 0
-        logger.info(f"Processing {len(chunk_urls)} pre-split PDF chunks ({total_pages} total pages)")
+        logger.info(
+            f"Processing {len(chunk_urls)} pre-split PDF chunks ({total_pages} total pages)"
+        )
 
         # Process each chunk with context continuation
         chunk_results = []
@@ -498,27 +504,31 @@ Handle document quality issues:
 {base_prompt}
 
 **CHUNKING INSTRUCTIONS - IMPORTANT:**
-- This is PART {chunk_num} of {len(chunk_urls)} (pages {start_page+1}-{end_page} of {total_pages} total)
+- This is PART {chunk_num} of {len(chunk_urls)} (pages {start_page + 1}-{end_page} of {total_pages} total)
 - {"This is the FIRST chunk: Extract metadata, preamble, and sections from these pages." if is_first_chunk else "CONTINUE from previous chunk: Maintain section numbering continuity. Only extract new sections from these pages."}
 - Ensure section numbers continue sequentially from previous chunk
 """
 
-                logger.info(f"Processing chunk {chunk_num}/{len(chunk_urls)} (pages {start_page+1}-{end_page})")
+                logger.info(
+                    f"Processing chunk {chunk_num}/{len(chunk_urls)} (pages {start_page + 1}-{end_page})"
+                )
 
                 # Make API request with continuation
                 # Each chunk has its own URL → no image accumulation!
                 response = await self._make_responses_request(
                     pdf_url=chunk_url,
                     prompt=chunk_prompt,
-                    previous_response_id=previous_response_id
+                    previous_response_id=previous_response_id,
                 )
 
-                chunk_results.append({
-                    "chunk_num": chunk_num,
-                    "start_page": start_page,
-                    "end_page": end_page,
-                    "response": response,
-                })
+                chunk_results.append(
+                    {
+                        "chunk_num": chunk_num,
+                        "start_page": start_page,
+                        "end_page": end_page,
+                        "response": response,
+                    }
+                )
 
                 # Chain for next chunk
                 previous_response_id = response["id"]
@@ -529,7 +539,9 @@ Handle document quality issues:
                 )
 
             except Exception as e:
-                logger.error(f"Failed to process chunk {chunk_num} (pages {start_page+1}-{end_page}): {e}")
+                logger.error(
+                    f"Failed to process chunk {chunk_num} (pages {start_page + 1}-{end_page}): {e}"
+                )
                 raise
 
         # Merge chunk results
@@ -589,7 +601,7 @@ Handle document quality issues:
             "metadata": first_chunk_data.get("metadata", {}),
             "preamble": first_chunk_data.get("preamble", ""),
             "sections": [],
-            "schedules": []
+            "schedules": [],
         }
 
         # Concatenate sections and schedules from all chunks
@@ -608,7 +620,9 @@ Handle document quality issues:
                             f"Chunk {chunk['chunk_num']} had extra data after JSON, recovered first object"
                         )
                     except Exception as e2:
-                        logger.error(f"Failed to parse chunk {chunk['chunk_num']} JSON even after recovery: {e2}")
+                        logger.error(
+                            f"Failed to parse chunk {chunk['chunk_num']} JSON even after recovery: {e2}"
+                        )
                         continue
                 else:
                     logger.error(f"Failed to parse chunk {chunk['chunk_num']} JSON: {e}")

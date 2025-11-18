@@ -14,9 +14,7 @@ from bs4 import BeautifulSoup
 from qdrant_client.models import PointStruct
 
 from lex.core.embeddings import (
-    generate_dense_embedding,
     generate_dense_embeddings_batch,
-    generate_sparse_embedding,
     generate_sparse_embeddings_batch,
 )
 from lex.core.http import HttpClient
@@ -469,16 +467,15 @@ def upload_to_qdrant(
     # Upload legislation in batches (OPTIMIZED with parallel batch embeddings)
     total_leg = len(legislation_records)
     logger.info(f"📤 Uploading {total_leg:,} legislation records in batches of {batch_size}...")
-    logger.info(f"⚡ Using parallel batch embeddings (10 workers for dense, bulk for sparse)")
+    logger.info("⚡ Using parallel batch embeddings (10 workers for dense, bulk for sparse)")
 
     leg_uploaded = 0
     for i in range(0, total_leg, batch_size):
-        batch = legislation_records[i:i + batch_size]
+        batch = legislation_records[i : i + batch_size]
 
         # Collect all texts from batch
         texts = [
-            f"{leg.title} {leg.type.value if leg.type else ''} {leg.description}"
-            for leg in batch
+            f"{leg.title} {leg.type.value if leg.type else ''} {leg.description}" for leg in batch
         ]
 
         # Generate embeddings in parallel (MUCH FASTER!)
@@ -507,18 +504,20 @@ def upload_to_qdrant(
 
         # Log progress every 10 batches or at end
         if (i // batch_size + 1) % 10 == 0 or leg_uploaded == total_leg:
-            logger.info(f"  Progress: {leg_uploaded:,}/{total_leg:,} legislation ({leg_uploaded*100//total_leg}%)")
+            logger.info(
+                f"  Progress: {leg_uploaded:,}/{total_leg:,} legislation ({leg_uploaded * 100 // total_leg}%)"
+            )
 
     logger.info(f"✅ Uploaded {leg_uploaded:,} legislation records")
 
     # Upload sections in batches (OPTIMIZED with parallel batch embeddings)
     total_sections = len(section_records)
     logger.info(f"📤 Uploading {total_sections:,} section records in batches of {batch_size}...")
-    logger.info(f"⚡ Using parallel batch embeddings (10 workers for dense, bulk for sparse)")
+    logger.info("⚡ Using parallel batch embeddings (10 workers for dense, bulk for sparse)")
 
     sections_uploaded = 0
     for i in range(0, total_sections, batch_size):
-        batch = section_records[i:i + batch_size]
+        batch = section_records[i : i + batch_size]
 
         # Collect all texts from batch
         texts = [f"{section.title} {section.text}" for section in batch]
@@ -549,7 +548,9 @@ def upload_to_qdrant(
 
         # Log progress every 10 batches or at end
         if (i // batch_size + 1) % 10 == 0 or sections_uploaded == total_sections:
-            logger.info(f"  Progress: {sections_uploaded:,}/{total_sections:,} sections ({sections_uploaded*100//total_sections}%)")
+            logger.info(
+                f"  Progress: {sections_uploaded:,}/{total_sections:,} sections ({sections_uploaded * 100 // total_sections}%)"
+            )
 
     logger.info(f"✅ Uploaded {sections_uploaded:,} section records")
 

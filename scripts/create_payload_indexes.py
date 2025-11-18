@@ -9,7 +9,6 @@ Run this after updating qdrant_schema.py files with payload_schema definitions.
 """
 
 import logging
-import os
 import sys
 from pathlib import Path
 
@@ -20,7 +19,6 @@ from dotenv import load_dotenv
 
 load_dotenv(dotenv_path=Path(__file__).parent.parent / ".env", override=True)
 
-from qdrant_client import QdrantClient
 from qdrant_client.models import PayloadSchemaType
 
 from lex.amendment.qdrant_schema import get_amendment_schema
@@ -33,6 +31,7 @@ logger = logging.getLogger(__name__)
 
 # Initialize Qdrant client using the same method as the main application
 from lex.core.qdrant_client import get_qdrant_client
+
 qdrant_client = get_qdrant_client()
 
 

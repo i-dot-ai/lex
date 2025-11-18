@@ -58,7 +58,9 @@ class Amendment(BaseModel):
         if self.changed_provision:
             # Clean up provision: "section/5" → "Section 5"
             prov = self.changed_provision.replace("/", " ").title()
-            parts.append(f"{prov} of {changed_leg_name} {self.changed_year} No. {self.changed_number}")
+            parts.append(
+                f"{prov} of {changed_leg_name} {self.changed_year} No. {self.changed_number}"
+            )
         else:
             parts.append(f"{changed_leg_name} {self.changed_year} No. {self.changed_number}")
 
@@ -72,9 +74,13 @@ class Amendment(BaseModel):
 
             if self.affecting_provision:
                 prov = self.affecting_provision.replace("/", " ").title()
-                parts.append(f"was amended by {prov} of {affecting_leg_name} {self.affecting_year} No. {self.affecting_number}")
+                parts.append(
+                    f"was amended by {prov} of {affecting_leg_name} {self.affecting_year} No. {self.affecting_number}"
+                )
             else:
-                parts.append(f"was amended by {affecting_leg_name} {self.affecting_year} No. {self.affecting_number}")
+                parts.append(
+                    f"was amended by {affecting_leg_name} {self.affecting_year} No. {self.affecting_number}"
+                )
 
         # Type of effect
         if self.type_of_effect:

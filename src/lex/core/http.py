@@ -1,7 +1,7 @@
 import logging
 import os
 import time
-from typing import Any, Dict, Optional, Type, Union
+from typing import Any, Dict, Optional, Union
 
 import requests
 from diskcache import FanoutCache

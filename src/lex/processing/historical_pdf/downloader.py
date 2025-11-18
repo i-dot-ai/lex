@@ -124,7 +124,7 @@ class LegislationPDFDownloader:
                     # Handle rate limiting
                     if response.status == 429 or response.status == 436:
                         if attempt < max_retries - 1:
-                            delay = base_delay * (2 ** attempt)
+                            delay = base_delay * (2**attempt)
                             logger.warning(
                                 f"Rate limited (HTTP {response.status}) downloading {pdf_url}, "
                                 f"retrying in {delay}s (attempt {attempt + 1}/{max_retries})"

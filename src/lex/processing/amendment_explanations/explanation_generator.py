@@ -199,7 +199,9 @@ def add_explanations_to_amendments(
     Returns:
         List of amendments with ai_explanation fields populated
     """
-    logger.info(f"Generating explanations for {len(amendments)} amendments using {model} ({max_workers} workers)")
+    logger.info(
+        f"Generating explanations for {len(amendments)} amendments using {model} ({max_workers} workers)"
+    )
 
     # Filter to only amendments needing explanations
     amendments_needing_explanation = []
@@ -247,7 +249,9 @@ def add_explanations_to_amendments(
                 amendment.ai_explanation_timestamp = timestamp
 
                 if completed % 5 == 0 or completed == len(amendments_needing_explanation):
-                    logger.info(f"Progress: {completed}/{len(amendments_needing_explanation)} explanations generated")
+                    logger.info(
+                        f"Progress: {completed}/{len(amendments_needing_explanation)} explanations generated"
+                    )
 
             except Exception as e:
                 logger.error(f"Failed to process amendment {amendment.id}: {e}")

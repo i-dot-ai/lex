@@ -6,7 +6,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import List, Optional, Tuple
 
 from fastembed import SparseTextEmbedding
-from openai import AzureOpenAI, RateLimitError
+from openai import AzureOpenAI
 from qdrant_client.models import SparseVector
 
 from lex.settings import EMBEDDING_DEPLOYMENT, EMBEDDING_DIMENSIONS

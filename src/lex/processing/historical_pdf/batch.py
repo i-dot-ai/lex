@@ -167,7 +167,9 @@ async def process_pdf_batch_from_csv(
                                 if success
                             ]
 
-                            logger.info(f"Processing {len(chunk_urls)} chunks for {legislation_type}/{identifier}")
+                            logger.info(
+                                f"Processing {len(chunk_urls)} chunks for {legislation_type}/{identifier}"
+                            )
 
                             result = await processor.process_large_pdf_chunked(
                                 chunk_urls=chunk_urls,

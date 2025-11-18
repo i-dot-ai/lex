@@ -6,7 +6,6 @@ from typing import Any, Dict, Iterable, Iterator, List, Type, TypeVar, Union
 from pydantic import BaseModel
 from qdrant_client.models import PointStruct
 
-from lex.core.embeddings import generate_hybrid_embeddings
 from lex.core.qdrant_client import qdrant_client
 
 logger = logging.getLogger(__name__)
@@ -29,7 +28,9 @@ def uri_to_uuid(uri: str) -> str:
     return str(uuid.uuid5(NAMESPACE_LEX, uri))
 
 
-def documents_to_batches(documents: Iterable[Dict[str, Any]], batch_size: int) -> Iterator[List[Dict[str, Any]]]:
+def documents_to_batches(
+    documents: Iterable[Dict[str, Any]], batch_size: int
+) -> Iterator[List[Dict[str, Any]]]:
     """Yield batches of documents."""
     batch = []
     for doc in documents:
@@ -41,7 +42,9 @@ def documents_to_batches(documents: Iterable[Dict[str, Any]], batch_size: int) -
         yield batch
 
 
-def generate_documents(source_documents: Iterable[Union[Dict[str, Any], BaseModel, Any]], target_model: Type[T]) -> Iterator[T]:
+def generate_documents(
+    source_documents: Iterable[Union[Dict[str, Any], BaseModel, Any]], target_model: Type[T]
+) -> Iterator[T]:
     """Generate pydantic documents from source documents.
 
     Args:
@@ -115,10 +118,10 @@ def upload_documents(
                 doc_metadata = []  # Store (doc_id, doc) pairs
 
                 for doc in batch:
-                    doc_id = getattr(doc, id_field, 'unknown')
+                    doc_id = getattr(doc, id_field, "unknown")
 
                     # Check if document has a get_embedding_text method (for rich contextual text)
-                    if hasattr(doc, 'get_embedding_text'):
+                    if hasattr(doc, "get_embedding_text"):
                         text = doc.get_embedding_text()
                     else:
                         # Fallback: build text from specified fields
@@ -145,6 +148,7 @@ def upload_documents(
 
                 # Generate embeddings in batch (no cache overhead)
                 from lex.core.embeddings import generate_hybrid_embeddings_batch
+
                 embeddings = generate_hybrid_embeddings_batch(texts, max_workers=25)
 
                 # Create points with batch embeddings
@@ -154,7 +158,7 @@ def upload_documents(
                     point_id = uri_to_uuid(doc_id)
 
                     # Convert Pydantic model to dict for Qdrant payload
-                    payload = doc.model_dump() if hasattr(doc, 'model_dump') else doc
+                    payload = doc.model_dump() if hasattr(doc, "model_dump") else doc
 
                     # Create point with both dense and sparse vectors
                     point = PointStruct(

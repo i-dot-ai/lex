@@ -82,7 +82,7 @@ class AmendmentParser:
             f"prov-{changed_provision}" if changed_provision else "prov-none",
             f"affecting-{affecting_url}",
             f"prov-{affecting_provision}" if affecting_provision else "prov-none",
-            f"type-{type_of_effect}" if type_of_effect else "type-none"
+            f"type-{type_of_effect}" if type_of_effect else "type-none",
         ]
         unique_id = "-".join(id_parts)
 

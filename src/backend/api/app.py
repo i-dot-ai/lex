@@ -13,10 +13,10 @@ from backend.core.middleware import monitoring_and_rate_limit_middleware
 from backend.core.telemetry import instrument_fastapi_app
 from backend.explanatory_note.router import router as explanatory_note_router
 from backend.legislation.router import router as legislation_router
-from backend.stats.router import router as stats_router
-from backend.templates.router import router as template_router
 from backend.mcp.server import create_mcp_server
 from backend.monitoring import monitoring
+from backend.stats.router import router as stats_router
+from backend.templates.router import router as template_router
 
 
 def create_base_app():

@@ -25,9 +25,7 @@ from lex.core.http import HttpClient
 
 load_dotenv(override=True)
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 http_client = HttpClient()
@@ -114,10 +112,9 @@ def test_document(legislation_id: str, title: str) -> dict | None:
             return None
 
         # PDF-only - extract PDF URL from metadata
-        pdf_link = soup.find("atom:link", attrs={
-            "type": "application/pdf",
-            "title": "Original PDF"
-        })
+        pdf_link = soup.find(
+            "atom:link", attrs={"type": "application/pdf", "title": "Original PDF"}
+        )
 
         pdf_url = pdf_link.get("href") if pdf_link else None
 
@@ -133,7 +130,7 @@ def test_document(legislation_id: str, title: str) -> dict | None:
             "identifier": identifier,
             "title": title,
             "has_xml": True,  # Has XML metadata, just no body
-            "discovered_at": datetime.now().isoformat()
+            "discovered_at": datetime.now().isoformat(),
         }
 
     except Exception as e:
@@ -142,15 +139,9 @@ def test_document(legislation_id: str, title: str) -> dict | None:
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Discover PDF-only legislation from Atom feeds"
-    )
-    parser.add_argument(
-        "--start-year", type=int, default=1267, help="Start year (default: 1267)"
-    )
-    parser.add_argument(
-        "--end-year", type=int, default=1962, help="End year (default: 1962)"
-    )
+    parser = argparse.ArgumentParser(description="Discover PDF-only legislation from Atom feeds")
+    parser.add_argument("--start-year", type=int, default=1267, help="Start year (default: 1267)")
+    parser.add_argument("--end-year", type=int, default=1962, help="End year (default: 1962)")
     parser.add_argument(
         "--output",
         type=Path,

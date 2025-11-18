@@ -52,8 +52,8 @@ az deployment group create \
     applicationName=lex \
     containerImage=your-registry.azurecr.io/lex-backend:latest \
     qdrantCloudUrl="your-qdrant-url" \
-    qdrantCloudApiKey="your-qdrant-key" \
-    azureOpenAIApiKey="your-openai-key" \
+    qdrantCloudApiKey="your-qdrant-key" \  # pragma: allowlist secret
+    azureOpenAIApiKey="your-openai-key" \  # pragma: allowlist secret
     azureOpenAIEndpoint="your-openai-endpoint"
 ```
 
