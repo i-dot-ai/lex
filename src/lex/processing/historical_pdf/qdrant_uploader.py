@@ -13,7 +13,12 @@ from urllib.parse import urlparse
 from bs4 import BeautifulSoup
 from qdrant_client.models import PointStruct
 
-from lex.core.embeddings import generate_dense_embedding, generate_sparse_embedding
+from lex.core.embeddings import (
+    generate_dense_embedding,
+    generate_dense_embeddings_batch,
+    generate_sparse_embedding,
+    generate_sparse_embeddings_batch,
+)
 from lex.core.http import HttpClient
 from lex.core.qdrant_client import get_qdrant_client
 from lex.legislation.models import (
@@ -442,9 +447,10 @@ def process_jsonl_file(
 def upload_to_qdrant(
     legislation_records: list[Legislation],
     section_records: list[LegislationSection],
+    batch_size: int = 100,
 ) -> tuple[int, int]:
     """
-    Upload legislation and section records to Qdrant with embeddings.
+    Upload legislation and section records to Qdrant with embeddings in batches.
 
     Note: JSON backups are now saved during process_jsonl_file() to preserve
     the original PDF URL for path structure.
@@ -452,6 +458,7 @@ def upload_to_qdrant(
     Args:
         legislation_records: List of Legislation instances
         section_records: List of LegislationSection instances
+        batch_size: Number of records to upload per batch (default: 100)
 
     Returns:
         Tuple of (legislation_count, section_count) uploaded
@@ -459,64 +466,91 @@ def upload_to_qdrant(
     qdrant_client = get_qdrant_client()
     uuid_namespace = uuid.UUID("6ba7b810-9dad-11d1-80b4-00c04fd430c8")
 
-    # Upload legislation
-    logger.info(f"Generating embeddings for {len(legislation_records)} legislation records...")
-    leg_points = []
-    for leg in legislation_records:
-        # Generate embedding text (title + type + description)
-        text = f"{leg.title} {leg.type.value if leg.type else ''} {leg.description}"
+    # Upload legislation in batches (OPTIMIZED with parallel batch embeddings)
+    total_leg = len(legislation_records)
+    logger.info(f"📤 Uploading {total_leg:,} legislation records in batches of {batch_size}...")
+    logger.info(f"⚡ Using parallel batch embeddings (10 workers for dense, bulk for sparse)")
 
-        # Generate embeddings
-        dense_vector = generate_dense_embedding(text)
-        sparse_vector = generate_sparse_embedding(text)
+    leg_uploaded = 0
+    for i in range(0, total_leg, batch_size):
+        batch = legislation_records[i:i + batch_size]
 
-        # Create UUID5 for idempotency
-        point_id = str(uuid.uuid5(uuid_namespace, leg.id))
+        # Collect all texts from batch
+        texts = [
+            f"{leg.title} {leg.type.value if leg.type else ''} {leg.description}"
+            for leg in batch
+        ]
 
-        leg_points.append(
-            PointStruct(
-                id=point_id,
-                vector={"dense": dense_vector, "sparse": sparse_vector},
-                payload=leg.model_dump(mode="json"),
+        # Generate embeddings in parallel (MUCH FASTER!)
+        dense_vectors = generate_dense_embeddings_batch(texts, max_workers=10)
+        sparse_vectors = generate_sparse_embeddings_batch(texts)
+
+        # Assemble points
+        leg_points = []
+        for leg, dense_vec, sparse_vec in zip(batch, dense_vectors, sparse_vectors):
+            point_id = str(uuid.uuid5(uuid_namespace, leg.id))
+            leg_points.append(
+                PointStruct(
+                    id=point_id,
+                    vector={"dense": dense_vec, "sparse": sparse_vec},
+                    payload=leg.model_dump(mode="json"),
+                )
             )
+
+        # Upload batch
+        qdrant_client.upsert(
+            collection_name="legislation",
+            points=leg_points,
+            wait=True,
         )
+        leg_uploaded += len(leg_points)
 
-    logger.info(f"Uploading {len(leg_points)} legislation records to Qdrant...")
-    qdrant_client.upsert(
-        collection_name="legislation",
-        points=leg_points,
-        wait=True,
-    )
-    logger.info(f"✅ Uploaded {len(leg_points)} legislation records")
+        # Log progress every 10 batches or at end
+        if (i // batch_size + 1) % 10 == 0 or leg_uploaded == total_leg:
+            logger.info(f"  Progress: {leg_uploaded:,}/{total_leg:,} legislation ({leg_uploaded*100//total_leg}%)")
 
-    # Upload sections
-    logger.info(f"Generating embeddings for {len(section_records)} section records...")
-    section_points = []
-    for section in section_records:
-        # Generate embedding text (title + text)
-        text = f"{section.title} {section.text}"
+    logger.info(f"✅ Uploaded {leg_uploaded:,} legislation records")
 
-        # Generate embeddings
-        dense_vector = generate_dense_embedding(text)
-        sparse_vector = generate_sparse_embedding(text)
+    # Upload sections in batches (OPTIMIZED with parallel batch embeddings)
+    total_sections = len(section_records)
+    logger.info(f"📤 Uploading {total_sections:,} section records in batches of {batch_size}...")
+    logger.info(f"⚡ Using parallel batch embeddings (10 workers for dense, bulk for sparse)")
 
-        # Create UUID5 for idempotency
-        point_id = str(uuid.uuid5(uuid_namespace, section.id))
+    sections_uploaded = 0
+    for i in range(0, total_sections, batch_size):
+        batch = section_records[i:i + batch_size]
 
-        section_points.append(
-            PointStruct(
-                id=point_id,
-                vector={"dense": dense_vector, "sparse": sparse_vector},
-                payload=section.model_dump(mode="json"),
+        # Collect all texts from batch
+        texts = [f"{section.title} {section.text}" for section in batch]
+
+        # Generate embeddings in parallel (MUCH FASTER!)
+        dense_vectors = generate_dense_embeddings_batch(texts, max_workers=10)
+        sparse_vectors = generate_sparse_embeddings_batch(texts)
+
+        # Assemble points
+        section_points = []
+        for section, dense_vec, sparse_vec in zip(batch, dense_vectors, sparse_vectors):
+            point_id = str(uuid.uuid5(uuid_namespace, section.id))
+            section_points.append(
+                PointStruct(
+                    id=point_id,
+                    vector={"dense": dense_vec, "sparse": sparse_vec},
+                    payload=section.model_dump(mode="json"),
+                )
             )
+
+        # Upload batch
+        qdrant_client.upsert(
+            collection_name="legislation_section",
+            points=section_points,
+            wait=True,
         )
+        sections_uploaded += len(section_points)
 
-    logger.info(f"Uploading {len(section_points)} section records to Qdrant...")
-    qdrant_client.upsert(
-        collection_name="legislation_section",
-        points=section_points,
-        wait=True,
-    )
-    logger.info(f"✅ Uploaded {len(section_points)} section records")
+        # Log progress every 10 batches or at end
+        if (i // batch_size + 1) % 10 == 0 or sections_uploaded == total_sections:
+            logger.info(f"  Progress: {sections_uploaded:,}/{total_sections:,} sections ({sections_uploaded*100//total_sections}%)")
 
-    return len(leg_points), len(section_points)
+    logger.info(f"✅ Uploaded {sections_uploaded:,} section records")
+
+    return leg_uploaded, sections_uploaded

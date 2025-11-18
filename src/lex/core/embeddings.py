@@ -84,24 +84,21 @@ def generate_dense_embedding_with_retry(text: str, max_retries: int = MAX_RETRIE
             )
             return response.data[0].embedding
 
-        except RateLimitError:
+        except Exception as e:
             if attempt == max_retries - 1:
-                logger.error(f"Rate limit exceeded after {max_retries} retries")
+                logger.error(f"Failed to generate dense embedding after {max_retries} retries: {e}")
                 raise
 
-            # Exponential backoff with jitter
+            # Exponential backoff for all errors (rate limits, timeouts, etc.)
             backoff = BASE_BACKOFF * (2**attempt)
+            error_type = type(e).__name__
             logger.warning(
-                f"Rate limited, retrying in {backoff:.1f}s (attempt {attempt + 1}/{max_retries})"
+                f"{error_type}: {e}, retrying in {backoff:.1f}s (attempt {attempt + 1}/{max_retries})"
             )
             time.sleep(backoff)
 
-        except Exception as e:
-            logger.error(f"Failed to generate dense embedding: {e}")
-            return [0.0] * EMBEDDING_DIMENSIONS
-
-    # Fallback (should not reach here)
-    return [0.0] * EMBEDDING_DIMENSIONS
+    # Should never reach here, but if we do, raise
+    raise Exception(f"Failed to generate embedding after {max_retries} retries")
 
 
 def generate_dense_embedding(text: str) -> List[float]:
