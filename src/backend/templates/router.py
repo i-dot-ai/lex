@@ -12,12 +12,16 @@ templates = Jinja2Templates(directory="src/backend/templates")
 
 @router.get("/", response_class=HTMLResponse, include_in_schema=False)
 async def serve_homepage(request: Request):
-    """Serve the homepage with PostHog configuration injected from environment variables."""
+    """Serve the homepage with PostHog configuration and base URL injected from request."""
+    # Auto-detect base URL from request for dynamic MCP endpoint display
+    base_url = str(request.base_url).rstrip("/")
+
     return templates.TemplateResponse(
         "index.html",
         {
             "request": request,
             "posthog_key": POSTHOG_KEY,
             "posthog_host": POSTHOG_HOST,
+            "base_url": base_url,
         },
     )
