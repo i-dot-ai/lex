@@ -1459,6 +1459,17 @@
                                 <button class="mcp-tabs__tab"
                                         role="tab"
                                         aria-selected="false"
+                                        aria-controls="skill-panel"
+                                        id="skill-tab"
+                                        onclick="switchTab('skill')">
+                                    <img src="/claude.svg" alt="Claude Code Skill" class="mcp-tabs__tab-icon">
+                                    Skill
+                                </button>
+                            </li>
+                            <li role="presentation">
+                                <button class="mcp-tabs__tab"
+                                        role="tab"
+                                        aria-selected="false"
                                         aria-controls="cursor-panel"
                                         id="cursor-tab"
                                         onclick="switchTab('cursor')">
@@ -1512,6 +1523,8 @@
 <span class="json-punctuation">}</span></pre>
                                 <button class="copy-button" onclick="copyToClipboard('claude-config')" aria-label="Copy Claude Desktop MCP configuration to clipboard">Copy</button>
                             </div>
+
+                            <p class="govuk-body-s" style="margin-top: 20px;"><strong>Tip:</strong> Also install the <a href="#" onclick="switchTab('skill'); return false;" class="govuk-link">Lex UK Law skill</a> for enhanced legal research guidance.</p>
                         </div>
 
                         <!-- Claude Code Configuration -->
@@ -1526,6 +1539,8 @@
                                 <pre id="claude-code-config">claude mcp add --transport http lex {{ base_url }}/mcp</pre>
                                 <button class="copy-button" onclick="copyToClipboard('claude-code-config')" aria-label="Copy Claude Code MCP command to clipboard">Copy</button>
                             </div>
+
+                            <p class="govuk-body-s" style="margin-top: 20px;"><strong>Tip:</strong> Also install the <a href="#" onclick="switchTab('skill'); return false;" class="govuk-link">Lex UK Law skill</a> for enhanced legal research guidance.</p>
 
                             <details class="govuk-details">
                                 <summary class="govuk-details__summary">
@@ -1551,6 +1566,56 @@ claude mcp list
 claude mcp remove lex</pre>
                                         <button class="copy-button" onclick="copyToClipboard('claude-code-manage')" aria-label="Copy Claude Code management commands to clipboard">Copy</button>
                                     </div>
+                                </div>
+                            </details>
+                        </div>
+
+                        <!-- Skill Installation -->
+                        <div id="skill-panel" class="mcp-tabs__content" role="tabpanel" aria-labelledby="skill-tab">
+                            <h3 class="govuk-heading-m">Lex UK Law Skill</h3>
+                            <p class="govuk-body">Install the Lex UK Law skill for automatic legal research guidance. Skills work across Claude Code, Claude Desktop, and claude.ai.</p>
+
+                            <h4 class="govuk-heading-s">Claude Code</h4>
+                            <p class="govuk-body-s">Run these commands in Claude Code:</p>
+
+                            <div class="code-block">
+                                <pre id="skill-install"># Add the marketplace
+/plugin marketplace add i-dot-ai/lex
+
+# Install the skill
+/plugin install lex-uk-law</pre>
+                                <button class="copy-button" onclick="copyToClipboard('skill-install')" aria-label="Copy skill install commands to clipboard">Copy</button>
+                            </div>
+
+                            <h4 class="govuk-heading-s">Claude Desktop / claude.ai</h4>
+                            <p class="govuk-body-s">Download the skill and upload via Settings → Capabilities → Upload skill:</p>
+                            <a href="/lex-uk-law-skill.zip"
+                               class="govuk-button govuk-button--secondary"
+                               download>
+                                Download Skill (.zip)
+                            </a>
+
+                            <details class="govuk-details">
+                                <summary class="govuk-details__summary">
+                                    <span class="govuk-details__summary-text">What are skills?</span>
+                                </summary>
+                                <div class="govuk-details__text">
+                                    <p class="govuk-body-s">Skills are reusable capabilities that Claude automatically activates based on your request. Unlike MCP servers which provide tools, skills provide context and guidance for specific domains.</p>
+                                    <p class="govuk-body-s"><strong>When you ask about UK law</strong>, Claude will automatically use the Lex skill to guide its legal research approach.</p>
+                                </div>
+                            </details>
+
+                            <details class="govuk-details">
+                                <summary class="govuk-details__summary">
+                                    <span class="govuk-details__summary-text">Skill vs MCP server</span>
+                                </summary>
+                                <div class="govuk-details__text">
+                                    <p class="govuk-body-s"><strong>Use both together for best results:</strong></p>
+                                    <ul class="govuk-list govuk-list--bullet govuk-body-s">
+                                        <li><strong>MCP Server</strong> — Provides the search tools (required)</li>
+                                        <li><strong>Skill</strong> — Provides domain expertise and best practices (recommended)</li>
+                                    </ul>
+                                    <p class="govuk-body-s">Install the MCP server first, then add the skill for enhanced legal research guidance.</p>
                                 </div>
                             </details>
                         </div>
