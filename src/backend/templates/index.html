@@ -129,8 +129,9 @@
             color: #ffffff;
         }
 
-        /* Only invert Copilot icon in dark mode - Claude icon is already light-friendly */
-        .dark-mode .mcp-tabs__tab-icon[alt="Microsoft Copilot"] {
+        /* Invert dark icons in dark mode - Claude and VS Code icons are already light-friendly */
+        .dark-mode .mcp-tabs__tab-icon[alt="Microsoft Copilot"],
+        .dark-mode .mcp-tabs__tab-icon[alt="Cursor"] {
             filter: invert(1);
         }
 
@@ -942,6 +943,77 @@
             }
         }
 
+        /* Cursor install button */
+        .cursor-install-section {
+            margin-bottom: 25px;
+        }
+
+        .cursor-install-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .cursor-install-icon {
+            width: 20px;
+            height: 20px;
+            filter: brightness(0) invert(1);
+        }
+
+        /* GOV.UK Details component */
+        .govuk-details {
+            margin-bottom: 20px;
+        }
+
+        .govuk-details__summary {
+            display: inline-block;
+            position: relative;
+            margin-bottom: 5px;
+            padding-left: 25px;
+            color: var(--govuk-link-colour);
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .govuk-details__summary:hover {
+            color: var(--govuk-link-hover-colour);
+        }
+
+        .govuk-details__summary::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-color: transparent;
+            border-left-color: inherit;
+            border-width: 7px 0 7px 12.124px;
+            transform: translateY(3px);
+        }
+
+        .govuk-details[open] > .govuk-details__summary::before {
+            border-width: 12.124px 7px 0 7px;
+            border-color: inherit;
+            border-top-color: inherit;
+            border-left-color: transparent;
+        }
+
+        .govuk-details__summary-text {
+            text-decoration: underline;
+        }
+
+        .govuk-details__text {
+            padding: 15px;
+            padding-left: 20px;
+            border-left: 5px solid var(--govuk-border-colour);
+        }
+
+        .dark-mode .govuk-details__text {
+            border-left-color: #505a5f;
+        }
+
         /* Phase banner */
         .govuk-phase-banner {
             padding: 10px 0;
@@ -1373,14 +1445,47 @@
                                 </button>
                             </li>
                             <li role="presentation">
-                                <button class="mcp-tabs__tab" 
-                                        role="tab" 
-                                        aria-selected="false" 
-                                        aria-controls="copilot-panel" 
+                                <button class="mcp-tabs__tab"
+                                        role="tab"
+                                        aria-selected="false"
+                                        aria-controls="claude-code-panel"
+                                        id="claude-code-tab"
+                                        onclick="switchTab('claude-code')">
+                                    <img src="/claude.svg" alt="Claude Code" class="mcp-tabs__tab-icon">
+                                    Claude Code
+                                </button>
+                            </li>
+                            <li role="presentation">
+                                <button class="mcp-tabs__tab"
+                                        role="tab"
+                                        aria-selected="false"
+                                        aria-controls="cursor-panel"
+                                        id="cursor-tab"
+                                        onclick="switchTab('cursor')">
+                                    <img src="/cursor.svg" alt="Cursor" class="mcp-tabs__tab-icon">
+                                    Cursor
+                                </button>
+                            </li>
+                            <li role="presentation">
+                                <button class="mcp-tabs__tab"
+                                        role="tab"
+                                        aria-selected="false"
+                                        aria-controls="copilot-panel"
                                         id="copilot-tab"
                                         onclick="switchTab('copilot')">
                                     <img src="/copilot.svg" alt="Microsoft Copilot" class="mcp-tabs__tab-icon">
                                     Microsoft Copilot
+                                </button>
+                            </li>
+                            <li role="presentation">
+                                <button class="mcp-tabs__tab"
+                                        role="tab"
+                                        aria-selected="false"
+                                        aria-controls="vscode-panel"
+                                        id="vscode-tab"
+                                        onclick="switchTab('vscode')">
+                                    <img src="/vscode.svg" alt="VS Code" class="mcp-tabs__tab-icon">
+                                    VS Code
                                 </button>
                             </li>
                         </ul>
@@ -1409,6 +1514,82 @@
                             </div>
                         </div>
 
+                        <!-- Claude Code Configuration -->
+                        <div id="claude-code-panel" class="mcp-tabs__content" role="tabpanel" aria-labelledby="claude-code-tab">
+                            <h3 class="govuk-heading-m">Claude Code Configuration</h3>
+                            <p class="govuk-body">Connect Claude Code to Lex API using the CLI. Claude Code supports HTTP, SSE, and stdio MCP transports.</p>
+
+                            <h4 class="govuk-heading-s">One-Line Install</h4>
+                            <p class="govuk-body-s">Run this command in your terminal to add the Lex MCP server:</p>
+
+                            <div class="code-block">
+                                <pre id="claude-code-config">claude mcp add --transport http lex {{ base_url }}/mcp</pre>
+                                <button class="copy-button" onclick="copyToClipboard('claude-code-config')" aria-label="Copy Claude Code MCP command to clipboard">Copy</button>
+                            </div>
+
+                            <details class="govuk-details">
+                                <summary class="govuk-details__summary">
+                                    <span class="govuk-details__summary-text">Configuration options</span>
+                                </summary>
+                                <div class="govuk-details__text">
+                                    <p class="govuk-body-s"><strong>Scope options:</strong></p>
+                                    <ul class="govuk-list govuk-list--bullet govuk-body-s">
+                                        <li><code>--scope local</code> (default) — Available only in current project</li>
+                                        <li><code>--scope project</code> — Shared via <code>.mcp.json</code> file</li>
+                                        <li><code>--scope user</code> — Available across all projects</li>
+                                    </ul>
+
+                                    <p class="govuk-body-s"><strong>Manage servers:</strong></p>
+                                    <div class="code-block">
+                                        <pre id="claude-code-manage"># List configured servers
+claude mcp list
+
+# Check server status (in Claude Code)
+/mcp
+
+# Remove a server
+claude mcp remove lex</pre>
+                                        <button class="copy-button" onclick="copyToClipboard('claude-code-manage')" aria-label="Copy Claude Code management commands to clipboard">Copy</button>
+                                    </div>
+                                </div>
+                            </details>
+                        </div>
+
+                        <!-- Cursor Configuration -->
+                        <div id="cursor-panel" class="mcp-tabs__content" role="tabpanel" aria-labelledby="cursor-tab">
+                            <h3 class="govuk-heading-m">Cursor Configuration</h3>
+                            <p class="govuk-body">Add the Lex API MCP server to Cursor with one click or configure manually.</p>
+
+                            <div class="cursor-install-section">
+                                <h4 class="govuk-heading-s">One-Click Install</h4>
+                                <p class="govuk-body-s">Click the button below to automatically add Lex to your Cursor configuration:</p>
+                                <a id="cursor-install-link" href="#" class="govuk-button cursor-install-button" role="button">
+                                    <img src="/cursor.svg" alt="" class="cursor-install-icon"> Add to Cursor
+                                </a>
+                            </div>
+
+                            <details class="govuk-details">
+                                <summary class="govuk-details__summary">
+                                    <span class="govuk-details__summary-text">Manual Configuration</span>
+                                </summary>
+                                <div class="govuk-details__text">
+                                    <p class="govuk-body-s">Add this to your Cursor MCP configuration file:</p>
+                                    <p class="govuk-body-s"><strong>Config file location:</strong> <code>~/.cursor/mcp.json</code> (global) or <code>.cursor/mcp.json</code> (project)</p>
+
+                                    <div class="code-block">
+                                        <pre id="cursor-config"><span class="json-punctuation">{</span>
+  <span class="json-key">"mcpServers"</span><span class="json-punctuation">:</span> <span class="json-punctuation">{</span>
+    <span class="json-key">"lex"</span><span class="json-punctuation">:</span> <span class="json-punctuation">{</span>
+      <span class="json-key">"url"</span><span class="json-punctuation">:</span> <span class="json-string">"{{ base_url }}/mcp"</span>
+    <span class="json-punctuation">}</span>
+  <span class="json-punctuation">}</span>
+<span class="json-punctuation">}</span></pre>
+                                        <button class="copy-button" onclick="copyToClipboard('cursor-config')" aria-label="Copy Cursor MCP configuration to clipboard">Copy</button>
+                                    </div>
+                                </div>
+                            </details>
+                        </div>
+
                         <!-- Microsoft Copilot Configuration -->
                         <div id="copilot-panel" class="mcp-tabs__content" role="tabpanel" aria-labelledby="copilot-tab">
                             <h3 class="govuk-heading-m">Microsoft Copilot Studio Configuration</h3>
@@ -1421,25 +1602,74 @@
                                 <li><strong>Set Authentication:</strong> Configure API key authentication if required</li>
                             </ol>
                             
-                            <div class="govuk-notification-banner" role="region">
-                                <div class="govuk-notification-banner__header">
-                                    <h4 class="govuk-notification-banner__title">Requirements</h4>
-                                </div>
-                                <div class="govuk-notification-banner__content">
-                                    <ul class="govuk-list govuk-list--bullet">
-                                        <li>Microsoft Copilot Studio access</li>
-                                        <li>Generative Orchestration must be enabled</li>
-                                        <li>Streamable transport support (current standard)</li>
-                                    </ul>
-                                </div>
-                            </div>
-                            
                             <p class="govuk-body-s"><strong>Server URL:</strong></p>
                             <div class="code-block">
                                 <pre id="copilot-url">{{ base_url }}/mcp</pre>
                                 <button class="copy-button" onclick="copyToClipboard('copilot-url')" aria-label="Copy Microsoft Copilot MCP server URL to clipboard">Copy</button>
                             </div>
+
+                            <details class="govuk-details">
+                                <summary class="govuk-details__summary">
+                                    <span class="govuk-details__summary-text">Requirements</span>
+                                </summary>
+                                <div class="govuk-details__text">
+                                    <ul class="govuk-list govuk-list--bullet govuk-body-s">
+                                        <li>Microsoft Copilot Studio access</li>
+                                        <li>Generative Orchestration must be enabled</li>
+                                        <li>Streamable transport support (current standard)</li>
+                                    </ul>
+                                </div>
+                            </details>
                         </div>
+
+                        <!-- VS Code Configuration -->
+                        <div id="vscode-panel" class="mcp-tabs__content" role="tabpanel" aria-labelledby="vscode-tab">
+                            <h3 class="govuk-heading-m">VS Code + GitHub Copilot Configuration</h3>
+                            <p class="govuk-body">Add this configuration to your VS Code MCP settings file:</p>
+                            <p class="govuk-body-s"><strong>Config file location:</strong> <code>.vscode/mcp.json</code> (workspace) or user profile <code>mcp.json</code></p>
+
+                            <div class="code-block">
+                                <pre id="vscode-config"><span class="json-punctuation">{</span>
+  <span class="json-key">"servers"</span><span class="json-punctuation">:</span> <span class="json-punctuation">{</span>
+    <span class="json-key">"lex"</span><span class="json-punctuation">:</span> <span class="json-punctuation">{</span>
+      <span class="json-key">"type"</span><span class="json-punctuation">:</span> <span class="json-string">"http"</span><span class="json-punctuation">,</span>
+      <span class="json-key">"url"</span><span class="json-punctuation">:</span> <span class="json-string">"{{ base_url }}/mcp"</span>
+    <span class="json-punctuation">}</span>
+  <span class="json-punctuation">}</span>
+<span class="json-punctuation">}</span></pre>
+                                <button class="copy-button" onclick="copyToClipboard('vscode-config')" aria-label="Copy VS Code MCP configuration to clipboard">Copy</button>
+                            </div>
+
+                            <details class="govuk-details">
+                                <summary class="govuk-details__summary">
+                                    <span class="govuk-details__summary-text">Alternative setup methods</span>
+                                </summary>
+                                <div class="govuk-details__text">
+                                    <p class="govuk-body-s"><strong>Via Command Palette:</strong></p>
+                                    <ol class="govuk-list govuk-list--number govuk-body-s">
+                                        <li>Open Command Palette (<code>Cmd+Shift+P</code> / <code>Ctrl+Shift+P</code>)</li>
+                                        <li>Search for <code>MCP: Add Server</code></li>
+                                        <li>Select <code>HTTP</code> transport</li>
+                                        <li>Enter URL: <code>{{ base_url }}/mcp</code></li>
+                                        <li>Enter server ID: <code>lex</code></li>
+                                    </ol>
+                                </div>
+                            </details>
+
+                            <details class="govuk-details">
+                                <summary class="govuk-details__summary">
+                                    <span class="govuk-details__summary-text">Requirements</span>
+                                </summary>
+                                <div class="govuk-details__text">
+                                    <ul class="govuk-list govuk-list--bullet govuk-body-s">
+                                        <li>VS Code 1.99 or later</li>
+                                        <li>GitHub Copilot extension installed</li>
+                                        <li>Agent mode enabled in Copilot Chat</li>
+                                    </ul>
+                                </div>
+                            </details>
+                        </div>
+
                     </div>
                     
                 </div>
@@ -1871,7 +2101,33 @@
             checkApiStatus();
             // Refresh status every 60 seconds
             setInterval(checkApiStatus, 60000);
+
+            // Generate Cursor install deeplink
+            generateCursorInstallLink();
         });
+
+        // Generate Cursor MCP install deeplink
+        function generateCursorInstallLink() {
+            const linkElement = document.getElementById('cursor-install-link');
+            if (!linkElement) return;
+
+            // Get the base URL from the page (injected by Jinja)
+            const baseUrl = '{{ base_url }}';
+
+            // Create the MCP server configuration
+            const config = {
+                url: baseUrl + '/mcp'
+            };
+
+            // Base64 encode the configuration
+            const configJson = JSON.stringify(config);
+            const configBase64 = btoa(configJson);
+
+            // Build the Cursor deeplink URL
+            const cursorDeeplink = `cursor://anysphere.cursor-deeplink/mcp/install?name=lex&config=${encodeURIComponent(configBase64)}`;
+
+            linkElement.href = cursorDeeplink;
+        }
     </script>
 </body>
 </html>
