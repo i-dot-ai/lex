@@ -27,7 +27,7 @@ Lex provides programmatic access to millions of UK legal documents, court decisi
 
 ## MCP Integration
 
-Connect AI assistants to Lex via Model Context Protocol. See the [live documentation](https://lex-prod-apim.azure-api.net) for setup instructions for:
+Connect AI assistants to Lex via Model Context Protocol. See the [live documentation](https://lex-api.victoriousdesert-f8e685e0.uksouth.azurecontainerapps.io) for setup instructions for:
 
 - Claude Desktop
 - Claude Code
