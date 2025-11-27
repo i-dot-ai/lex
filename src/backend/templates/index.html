@@ -274,6 +274,17 @@
             margin: 15px 0;
             display: block;
         }
+
+        .govuk-header__lab-tag {
+            background: var(--iai-pink);
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            padding: 4px 8px;
+            margin-left: 20px;
+            border-radius: 0;
+        }
         
         @media (min-width: 40.0625em) {
             .govuk-header__container {
@@ -294,6 +305,10 @@
             .govuk-header__iai-logo img {
                 height: 45px;
                 margin: 20px 0;
+            }
+
+            .govuk-header__lab-tag {
+                font-size: 16px;
             }
         }
         
@@ -935,6 +950,7 @@
                     <a href="https://ai.gov.uk" aria-label="Incubator for AI" target="_blank" rel="noopener noreferrer">
                         <img src="https://ai.gov.uk/logos/i-dot-ai-reverse.svg" alt="i.AI - Incubator for Artificial Intelligence" />
                     </a>
+                    <span class="govuk-header__lab-tag">LAB</span>
                 </div>
             </div>
         </div>
@@ -1015,7 +1031,7 @@
       <span class="json-key">"args"</span><span class="json-punctuation">:</span> <span class="json-punctuation">[</span>
         <span class="json-string">"-y"</span><span class="json-punctuation">,</span>
         <span class="json-string">"mcp-remote@latest"</span><span class="json-punctuation">,</span>
-        <span class="json-string">"https://lex-api.victoriousdesert-f8e685e0.uksouth.azurecontainerapps.io/mcp"</span>
+        <span class="json-string">"{{ base_url }}/mcp"</span>
       <span class="json-punctuation">]</span><span class="json-punctuation">,</span>
       <span class="json-key">"env"</span><span class="json-punctuation">:</span> <span class="json-punctuation">{}</span>
     <span class="json-punctuation">}</span>
@@ -1052,7 +1068,7 @@
                             <p class="govuk-body-s"><strong>Server URL:</strong></p>
                             <div class="code-block">
                                 <button class="copy-button" onclick="copyToClipboard('copilot-url')" aria-label="Copy Microsoft Copilot MCP server URL to clipboard">Copy</button>
-                                <pre id="copilot-url">https://lex-api.victoriousdesert-f8e685e0.uksouth.azurecontainerapps.io/mcp</pre>
+                                <pre id="copilot-url">{{ base_url }}/mcp</pre>
                             </div>
                         </div>
                     </div>
