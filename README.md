@@ -97,6 +97,7 @@ lex/
 
 ## Documentation
 
+- [Deployment Guide](docs/deployment.md)
 - [Data Pipeline Guide](src/lex/README.md)
 - [API Reference](src/backend/README.md)
 - [Troubleshooting](docs/troubleshooting.md)
