@@ -148,7 +148,7 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
         {
           server: acr.properties.loginServer
           username: acr.listCredentials().username
-          passwordSecretRef: 'acr-password'  # pragma: allowlist secret
+          passwordSecretRef: 'acr-password'  // pragma: allowlist secret
         }
       ]
       secrets: [
@@ -194,7 +194,7 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
           env: [
             {
               name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
-              secretRef: 'app-insights-connection-string'  # pragma: allowlist secret
+              secretRef: 'app-insights-connection-string'  // pragma: allowlist secret
             }
             {
               name: 'PORT'
@@ -206,15 +206,15 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
             }
             {
               name: 'QDRANT_CLOUD_URL'
-              secretRef: 'qdrant-cloud-url'  # pragma: allowlist secret
+              secretRef: 'qdrant-cloud-url'  // pragma: allowlist secret
             }
             {
               name: 'QDRANT_CLOUD_API_KEY'
-              secretRef: 'qdrant-cloud-api-key'  # pragma: allowlist secret
+              secretRef: 'qdrant-cloud-api-key'  // pragma: allowlist secret
             }
             {
               name: 'AZURE_OPENAI_API_KEY'
-              secretRef: 'azure-openai-api-key'  # pragma: allowlist secret
+              secretRef: 'azure-openai-api-key'  // pragma: allowlist secret
             }
             {
               name: 'AZURE_OPENAI_ENDPOINT'
@@ -234,7 +234,7 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
             }
             {
               name: 'REDIS_PASSWORD'
-              secretRef: 'redis-primary-key'  # pragma: allowlist secret
+              secretRef: 'redis-primary-key'  // pragma: allowlist secret
             }
             {
               name: 'RATE_LIMIT_PER_MINUTE'
@@ -246,7 +246,7 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
             }
             {
               name: 'POSTHOG_KEY'
-              secretRef: 'posthog-key'  # pragma: allowlist secret
+              secretRef: 'posthog-key'  // pragma: allowlist secret
             }
             {
               name: 'POSTHOG_HOST'
