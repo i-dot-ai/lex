@@ -34,6 +34,9 @@ param posthogKey string = ''
 @description('PostHog Host URL')
 param posthogHost string = 'https://eu.i.posthog.com'
 
+@description('Custom domain hostname (optional). Requires DNS CNAME and TXT records configured first.')
+param customDomain string = ''
+
 @description('Rate limit per minute')
 param rateLimitPerMinute int = 60
 
@@ -102,6 +105,17 @@ resource containerEnvironment 'Microsoft.App/managedEnvironments@2024-03-01' = {
   }
 }
 
+// Managed Certificate for custom domain
+resource managedCertificate 'Microsoft.App/managedEnvironments/managedCertificates@2024-03-01' = if (!empty(customDomain)) {
+  parent: containerEnvironment
+  name: 'cert-${replace(customDomain, '.', '-')}'
+  location: location
+  properties: {
+    subjectName: customDomain
+    domainControlValidation: 'CNAME'
+  }
+}
+
 // Azure Cache for Redis
 resource redisCache 'Microsoft.Cache/redis@2023-08-01' = {
   name: redisName
@@ -134,9 +148,16 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
     managedEnvironmentId: containerEnvironment.id
     configuration: {
       ingress: {
-        external: true  // Changed to external for direct access
+        external: true
         targetPort: 8000
         allowInsecure: false
+        customDomains: !empty(customDomain) ? [
+          {
+            name: customDomain
+            certificateId: managedCertificate.id
+            bindingType: 'SniEnabled'
+          }
+        ] : []
         traffic: [
           {
             weight: 100

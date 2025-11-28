@@ -126,6 +126,7 @@ deploy_infrastructure() {
         AZURE_OPENAI_EMBEDDING_MODEL=$(grep "^AZURE_OPENAI_EMBEDDING_MODEL=" .env | cut -d '=' -f2)
         POSTHOG_KEY=$(grep "^POSTHOG_KEY=" .env | cut -d '=' -f2)
         POSTHOG_HOST=$(grep "^POSTHOG_HOST=" .env | cut -d '=' -f2)
+        CUSTOM_DOMAIN=$(grep "^CUSTOM_DOMAIN=" .env | cut -d '=' -f2)
     fi
     
     # Set default embedding model if not specified
@@ -155,7 +156,8 @@ deploy_infrastructure() {
             azureOpenAIEndpoint="$AZURE_OPENAI_ENDPOINT" \
             azureOpenAIEmbeddingModel="$AZURE_OPENAI_EMBEDDING_MODEL" \
             posthogKey="$POSTHOG_KEY" \
-            posthogHost="$POSTHOG_HOST"
+            posthogHost="$POSTHOG_HOST" \
+            customDomain="${CUSTOM_DOMAIN:-}"
     
     log_success "Infrastructure deployment completed"
 }

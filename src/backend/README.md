@@ -200,7 +200,7 @@ curl -X POST http://localhost:8000/amendment/search \
 
 ## 🔌 MCP Integration
 
-The backend includes built-in MCP support for AI assistants via `fastapi-mcp`.
+The backend includes built-in MCP support for AI assistants via `fastmcp`.
 
 ### Setup for Claude Desktop
 
@@ -211,31 +211,22 @@ The backend includes built-in MCP support for AI assistants via `fastapi-mcp`.
    # or: uv run src/backend/main.py
    ```
 
-2. **Find the full path to mcp-proxy**:
-
-   ```bash
-   which mcp-proxy
-   # Example output: /Users/username/.pyenv/shims/mcp-proxy
-   ```
-
-3. **Configure Claude Desktop** at `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS):
+2. **Configure Claude Desktop** at `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS):
 
    ```json
    {
      "mcpServers": {
        "lex": {
-         "command": "/Users/username/.pyenv/shims/mcp-proxy",
-         "args": ["http://127.0.0.1:8000/mcp"]
+         "command": "npx",
+         "args": ["-y", "mcp-remote@latest", "http://127.0.0.1:8000/mcp"]
        }
      }
    }
    ```
 
-   **Important**: Use the **full absolute path** from `which mcp-proxy` - GUI apps like Claude Desktop don't inherit your terminal's PATH.
+3. **Restart Claude Desktop completely**
 
-4. **Restart Claude Desktop completely**
-
-5. **Verify connection**: Look for the MCP server indicator in Claude Desktop
+4. **Verify connection**: Look for the MCP server indicator in Claude Desktop
 
 ### Example Queries
 
