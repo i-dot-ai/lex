@@ -183,8 +183,8 @@ class CaselawAndCaselawSectionsParser:
                     route = [heading_text]
                 else:
                     route = [route[0]] + [heading_text]
-            else:
-                continue
+            # Note: If no heading, we keep the current route (or empty if none set)
+            # This ensures paragraphs in headingless levels are still captured
 
             paragraphs = level.find_all("paragraph")
 
