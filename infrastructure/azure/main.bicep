@@ -91,7 +91,7 @@ resource acr 'Microsoft.ContainerRegistry/registries@2023-11-01-preview' = {
 
 
 // Container Apps Environment
-resource containerEnvironment 'Microsoft.App/managedEnvironments@2024-03-01' = {
+resource containerEnvironment 'Microsoft.App/managedEnvironments@2025-07-01' = {
   name: containerEnvironmentName
   location: location
   properties: {
@@ -102,17 +102,6 @@ resource containerEnvironment 'Microsoft.App/managedEnvironments@2024-03-01' = {
         sharedKey: logAnalytics.listKeys().primarySharedKey
       }
     }
-  }
-}
-
-// Managed Certificate for custom domain
-resource managedCertificate 'Microsoft.App/managedEnvironments/managedCertificates@2024-03-01' = if (!empty(customDomain)) {
-  parent: containerEnvironment
-  name: 'cert-${replace(customDomain, '.', '-')}'
-  location: location
-  properties: {
-    subjectName: customDomain
-    domainControlValidation: 'CNAME'
   }
 }
 
@@ -141,7 +130,7 @@ resource redisCache 'Microsoft.Cache/redis@2023-08-01' = {
 }
 
 // Container App
-resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
+resource containerApp 'Microsoft.App/containerApps@2025-07-01' = {
   name: containerAppName
   location: location
   properties: {
@@ -154,8 +143,7 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
         customDomains: !empty(customDomain) ? [
           {
             name: customDomain
-            certificateId: managedCertificate.id
-            bindingType: 'SniEnabled'
+            bindingType: 'Auto'
           }
         ] : []
         traffic: [
