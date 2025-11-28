@@ -184,6 +184,35 @@ Estimated monthly cost: **~£175/month**
 
 This includes Container App, Redis Cache, Container Registry, Log Analytics, Application Insights, and Qdrant Cloud. Costs may increase with higher traffic as the Container App scales and log volume grows.
 
+### Custom Domain
+
+To add a custom domain with a free Azure-managed SSL certificate:
+
+1. **Add DNS records** (via your DNS provider):
+   - CNAME: `your-subdomain` → `your-app.azurecontainerapps.io`
+   - TXT: `asuid.your-subdomain` → (verification token from step 2)
+
+2. **Get verification token**:
+   ```bash
+   az containerapp hostname add \
+     --name lex-api \
+     --resource-group rg-lex \
+     --hostname your-subdomain.example.com
+   ```
+   If verification fails, note the required TXT record value and add it to DNS.
+
+3. **Bind managed certificate**:
+   ```bash
+   az containerapp hostname bind \
+     --name lex-api \
+     --resource-group rg-lex \
+     --hostname your-subdomain.example.com \
+     --environment lex-env \
+     --validation-method CNAME
+   ```
+
+Certificate issuance takes 1-5 minutes. See [Azure docs](https://learn.microsoft.com/en-us/azure/container-apps/custom-domains-managed-certificates) for details.
+
 ---
 
 ## Populating Data

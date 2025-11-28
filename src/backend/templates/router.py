@@ -13,8 +13,10 @@ templates = Jinja2Templates(directory="src/backend/templates")
 @router.get("/", response_class=HTMLResponse, include_in_schema=False)
 async def serve_homepage(request: Request):
     """Serve the homepage with PostHog configuration and base URL injected from request."""
-    # Auto-detect base URL from request for dynamic MCP endpoint display
-    base_url = str(request.base_url).rstrip("/")
+    # Auto-detect base URL from request, respecting X-Forwarded-Proto for SSL termination
+    scheme = request.headers.get("x-forwarded-proto", request.url.scheme)
+    host = request.headers.get("host", request.url.netloc)
+    base_url = f"{scheme}://{host}"
 
     return templates.TemplateResponse(
         "index.html",
