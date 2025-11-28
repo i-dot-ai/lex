@@ -3,6 +3,9 @@
 from qdrant_client.models import (
     Distance,
     PayloadSchemaType,
+    ScalarQuantization,
+    ScalarQuantizationConfig,
+    ScalarType,
     SparseIndexParams,
     SparseVectorParams,
     VectorParams,
@@ -46,6 +49,13 @@ def get_caselaw_schema():
             "legislation_references": PayloadSchemaType.KEYWORD,  # Filter by legislation references
             "caselaw_references": PayloadSchemaType.KEYWORD,  # Filter by caselaw references
         },
+        "quantization_config": ScalarQuantization(
+            scalar=ScalarQuantizationConfig(
+                type=ScalarType.INT8,
+                quantile=0.99,
+                always_ram=True,
+            )
+        ),
     }
 
 
@@ -83,4 +93,11 @@ def get_caselaw_section_schema():
             "division": PayloadSchemaType.KEYWORD,  # Filter by division
             "year": PayloadSchemaType.INTEGER,  # Range queries (year_from/year_to)
         },
+        "quantization_config": ScalarQuantization(
+            scalar=ScalarQuantizationConfig(
+                type=ScalarType.INT8,
+                quantile=0.99,
+                always_ram=True,
+            )
+        ),
     }

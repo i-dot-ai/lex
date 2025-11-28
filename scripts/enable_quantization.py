@@ -11,18 +11,29 @@ depending on collection size.
 """
 
 import logging
+import os
 import sys
 
+from dotenv import load_dotenv
 from qdrant_client import QdrantClient
 from qdrant_client.models import ScalarQuantization, ScalarQuantizationConfig, ScalarType
+
+load_dotenv()
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
-QDRANT_URL = "http://localhost:6333"
+# Use cloud Qdrant by default
+QDRANT_URL = os.getenv("QDRANT_CLOUD_URL", "http://localhost:6333")
+QDRANT_API_KEY = os.getenv("QDRANT_CLOUD_API_KEY")
+
 COLLECTIONS = [
-    "legislation_section",
     "legislation",
+    "legislation_section",
+    "caselaw",
+    "caselaw_section",
+    "amendment",
+    "explanatory_note",
 ]
 
 
@@ -80,7 +91,7 @@ def main():
     logger.info(f"Qdrant URL: {QDRANT_URL}")
     logger.info(f"Collections: {', '.join(COLLECTIONS)}\n")
 
-    client = QdrantClient(url=QDRANT_URL, timeout=360)
+    client = QdrantClient(url=QDRANT_URL, api_key=QDRANT_API_KEY, timeout=360)
 
     # Enable quantization on all collections
     for collection in COLLECTIONS:
