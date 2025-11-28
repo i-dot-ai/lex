@@ -59,11 +59,22 @@ class SmartCache:
                     del self.memory_cache[key]
             return None
 
+    def _make_serializable(self, value: Any) -> Any:
+        """Convert value to JSON-serializable format, handling Pydantic models."""
+        if hasattr(value, "model_dump"):
+            return value.model_dump(mode="json")
+        if isinstance(value, dict):
+            return {k: self._make_serializable(v) for k, v in value.items()}
+        if isinstance(value, list):
+            return [self._make_serializable(item) for item in value]
+        return value
+
     def set(self, key: str, value: Any, ttl: int = 300) -> bool:
         """Set value in cache with TTL."""
         if self.use_redis:
             try:
-                self.redis_client.setex(key, ttl, json.dumps(value))
+                serializable_value = self._make_serializable(value)
+                self.redis_client.setex(key, ttl, json.dumps(serializable_value, default=str))
                 return True
             except Exception as e:
                 logging.error(f"Redis set error: {e}")
