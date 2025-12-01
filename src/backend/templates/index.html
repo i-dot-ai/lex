@@ -1803,9 +1803,9 @@ claude mcp remove lex</pre>
                         <div class="govuk-grid-column-one-half">
                             <h3 class="govuk-heading-m">Legislation</h3>
                             <ul class="govuk-list govuk-list--bullet">
-                                <li><a href="{{ downloads_base_url }}/legislation/legislation_latest.parquet" class="govuk-link" download>legislation_latest.parquet</a> — All Acts and SIs</li>
-                                <li><a href="{{ downloads_base_url }}/explanatory_note/explanatory_note_latest.parquet" class="govuk-link" download>explanatory_note_latest.parquet</a> — Explanatory notes</li>
-                                <li><a href="{{ downloads_base_url }}/amendment/amendment_latest.parquet" class="govuk-link" download>amendment_latest.parquet</a> — Legislative amendments</li>
+                                <li><a href="{{ downloads_base_url }}/latest/legislation.parquet" class="govuk-link" download>legislation.parquet</a> — All Acts and SIs</li>
+                                <li><a href="{{ downloads_base_url }}/latest/explanatory_note.parquet" class="govuk-link" download>explanatory_note.parquet</a> — Explanatory notes</li>
+                                <li><a href="{{ downloads_base_url }}/latest/amendment.parquet" class="govuk-link" download>amendment.parquet</a> — Legislative amendments</li>
                             </ul>
 
                             <details class="govuk-details">
@@ -1813,7 +1813,7 @@ claude mcp remove lex</pre>
                                     <span class="govuk-details__summary-text">Legislation Sections (by year)</span>
                                 </summary>
                                 <div class="govuk-details__text" id="legislation-section-years">
-                                    <p class="govuk-body-s">Files split by year for manageability. See <a href="{{ downloads_base_url }}/manifest_latest.json" class="govuk-link" target="_blank">manifest_latest.json</a> for current file list.</p>
+                                    <p class="govuk-body-s">Files split by year for manageability. See <a href="{{ downloads_base_url }}/latest/manifest.json" class="govuk-link" target="_blank">manifest.json</a> for current file list.</p>
                                 </div>
                             </details>
                         </div>
@@ -1821,8 +1821,8 @@ claude mcp remove lex</pre>
                         <div class="govuk-grid-column-one-half">
                             <h3 class="govuk-heading-m">Caselaw</h3>
                             <ul class="govuk-list govuk-list--bullet">
-                                <li><a href="{{ downloads_base_url }}/caselaw/caselaw_latest.parquet" class="govuk-link" download>caselaw_latest.parquet</a> — All court judgments</li>
-                                <li><a href="{{ downloads_base_url }}/caselaw_summary/caselaw_summary_latest.parquet" class="govuk-link" download>caselaw_summary_latest.parquet</a> — AI-generated summaries</li>
+                                <li><a href="{{ downloads_base_url }}/latest/caselaw.parquet" class="govuk-link" download>caselaw.parquet</a> — All court judgments</li>
+                                <li><a href="{{ downloads_base_url }}/latest/caselaw_summary.parquet" class="govuk-link" download>caselaw_summary.parquet</a> — AI-generated summaries</li>
                             </ul>
 
                             <details class="govuk-details">
@@ -1830,13 +1830,13 @@ claude mcp remove lex</pre>
                                     <span class="govuk-details__summary-text">Caselaw Sections (by year)</span>
                                 </summary>
                                 <div class="govuk-details__text" id="caselaw-section-years">
-                                    <p class="govuk-body-s">Files split by year (2001-present). See <a href="{{ downloads_base_url }}/manifest_latest.json" class="govuk-link" target="_blank">manifest_latest.json</a> for current file list.</p>
+                                    <p class="govuk-body-s">Files split by year (2001-present). See <a href="{{ downloads_base_url }}/latest/manifest.json" class="govuk-link" target="_blank">manifest.json</a> for current file list.</p>
                                 </div>
                             </details>
                         </div>
                     </div>
 
-                    <p class="govuk-body-s" style="margin-top: 20px;"><strong>Format:</strong> Snappy-compressed Apache Parquet. 4-week retention for dated files. <a href="{{ downloads_base_url }}/manifest_latest.json" class="govuk-link" target="_blank">View manifest</a> for file sizes and record counts.</p>
+                    <p class="govuk-body-s" style="margin-top: 20px;"><strong>Format:</strong> Snappy-compressed Apache Parquet. 4-week retention for archived files. <a href="{{ downloads_base_url }}/latest/manifest.json" class="govuk-link" target="_blank">View manifest</a> for file sizes and record counts.</p>
                 </div>
             </div>
 
