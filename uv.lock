@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 2
 requires-python = ">=3.11"
 resolution-markers = [
     "python_full_version >= '3.13'",
@@ -218,19 +218,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/cd/3f/1d3bbd0bf23bdd99276d4def22f29c27a914067b4cf66f753ff9b8bbd0f3/authlib-1.6.5.tar.gz", hash = "sha256:6aaf9c79b7cc96c900f0b284061691c5d4e61221640a948fe690b556a6d6d10b", size = 164553, upload-time = "2025-10-02T13:36:09.489Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/f8/aa/5082412d1ee302e9e7d80b6949bc4d2a8fa1149aaab610c5fc24709605d6/authlib-1.6.5-py2.py3-none-any.whl", hash = "sha256:3e0e0507807f842b02175507bdee8957a1d5707fd4afb17c32fb43fee90b6e3a", size = 243608, upload-time = "2025-10-02T13:36:07.637Z" },
-]
-
-[[package]]
-name = "aws-lambda-powertools"
-version = "3.22.1"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "jmespath" },
-    { name = "typing-extensions" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/fc/b4/c56b04936006f85b7cd90ffe035904cb19f1ee0e833ff3b9fb10f9efcc55/aws_lambda_powertools-3.22.1.tar.gz", hash = "sha256:a9c45b028f210a6b46db42624afbb2aa916b98fa4fcd402765c69d182521891c", size = 702800, upload-time = "2025-11-05T10:01:17.397Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/41/bb/e0b2f231092c7d34560e91881e3e71f485e0dbcc8d2b9191c78fee8ab6a0/aws_lambda_powertools-3.22.1-py3-none-any.whl", hash = "sha256:ab144f1dc3412314e711f9feb1aa16da6b47b40c75b7fe2c22c6b3d4ad798d6e", size = 848229, upload-time = "2025-11-05T10:01:14.985Z" },
 ]
 
 [[package]]
@@ -1549,15 +1536,6 @@ wheels = [
 ]
 
 [[package]]
-name = "jmespath"
-version = "1.0.1"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/00/2a/e867e8531cf3e36b41201936b7fa7ba7b5702dbef42922193f05c8976cd6/jmespath-1.0.1.tar.gz", hash = "sha256:90261b206d6defd58fdd5e85f478bf633a2901798906be2ad389150c5c60edbe", size = 25843, upload-time = "2022-06-17T18:00:12.224Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/31/b4/b9b800c45527aadd64d5b442f9b932b00648617eb5d63d2c7a6587b7cafc/jmespath-1.0.1-py3-none-any.whl", hash = "sha256:02e2e4cc71b5bcab88332eebf907519190dd9e6e82107fa7f83b1003a6252980", size = 20256, upload-time = "2022-06-17T18:00:10.251Z" },
-]
-
-[[package]]
 name = "jsonschema"
 version = "4.25.1"
 source = { registry = "https://pypi.org/simple" }
@@ -1673,7 +1651,6 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "aiohttp" },
-    { name = "aws-lambda-powertools" },
     { name = "azure-monitor-opentelemetry" },
     { name = "azure-storage-blob" },
     { name = "bs4" },
@@ -1723,7 +1700,6 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "aiohttp", specifier = ">=3.11.18" },
-    { name = "aws-lambda-powertools", specifier = ">=3.11.0" },
     { name = "azure-monitor-opentelemetry", specifier = ">=1.1.1" },
     { name = "azure-storage-blob", specifier = ">=12.24.0" },
     { name = "bs4", specifier = ">=0.0.2" },
