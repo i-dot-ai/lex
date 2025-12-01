@@ -1,12 +1,13 @@
 import logging
 import os
+import random
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import List, Optional, Tuple
 
 from fastembed import SparseTextEmbedding
-from openai import AzureOpenAI
+from openai import AzureOpenAI, RateLimitError, APITimeoutError, APIConnectionError
 from qdrant_client.models import SparseVector
 
 from lex.settings import EMBEDDING_DEPLOYMENT, EMBEDDING_DIMENSIONS
@@ -22,8 +23,9 @@ _sparse_model = None
 _sparse_model_lock = threading.Lock()
 
 # Rate limiting config
-MAX_RETRIES = 5
+MAX_RETRIES = 10
 BASE_BACKOFF = 1.0  # seconds
+MAX_BACKOFF = 120.0  # Cap backoff at 2 minutes
 
 
 def get_openai_client() -> AzureOpenAI:
@@ -39,6 +41,7 @@ def get_openai_client() -> AzureOpenAI:
                     api_version="2024-02-01",
                     azure_endpoint=os.environ.get("AZURE_OPENAI_ENDPOINT"),
                     max_retries=0,  # We handle retries manually
+                    timeout=60.0,  # 60 second timeout for embedding generation
                 )
                 logger.info("Azure OpenAI client initialized")
     return _openai_client
@@ -84,18 +87,26 @@ def generate_dense_embedding_with_retry(text: str, max_retries: int = MAX_RETRIE
             )
             return response.data[0].embedding
 
-        except Exception as e:
+        except (RateLimitError, APITimeoutError, APIConnectionError) as e:
+            # Transient errors - retry with exponential backoff + jitter
             if attempt == max_retries - 1:
                 logger.error(f"Failed to generate dense embedding after {max_retries} retries: {e}")
                 raise
 
-            # Exponential backoff for all errors (rate limits, timeouts, etc.)
-            backoff = BASE_BACKOFF * (2**attempt)
+            # Exponential backoff with jitter and cap
+            backoff = min(BASE_BACKOFF * (2**attempt), MAX_BACKOFF)
+            jitter = random.uniform(0, backoff * 0.1)  # Add up to 10% jitter
+            sleep_time = backoff + jitter
             error_type = type(e).__name__
             logger.warning(
-                f"{error_type}: {e}, retrying in {backoff:.1f}s (attempt {attempt + 1}/{max_retries})"
+                f"{error_type}: {e}, retrying in {sleep_time:.1f}s (attempt {attempt + 1}/{max_retries})"
             )
-            time.sleep(backoff)
+            time.sleep(sleep_time)
+
+        except Exception as e:
+            # Non-transient errors - fail immediately
+            logger.error(f"Non-retryable error generating embedding: {type(e).__name__}: {e}")
+            raise
 
     # Should never reach here, but if we do, raise
     raise Exception(f"Failed to generate embedding after {max_retries} retries")

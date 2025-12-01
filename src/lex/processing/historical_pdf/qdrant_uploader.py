@@ -4,13 +4,16 @@ Simple uploader to merge XML metadata with PDF extractions and upload to Qdrant.
 
 import json
 import logging
+import random
+import time
 import uuid
 from datetime import date
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable, TypeVar
 from urllib.parse import urlparse
 
 from bs4 import BeautifulSoup
+from qdrant_client.http.exceptions import UnexpectedResponse
 from qdrant_client.models import PointStruct
 
 from lex.core.embeddings import (
@@ -28,6 +31,66 @@ from lex.legislation.models import (
 )
 
 logger = logging.getLogger(__name__)
+
+# Retry configuration for Qdrant operations
+QDRANT_MAX_RETRIES = 5
+QDRANT_BASE_BACKOFF = 2.0  # seconds
+QDRANT_MAX_BACKOFF = 60.0  # seconds
+
+T = TypeVar("T")
+
+
+def retry_qdrant_operation(operation: Callable[[], T], operation_name: str) -> T:
+    """
+    Retry a Qdrant operation with exponential backoff for transient errors.
+
+    Args:
+        operation: Function to execute
+        operation_name: Name for logging
+
+    Returns:
+        Result from operation
+
+    Raises:
+        Exception: If operation fails after all retries
+    """
+    for attempt in range(QDRANT_MAX_RETRIES):
+        try:
+            return operation()
+        except UnexpectedResponse as e:
+            # Check if it's a retryable error (502, 503, 504, connection errors)
+            is_retryable = False
+            error_str = str(e)
+
+            # Check for status code in exception attributes or message
+            if hasattr(e, "status_code"):
+                is_retryable = e.status_code in [502, 503, 504]
+            # Parse status code from exception message (e.g., "Unexpected Response: 503")
+            elif any(code in error_str for code in ["502", "503", "504", "Bad Gateway", "Service Unavailable", "Gateway Timeout"]):
+                is_retryable = True
+
+            if not is_retryable or attempt == QDRANT_MAX_RETRIES - 1:
+                logger.error(
+                    f"Qdrant {operation_name} failed after {attempt + 1} attempts: {e}"
+                )
+                raise
+
+            # Exponential backoff with jitter
+            backoff = min(QDRANT_BASE_BACKOFF * (2**attempt), QDRANT_MAX_BACKOFF)
+            jitter = random.uniform(0, backoff * 0.1)
+            sleep_time = backoff + jitter
+
+            logger.warning(
+                f"Qdrant {operation_name} failed with {e}, retrying in {sleep_time:.1f}s (attempt {attempt + 1}/{QDRANT_MAX_RETRIES})"
+            )
+            time.sleep(sleep_time)
+
+        except Exception as e:
+            # Non-retryable errors
+            logger.error(f"Non-retryable error in Qdrant {operation_name}: {type(e).__name__}: {e}")
+            raise
+
+    raise Exception(f"Qdrant {operation_name} failed after {QDRANT_MAX_RETRIES} retries")
 http_client = HttpClient()
 
 # Map XML DocumentMainType to LegislationType enum
@@ -446,6 +509,8 @@ def upload_to_qdrant(
     legislation_records: list[Legislation],
     section_records: list[LegislationSection],
     batch_size: int = 100,
+    legislation_offset: int = 0,
+    section_offset: int = 0,
 ) -> tuple[int, int]:
     """
     Upload legislation and section records to Qdrant with embeddings in batches.
@@ -457,6 +522,8 @@ def upload_to_qdrant(
         legislation_records: List of Legislation instances
         section_records: List of LegislationSection instances
         batch_size: Number of records to upload per batch (default: 100)
+        legislation_offset: Skip first N legislation records (default: 0)
+        section_offset: Skip first N section records (default: 0)
 
     Returns:
         Tuple of (legislation_count, section_count) uploaded
@@ -466,11 +533,17 @@ def upload_to_qdrant(
 
     # Upload legislation in batches (OPTIMIZED with parallel batch embeddings)
     total_leg = len(legislation_records)
-    logger.info(f"📤 Uploading {total_leg:,} legislation records in batches of {batch_size}...")
+
+    if legislation_offset > 0:
+        logger.info(f"⏭️  Skipping first {legislation_offset:,} legislation records (already uploaded)")
+        logger.info(f"📤 Uploading {total_leg - legislation_offset:,} remaining legislation records in batches of {batch_size}...")
+    else:
+        logger.info(f"📤 Uploading {total_leg:,} legislation records in batches of {batch_size}...")
+
     logger.info("⚡ Using parallel batch embeddings (10 workers for dense, bulk for sparse)")
 
     leg_uploaded = 0
-    for i in range(0, total_leg, batch_size):
+    for i in range(legislation_offset, total_leg, batch_size):
         batch = legislation_records[i : i + batch_size]
 
         # Collect all texts from batch
@@ -494,11 +567,14 @@ def upload_to_qdrant(
                 )
             )
 
-        # Upload batch
-        qdrant_client.upsert(
-            collection_name="legislation",
-            points=leg_points,
-            wait=True,
+        # Upload batch with retry logic
+        retry_qdrant_operation(
+            lambda: qdrant_client.upsert(
+                collection_name="legislation",
+                points=leg_points,
+                wait=True,
+            ),
+            operation_name=f"legislation upsert batch {i//batch_size + 1}",
         )
         leg_uploaded += len(leg_points)
 
@@ -512,11 +588,17 @@ def upload_to_qdrant(
 
     # Upload sections in batches (OPTIMIZED with parallel batch embeddings)
     total_sections = len(section_records)
-    logger.info(f"📤 Uploading {total_sections:,} section records in batches of {batch_size}...")
+
+    if section_offset > 0:
+        logger.info(f"⏭️  Skipping first {section_offset:,} section records (already uploaded)")
+        logger.info(f"📤 Uploading {total_sections - section_offset:,} remaining section records in batches of {batch_size}...")
+    else:
+        logger.info(f"📤 Uploading {total_sections:,} section records in batches of {batch_size}...")
+
     logger.info("⚡ Using parallel batch embeddings (10 workers for dense, bulk for sparse)")
 
     sections_uploaded = 0
-    for i in range(0, total_sections, batch_size):
+    for i in range(section_offset, total_sections, batch_size):
         batch = section_records[i : i + batch_size]
 
         # Collect all texts from batch
@@ -538,11 +620,14 @@ def upload_to_qdrant(
                 )
             )
 
-        # Upload batch
-        qdrant_client.upsert(
-            collection_name="legislation_section",
-            points=section_points,
-            wait=True,
+        # Upload batch with retry logic
+        retry_qdrant_operation(
+            lambda: qdrant_client.upsert(
+                collection_name="legislation_section",
+                points=section_points,
+                wait=True,
+            ),
+            operation_name=f"section upsert batch {i//batch_size + 1}",
         )
         sections_uploaded += len(section_points)
 
