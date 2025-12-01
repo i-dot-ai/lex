@@ -22,7 +22,11 @@ load_dotenv(dotenv_path=Path(__file__).parent.parent / ".env", override=True)
 from qdrant_client.models import PayloadSchemaType
 
 from lex.amendment.qdrant_schema import get_amendment_schema
-from lex.caselaw.qdrant_schema import get_caselaw_schema, get_caselaw_section_schema
+from lex.caselaw.qdrant_schema import (
+    get_caselaw_schema,
+    get_caselaw_section_schema,
+    get_caselaw_summary_schema,
+)
 from lex.explanatory_note.qdrant_schema import get_explanatory_note_schema
 from lex.legislation.qdrant_schema import get_legislation_schema, get_legislation_section_schema
 
@@ -65,6 +69,7 @@ def apply_payload_indexes():
         get_legislation_section_schema(),
         get_caselaw_schema(),
         get_caselaw_section_schema(),
+        get_caselaw_summary_schema(),
         get_explanatory_note_schema(),
         get_amendment_schema(),
     ]
