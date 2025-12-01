@@ -1750,8 +1750,9 @@ claude mcp remove lex</pre>
                             <h3 class="govuk-heading-m">Available Documents</h3>
                             <ul class="govuk-list govuk-list--bullet">
                                 <li><strong id="acts-count" class="stat-number">X</strong> Acts and Statutory Instruments</li>
-                                <li><strong id="provisions-count" class="stat-number">X</strong> individual legal provisions</li>
+                                <li><strong id="provisions-count" class="stat-number">X</strong> individual legal sections</li>
                                 <li><strong id="judgments-count" class="stat-number">X</strong> court judgments and decisions</li>
+                                <li><strong id="summaries-count" class="stat-number">X</strong> AI-generated case summaries</li>
                                 <li><strong id="paragraphs-count" class="stat-number">X</strong> court case paragraphs</li>
                                 <li><strong id="explanatory-count" class="stat-number">X</strong> explanatory note sections</li>
                                 <li><strong id="amendments-count" class="stat-number">X</strong> legislative amendments</li>
@@ -1776,7 +1777,7 @@ claude mcp remove lex</pre>
                             <p class="govuk-body-s">Historical legislation digitised using AI for improved accessibility:</p>
                             <ul class="govuk-list govuk-list--bullet govuk-body-s">
                                 <li><strong id="pdf-legislation-count" class="stat-number">X</strong> PDF-sourced Acts (LLM extracted)</li>
-                                <li><strong id="pdf-provisions-count" class="stat-number">X</strong> PDF-sourced provisions (LLM extracted)</li>
+                                <li><strong id="pdf-provisions-count" class="stat-number">X</strong> PDF-sourced sections (LLM extracted)</li>
                             </ul>
                         </div>
                         <div class="pdf-warning-connector">
@@ -2015,6 +2016,7 @@ claude mcp remove lex</pre>
                     'acts-count': stats.acts_and_sis,
                     'provisions-count': stats.provisions,
                     'judgments-count': stats.court_judgments,
+                    'summaries-count': stats.caselaw_summaries,
                     'paragraphs-count': stats.case_paragraphs,
                     'explanatory-count': stats.explanatory_sections,
                     'amendments-count': stats.amendments,

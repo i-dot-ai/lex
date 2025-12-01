@@ -11,6 +11,7 @@ from lex.settings import (
     AMENDMENT_COLLECTION,
     CASELAW_COLLECTION,
     CASELAW_SECTION_COLLECTION,
+    CASELAW_SUMMARY_COLLECTION,
     EXPLANATORY_NOTE_COLLECTION,
     LEGISLATION_COLLECTION,
     LEGISLATION_SECTION_COLLECTION,
@@ -45,6 +46,10 @@ def _calculate_live_stats() -> Dict[str, Any]:
         collection_name=CASELAW_SECTION_COLLECTION, exact=True
     ).count
 
+    caselaw_summaries_count = qdrant_client.count(
+        collection_name=CASELAW_SUMMARY_COLLECTION, exact=True
+    ).count
+
     explanatory_count = qdrant_client.count(
         collection_name=EXPLANATORY_NOTE_COLLECTION, exact=True
     ).count
@@ -74,6 +79,7 @@ def _calculate_live_stats() -> Dict[str, Any]:
         "acts_and_sis": f"{legislation_count:,}",
         "provisions": f"{sections_count:,}",
         "court_judgments": f"{caselaw_count:,}",
+        "caselaw_summaries": f"{caselaw_summaries_count:,}",
         "case_paragraphs": f"{caselaw_sections_count:,}",
         "explanatory_sections": f"{explanatory_count:,}",
         "amendments": f"{amendments_count:,}",
