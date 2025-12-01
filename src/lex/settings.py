@@ -18,6 +18,7 @@ LEGISLATION_COLLECTION = "legislation"
 LEGISLATION_SECTION_COLLECTION = "legislation_section"
 CASELAW_COLLECTION = "caselaw"
 CASELAW_SECTION_COLLECTION = "caselaw_section"
+CASELAW_SUMMARY_COLLECTION = "caselaw_summary"
 EXPLANATORY_NOTE_COLLECTION = "explanatory_note"
 AMENDMENT_COLLECTION = "amendment"
 

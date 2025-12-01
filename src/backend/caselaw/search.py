@@ -14,13 +14,14 @@ from backend.caselaw.models import (
     CaselawReferenceSearch,
     CaselawSearch,
     CaselawSectionSearch,
+    CaselawSummarySearch,
     ReferenceType,
 )
 from backend.core.cache import cached_search
-from lex.caselaw.models import Caselaw, CaselawSection
+from lex.caselaw.models import Caselaw, CaselawSection, CaselawSummary
 from lex.core.embeddings import generate_hybrid_embeddings
 from lex.core.qdrant_client import qdrant_client
-from lex.settings import CASELAW_COLLECTION, CASELAW_SECTION_COLLECTION
+from lex.settings import CASELAW_COLLECTION, CASELAW_SECTION_COLLECTION, CASELAW_SUMMARY_COLLECTION
 
 logger = logging.getLogger(__name__)
 
@@ -206,3 +207,70 @@ async def caselaw_reference_search(input: CaselawReferenceSearch) -> list[Casela
     cases = [Caselaw(**point.payload) for point in results]
 
     return cases
+
+
+@cached_search
+async def caselaw_summary_search(input: CaselawSummarySearch) -> dict:
+    """Search caselaw summaries for efficient discovery.
+
+    If a query is provided, performs hybrid (dense + sparse) search if is_semantic_search=True,
+    or sparse-only (BM25) search if is_semantic_search=False.
+    If no query, returns filtered results.
+
+    Returns:
+        dict with keys: results (list[CaselawSummary]), total (int), offset (int), size (int)
+    """
+    filter_conditions = get_filters(
+        court_filter=input.court,
+        division_filter=input.division,
+        year_from=input.year_from,
+        year_to=input.year_to,
+    )
+
+    query_filter = Filter(must=filter_conditions) if filter_conditions else None
+
+    if input.query and input.query.strip():
+        # Generate embeddings for query
+        dense, sparse = generate_hybrid_embeddings(input.query)
+
+        if input.is_semantic_search:
+            # Hybrid search with RRF fusion
+            results = qdrant_client.query_points(
+                collection_name=CASELAW_SUMMARY_COLLECTION,
+                query=FusionQuery(fusion=Fusion.RRF),
+                prefetch=[
+                    Prefetch(query=dense, using="dense", limit=input.size + input.offset),
+                    Prefetch(query=sparse, using="sparse", limit=input.size + input.offset),
+                ],
+                query_filter=query_filter,
+                limit=input.size,
+                offset=input.offset,
+                with_payload=True,
+            )
+        else:
+            # Sparse-only (BM25) search
+            results = qdrant_client.query_points(
+                collection_name=CASELAW_SUMMARY_COLLECTION,
+                query=sparse,
+                using="sparse",
+                query_filter=query_filter,
+                limit=input.size,
+                offset=input.offset,
+                with_payload=True,
+            )
+    else:
+        # No query - just filter
+        results = qdrant_client.query_points(
+            collection_name=CASELAW_SUMMARY_COLLECTION,
+            query_filter=query_filter,
+            limit=input.size,
+            offset=input.offset,
+            with_payload=True,
+        )
+
+    summaries = [CaselawSummary(**point.payload) for point in results.points]
+
+    # Qdrant doesn't return total in query_points, approximate with results length
+    total = len(results.points)
+
+    return {"results": summaries, "total": total, "offset": input.offset, "size": input.size}

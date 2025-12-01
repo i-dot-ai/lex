@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 from enum import Enum
 
 from pydantic import Field
@@ -143,3 +143,40 @@ class CaselawSection(EmbeddableModel):
     cite_as: str
     route: list[str]
     order: int
+
+
+class CaselawSummary(EmbeddableModel):
+    """AI-generated summary of a court judgment for search indexing."""
+
+    id: str = Field(description="Summary ID: {caselaw_id}-summary")
+    caselaw_id: str = Field(description="Reference to parent Caselaw document")
+
+    # Copied from parent for filtering (denormalised for query efficiency)
+    court: Court
+    division: CourtDivision | None = None
+    year: int
+    number: int
+    name: str
+    cite_as: str | None = None
+    date: date
+
+    # AI-generated content
+    text: str = Field(description="AI-generated structured summary")
+    ai_model: str = Field(description="Model used (e.g., 'gpt-5-nano')")
+    ai_timestamp: datetime = Field(description="When summary was generated")
+
+    # Source metadata
+    source_text_length: int = Field(description="Character count of original judgment")
+    source_text_truncated: bool = Field(default=False, description="Whether source was truncated")
+
+    def get_embedding_text(self) -> str:
+        """Build contextual text for semantic embedding."""
+        parts = [
+            f"Case: {self.name}",
+            f"Citation: {self.cite_as}" if self.cite_as else "",
+            f"Court: {self.court.value.upper()}",
+            f"Year: {self.year}",
+            "",
+            self.text,  # The AI summary is the primary embedding content
+        ]
+        return "\n".join(filter(None, parts))

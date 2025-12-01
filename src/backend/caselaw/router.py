@@ -10,8 +10,15 @@ from backend.caselaw.models import (
     CaselawSearch,
     CaselawSearchResponse,
     CaselawSectionSearch,
+    CaselawSummarySearch,
+    CaselawSummarySearchResponse,
 )
-from backend.caselaw.search import caselaw_reference_search, caselaw_search, caselaw_section_search
+from backend.caselaw.search import (
+    caselaw_reference_search,
+    caselaw_search,
+    caselaw_section_search,
+    caselaw_summary_search,
+)
 from lex.caselaw.models import Caselaw, CaselawSection
 
 router = APIRouter(
@@ -90,6 +97,30 @@ async def search_caselaw_reference_endpoint(search: CaselawReferenceSearch):
 )
 async def search_caselaw_reference_alias(search: CaselawReferenceSearch):
     return await search_caselaw_reference_endpoint(search)
+
+
+@router.post(
+    "/summary/search",
+    response_model=CaselawSummarySearchResponse,
+    operation_id="search_caselaw_summaries",
+    summary="Search AI-generated case summaries",
+    description=(
+        "Find cases by AI-generated summaries. Returns concise results suitable for "
+        "AI agents. Summaries include material facts, legal issues, ratio decidendi, "
+        "reasoning, and obiter dicta."
+    ),
+)
+async def search_caselaw_summaries_endpoint(search: CaselawSummarySearch):
+    try:
+        result = await caselaw_summary_search(search)
+        return result
+    except Exception as e:
+        error_detail = {
+            "error_type": type(e).__name__,
+            "error_message": str(e),
+            "traceback": traceback.format_exc(),
+        }
+        raise HTTPException(status_code=500, detail=error_detail)
 
 
 @router.get(
