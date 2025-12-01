@@ -1,0 +1,16 @@
+{
+  "name": "i-dot-ai/lex",
+  "owner": {
+    "name": "Incubator for AI",
+    "email": "lex@cabinetoffice.gov.uk"
+  },
+  "plugins": [
+    {
+      "name": "lex-uk-law",
+      "description": "UK legal research skill - search legislation, case law, and legal provisions",
+      "source": "local:skills/lex-uk-law",
+      "version": "1.0.0",
+      "author": "i.AI"
+    }
+  ]
+}

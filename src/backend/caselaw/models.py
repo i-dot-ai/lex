@@ -3,7 +3,7 @@ from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
-from lex.caselaw.models import Caselaw, Court, CourtDivision
+from lex.caselaw.models import Caselaw, CaselawSummary, Court, CourtDivision
 
 
 class ReferenceType(str, Enum):
@@ -100,6 +100,54 @@ class CaselawSearchResponse(BaseModel):
     """Response model for caselaw search with pagination metadata."""
 
     results: list[Caselaw] = Field(description="List of caselaw results")
+    total: int = Field(description="Total number of results available")
+    offset: int = Field(description="Current offset")
+    size: int = Field(description="Number of results per page")
+
+
+class CaselawSummarySearch(BaseModel):
+    """Search caselaw summaries for efficient discovery by AI agents."""
+
+    query: str | None = Field(
+        default=None,
+        description=(
+            "The natural language query to search for. Searches AI-generated summaries "
+            "which include material facts, legal issues, ratio decidendi, reasoning, "
+            "and obiter dicta."
+        ),
+        examples=[
+            "duty of care in negligence",
+            "employment discrimination remedies",
+            "judicial review grounds",
+        ],
+    )
+    is_semantic_search: bool = Field(
+        default=True,
+        description=(
+            "Whether to use semantic search. Unless the user requests a non-semantic "
+            "search, default to semantic search"
+        ),
+    )
+    court: list[Court] | None = Field(default=None, description="Filter by court.")
+    division: list[CourtDivision] | None = Field(
+        default=None, description="Filter by court division."
+    )
+    year_from: int | None = Field(
+        default=None, description="Filter by cases from this year onwards."
+    )
+    year_to: int | None = Field(default=None, description="Filter by cases up to this year.")
+    offset: int = Field(
+        default=0,
+        ge=0,
+        description="The number of results to skip (for pagination).",
+    )
+    size: int = Field(default=20, description="Maximum number of results to return.")
+
+
+class CaselawSummarySearchResponse(BaseModel):
+    """Response model for caselaw summary search with pagination metadata."""
+
+    results: list[CaselawSummary] = Field(description="List of caselaw summary results")
     total: int = Field(description="Total number of results available")
     offset: int = Field(description="Current offset")
     size: int = Field(description="Number of results per page")

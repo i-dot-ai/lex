@@ -78,7 +78,94 @@
             --iai-pink-hover: #9e0660;
             --iai-pink-dark: #4f0330;
         }
-        
+
+        /* Dark mode overrides */
+        .dark-mode {
+            --govuk-text-colour: #ffffff;
+            --govuk-secondary-background: #1a1a1a;
+            --govuk-border-colour: #505a5f;
+        }
+
+        .dark-mode .govuk-template__body {
+            background-color: #0b0c0c;
+            color: #ffffff;
+        }
+
+        .dark-mode .govuk-main-wrapper {
+            background-color: #0b0c0c;
+        }
+
+        .dark-mode .code-block {
+            background-color: #2a2a2a;
+            border-color: #505a5f;
+        }
+
+        .dark-mode .govuk-notification-banner {
+            background-color: #2a2a2a;
+        }
+
+        .dark-mode .mcp-tabs__list {
+            background-color: #2a2a2a;
+        }
+
+        .dark-mode .mcp-tabs__tab {
+            background-color: #2a2a2a;
+            color: #ffffff;
+            border-color: #505a5f;
+        }
+
+        .dark-mode .mcp-tabs__tab--active {
+            background-color: #1a1a1a;
+            color: var(--iai-pink);
+        }
+
+        .dark-mode .mcp-tabs__panel {
+            background-color: #1a1a1a;
+            border-color: #505a5f;
+        }
+
+        .dark-mode .mcp-tabs__content {
+            background-color: #1a1a1a;
+            color: #ffffff;
+        }
+
+        /* Invert dark icons in dark mode - Claude and VS Code icons are already light-friendly */
+        .dark-mode .mcp-tabs__tab-icon[alt="Microsoft Copilot"],
+        .dark-mode .mcp-tabs__tab-icon[alt="Cursor"] {
+            filter: invert(1);
+        }
+
+        .dark-mode .json-string { color: #79c0ff; }
+        .dark-mode .json-key { color: #79c0ff; }
+        .dark-mode .json-punctuation { color: #ffffff; }
+
+        .dark-mode .github-card {
+            background-color: #2a2a2a;
+            border-color: #505a5f;
+        }
+
+        .dark-mode .github-card__title {
+            color: #ffffff;
+        }
+
+        .dark-mode .github-card__description {
+            color: #b1b4b6;
+        }
+
+        .dark-mode .github-card__icon {
+            filter: invert(1);
+        }
+
+        .dark-mode .govuk-button--secondary {
+            background-color: #505a5f;
+            color: #ffffff;
+            box-shadow: 0 2px 0 #383838;
+        }
+
+        .dark-mode .govuk-button--secondary:hover {
+            background-color: #626a6e;
+        }
+
         /* Typography scale */
         .govuk-heading-xl {
             font-size: 32px;
@@ -209,9 +296,9 @@
             white-space: inherit;
         }
         
-        /* Header */
+        /* Header - hardcoded to stay dark regardless of mode */
         .govuk-header {
-            background: var(--govuk-text-colour);
+            background: #0b0c0c;
             color: #ffffff;
             border-bottom: 5px solid var(--iai-pink);
         }
@@ -274,7 +361,77 @@
             margin: 15px 0;
             display: block;
         }
-        
+
+        .govuk-header__lab-tag {
+            background: var(--iai-pink);
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            padding: 4px 8px;
+            margin-left: 20px;
+            border-radius: 0;
+        }
+
+        /* Dark mode toggle */
+        .dark-mode-toggle {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            color: white;
+            cursor: pointer;
+            padding: 4px 10px;
+            font-size: 12px;
+            font-family: Inter, arial, sans-serif;
+            margin-left: 15px;
+            transition: all 0.2s ease;
+        }
+
+        .dark-mode-toggle:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: white;
+        }
+
+        /* API status indicator */
+        .api-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.8);
+            margin-left: 15px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #b1b4b6;
+            transition: all 0.3s ease;
+        }
+
+        .status-dot.operational {
+            background: #00e676;
+            box-shadow: 0 0 8px #00e676;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 0 8px #00e676;
+            }
+            50% {
+                box-shadow: 0 0 12px #00e676, 0 0 4px #00e676;
+            }
+        }
+
+        .status-dot.degraded {
+            background: #f47738;
+        }
+
+        .status-dot.down {
+            background: var(--govuk-error-colour);
+        }
+
         @media (min-width: 40.0625em) {
             .govuk-header__container {
                 padding-top: 35px;
@@ -294,6 +451,10 @@
             .govuk-header__iai-logo img {
                 height: 45px;
                 margin: 20px 0;
+            }
+
+            .govuk-header__lab-tag {
+                font-size: 16px;
             }
         }
         
@@ -562,17 +723,18 @@
             line-height: 1.45;
             position: relative;
         }
-        
+
         .code-block pre {
             margin: 0;
             padding: 0;
+            padding-right: 80px;
             background: none;
             border: 0;
             font-family: inherit;
             font-size: inherit;
             color: inherit;
         }
-        
+
         /* Copy button */
         .copy-button {
             position: absolute;
@@ -580,25 +742,38 @@
             right: 10px;
             padding: 5px 10px;
             border: 1px solid var(--iai-pink);
-            background: transparent;
+            background: var(--govuk-secondary-background);
             color: var(--iai-pink);
             font-size: 12px;
             font-weight: 500;
             cursor: pointer;
             border-radius: 0;
             font-family: Inter, arial, sans-serif;
+            transition: all 0.2s ease;
         }
-        
+
         .copy-button:hover {
             background-color: var(--iai-pink);
             color: #ffffff;
         }
-        
+
         .copy-button:focus {
             background-color: var(--govuk-focus-colour);
             border-color: var(--govuk-text-colour);
             color: var(--govuk-text-colour);
             outline: 3px solid transparent;
+        }
+
+        .copy-button.copied {
+            background: var(--govuk-success-colour);
+            border-color: var(--govuk-success-colour);
+            color: white;
+        }
+
+        .dark-mode .copy-button {
+            background: #1a1a1a;
+            border-color: var(--iai-pink);
+            color: var(--iai-pink);
         }
         
         /* JSON syntax highlighting */
@@ -637,11 +812,247 @@
                 margin-bottom: 20px;
             }
         }
-        
-        /* Footer */
+
+        /* Stats animation */
+        .stat-number {
+            display: inline-block;
+        }
+
+        /* Use case cards */
+        .use-cases-section {
+            margin: 40px 0;
+        }
+
+        .use-case-card {
+            background: var(--govuk-secondary-background);
+            padding: 25px;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .use-case-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .dark-mode .use-case-card {
+            background: #2a2a2a;
+        }
+
+        .dark-mode .use-case-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .use-case-card h3 {
+            margin-bottom: 10px;
+        }
+
+        .use-case-icon {
+            font-size: 36px;
+            margin-bottom: 15px;
+        }
+
+        /* Warning text - GOV.UK official styling */
+        .govuk-warning-text {
+            position: relative;
+            padding: 10px 0 10px 45px;
+            margin-bottom: 20px;
+        }
+
+        .govuk-warning-text__icon {
+            box-sizing: border-box;
+            display: inline-block;
+            position: absolute;
+            left: 0;
+            min-width: 35px;
+            min-height: 35px;
+            margin-top: -7px;
+            border: 3px solid #0b0c0c;
+            border-radius: 50%;
+            color: #ffffff;
+            background: #0b0c0c;
+            font-size: 30px;
+            line-height: 29px;
+            text-align: center;
+            -webkit-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        .govuk-warning-text__text {
+            font-weight: 700;
+            display: block;
+            font-size: 16px;
+        }
+
+        .dark-mode .govuk-warning-text__icon {
+            border-color: #ffffff;
+            background: #ffffff;
+            color: #0b0c0c;
+        }
+
+        /* PDF section with warning bracket */
+        .pdf-section-with-warning {
+            display: flex;
+            align-items: stretch;
+            gap: 30px;
+            margin-top: 30px;
+            padding: 20px 0;
+        }
+
+        .pdf-section-content {
+            flex: 1;
+            border-left: 4px solid var(--iai-pink);
+            padding-left: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .pdf-section-content h3 {
+            margin-top: 0;
+        }
+
+        .pdf-section-content ul {
+            margin-bottom: 0;
+        }
+
+        .pdf-warning-connector {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            background: var(--govuk-secondary-background);
+            padding: 20px;
+            border-left: 4px solid var(--iai-pink);
+        }
+
+        .dark-mode .pdf-warning-connector {
+            background: #2a2a2a;
+        }
+
+        .pdf-warning-connector .govuk-warning-text {
+            margin: 0;
+            padding-left: 50px;
+        }
+
+        @media (max-width: 40em) {
+            .pdf-section-with-warning {
+                flex-direction: column;
+                gap: 20px;
+            }
+        }
+
+        /* Cursor install button */
+        .cursor-install-section {
+            margin-bottom: 25px;
+        }
+
+        .cursor-install-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .cursor-install-icon {
+            width: 20px;
+            height: 20px;
+            filter: brightness(0) invert(1);
+        }
+
+        /* GOV.UK Details component */
+        .govuk-details {
+            margin-bottom: 20px;
+        }
+
+        .govuk-details__summary {
+            display: inline-block;
+            position: relative;
+            margin-bottom: 5px;
+            padding-left: 25px;
+            color: var(--govuk-link-colour);
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .govuk-details__summary:hover {
+            color: var(--govuk-link-hover-colour);
+        }
+
+        .govuk-details__summary::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-color: transparent;
+            border-left-color: inherit;
+            border-width: 7px 0 7px 12.124px;
+            transform: translateY(3px);
+        }
+
+        .govuk-details[open] > .govuk-details__summary::before {
+            border-width: 12.124px 7px 0 7px;
+            border-color: inherit;
+            border-top-color: inherit;
+            border-left-color: transparent;
+        }
+
+        .govuk-details__summary-text {
+            text-decoration: underline;
+        }
+
+        .govuk-details__text {
+            padding: 15px;
+            padding-left: 20px;
+            border-left: 5px solid var(--govuk-border-colour);
+        }
+
+        .dark-mode .govuk-details__text {
+            border-left-color: #505a5f;
+        }
+
+        /* Phase banner */
+        .govuk-phase-banner {
+            padding: 10px 0;
+            border-bottom: 1px solid #b1b4b6;
+        }
+
+        .govuk-phase-banner__content {
+            display: flex;
+            align-items: center;
+            margin: 0;
+            font-size: 14px;
+        }
+
+        .govuk-phase-banner__content__tag {
+            margin-right: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .govuk-phase-banner__text {
+            color: var(--govuk-text-colour);
+        }
+
+        .govuk-tag {
+            display: inline-block;
+            padding: 4px 8px;
+            font-weight: 700;
+            font-size: 14px;
+            line-height: 1;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            background-color: var(--iai-pink);
+            color: #ffffff;
+        }
+
+        /* Footer - hardcoded to stay dark regardless of mode */
         .govuk-footer {
-            background: var(--govuk-text-colour);
-            border-top: 1px solid var(--govuk-border-colour);
+            background: #0b0c0c;
+            border-top: 1px solid #b1b4b6;
         }
         
         .govuk-footer__content-container {
@@ -930,17 +1341,35 @@
                         Lex API
                     </a>
                     <span class="govuk-header__experiment-tag">EXPERIMENT</span>
+                    <div class="api-status">
+                        <span class="status-dot" id="status-dot"></span>
+                        <span class="status-text" id="status-text">Checking...</span>
+                    </div>
                 </div>
                 <div class="govuk-header__iai-logo">
                     <a href="https://ai.gov.uk" aria-label="Incubator for AI" target="_blank" rel="noopener noreferrer">
                         <img src="https://ai.gov.uk/logos/i-dot-ai-reverse.svg" alt="i.AI - Incubator for Artificial Intelligence" />
                     </a>
+                    <span class="govuk-header__lab-tag">LAB</span>
+                    <button class="dark-mode-toggle" onclick="toggleDarkMode()" aria-label="Toggle dark mode">
+                        <span id="dark-mode-icon">Dark</span>
+                    </button>
                 </div>
             </div>
         </div>
     </header>
 
     <div class="govuk-width-container">
+        <div class="govuk-phase-banner">
+            <p class="govuk-phase-banner__content">
+                <strong class="govuk-tag govuk-phase-banner__content__tag">
+                    Experiment
+                </strong>
+                <span class="govuk-phase-banner__text">
+                    This is an experiment – your <a class="govuk-link" href="https://github.com/i-dot-ai/lex/issues/new" target="_blank" rel="noopener noreferrer">feedback</a> will help us improve it.
+                </span>
+            </p>
+        </div>
         <main class="govuk-main-wrapper" id="main-content" role="main">
             
             <!-- Hero section -->
@@ -967,6 +1396,34 @@
                 </div>
             </div>
 
+            <!-- Use Case Cards section -->
+            <section class="use-cases-section govuk-!-margin-bottom-8">
+                <h2 class="govuk-heading-l">What Can You Build?</h2>
+                <div class="govuk-grid-row">
+                    <div class="govuk-grid-column-one-third">
+                        <div class="use-case-card">
+                            <div class="use-case-icon">&#9878;&#65039;</div>
+                            <h3 class="govuk-heading-s">Legal Research</h3>
+                            <p class="govuk-body-s">Find precedents and relevant legislation in seconds. Ask natural language questions about UK law.</p>
+                        </div>
+                    </div>
+                    <div class="govuk-grid-column-one-third">
+                        <div class="use-case-card">
+                            <div class="use-case-icon">&#128202;</div>
+                            <h3 class="govuk-heading-s">Policy Analysis</h3>
+                            <p class="govuk-body-s">Track legislative changes over time. Compare provisions across different Acts and amendments.</p>
+                        </div>
+                    </div>
+                    <div class="govuk-grid-column-one-third">
+                        <div class="use-case-card">
+                            <div class="use-case-icon">&#129302;</div>
+                            <h3 class="govuk-heading-s">AI Grounding</h3>
+                            <p class="govuk-body-s">Ground AI assistants in authoritative UK legal sources. Reduce hallucinations with verified data.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <!-- MCP Setup section -->
             <div class="govuk-grid-row govuk-!-margin-bottom-8">
                 <div class="govuk-grid-column-full">
@@ -988,14 +1445,58 @@
                                 </button>
                             </li>
                             <li role="presentation">
-                                <button class="mcp-tabs__tab" 
-                                        role="tab" 
-                                        aria-selected="false" 
-                                        aria-controls="copilot-panel" 
+                                <button class="mcp-tabs__tab"
+                                        role="tab"
+                                        aria-selected="false"
+                                        aria-controls="claude-code-panel"
+                                        id="claude-code-tab"
+                                        onclick="switchTab('claude-code')">
+                                    <img src="/claude.svg" alt="Claude Code" class="mcp-tabs__tab-icon">
+                                    Claude Code
+                                </button>
+                            </li>
+                            <li role="presentation">
+                                <button class="mcp-tabs__tab"
+                                        role="tab"
+                                        aria-selected="false"
+                                        aria-controls="skill-panel"
+                                        id="skill-tab"
+                                        onclick="switchTab('skill')">
+                                    <img src="/claude.svg" alt="Claude Code Skill" class="mcp-tabs__tab-icon">
+                                    Skill
+                                </button>
+                            </li>
+                            <li role="presentation">
+                                <button class="mcp-tabs__tab"
+                                        role="tab"
+                                        aria-selected="false"
+                                        aria-controls="cursor-panel"
+                                        id="cursor-tab"
+                                        onclick="switchTab('cursor')">
+                                    <img src="/cursor.svg" alt="Cursor" class="mcp-tabs__tab-icon">
+                                    Cursor
+                                </button>
+                            </li>
+                            <li role="presentation">
+                                <button class="mcp-tabs__tab"
+                                        role="tab"
+                                        aria-selected="false"
+                                        aria-controls="copilot-panel"
                                         id="copilot-tab"
                                         onclick="switchTab('copilot')">
                                     <img src="/copilot.svg" alt="Microsoft Copilot" class="mcp-tabs__tab-icon">
                                     Microsoft Copilot
+                                </button>
+                            </li>
+                            <li role="presentation">
+                                <button class="mcp-tabs__tab"
+                                        role="tab"
+                                        aria-selected="false"
+                                        aria-controls="vscode-panel"
+                                        id="vscode-tab"
+                                        onclick="switchTab('vscode')">
+                                    <img src="/vscode.svg" alt="VS Code" class="mcp-tabs__tab-icon">
+                                    VS Code
                                 </button>
                             </li>
                         </ul>
@@ -1007,7 +1508,6 @@
                             <p class="govuk-body-s"><strong>Config file location:</strong> <code>~/Library/Application Support/Claude/claude_desktop_config.json</code></p>
                             
                             <div class="code-block">
-                                <button class="copy-button" onclick="copyToClipboard('claude-config')" aria-label="Copy Claude Desktop MCP configuration to clipboard">Copy</button>
                                 <pre id="claude-config"><span class="json-punctuation">{</span>
   <span class="json-key">"mcpServers"</span><span class="json-punctuation">:</span> <span class="json-punctuation">{</span>
     <span class="json-key">"lex"</span><span class="json-punctuation">:</span> <span class="json-punctuation">{</span>
@@ -1015,15 +1515,145 @@
       <span class="json-key">"args"</span><span class="json-punctuation">:</span> <span class="json-punctuation">[</span>
         <span class="json-string">"-y"</span><span class="json-punctuation">,</span>
         <span class="json-string">"mcp-remote@latest"</span><span class="json-punctuation">,</span>
-        <span class="json-string">"https://lex-api.victoriousdesert-f8e685e0.uksouth.azurecontainerapps.io/mcp"</span>
-      <span class="json-punctuation">]</span><span class="json-punctuation">,</span>
-      <span class="json-key">"env"</span><span class="json-punctuation">:</span> <span class="json-punctuation">{}</span>
+        <span class="json-string">"{{ base_url }}/mcp"</span>
+      <span class="json-punctuation">]</span>
     <span class="json-punctuation">}</span>
   <span class="json-punctuation">}</span>
 <span class="json-punctuation">}</span></pre>
+                                <button class="copy-button" onclick="copyToClipboard('claude-config')" aria-label="Copy Claude Desktop MCP configuration to clipboard">Copy</button>
                             </div>
+
+                            <p class="govuk-body-s" style="margin-top: 20px;"><strong>Tip:</strong> Also install the <a href="#" onclick="switchTab('skill'); return false;" class="govuk-link">Lex UK Law skill</a> for enhanced legal research guidance.</p>
                         </div>
-                        
+
+                        <!-- Claude Code Configuration -->
+                        <div id="claude-code-panel" class="mcp-tabs__content" role="tabpanel" aria-labelledby="claude-code-tab">
+                            <h3 class="govuk-heading-m">Claude Code Configuration</h3>
+                            <p class="govuk-body">Connect Claude Code to Lex API using the CLI. Claude Code supports HTTP, SSE, and stdio MCP transports.</p>
+
+                            <h4 class="govuk-heading-s">One-Line Install</h4>
+                            <p class="govuk-body-s">Run this command in your terminal to add the Lex MCP server:</p>
+
+                            <div class="code-block">
+                                <pre id="claude-code-config">claude mcp add --transport http lex {{ base_url }}/mcp</pre>
+                                <button class="copy-button" onclick="copyToClipboard('claude-code-config')" aria-label="Copy Claude Code MCP command to clipboard">Copy</button>
+                            </div>
+
+                            <p class="govuk-body-s" style="margin-top: 20px;"><strong>Tip:</strong> Also install the <a href="#" onclick="switchTab('skill'); return false;" class="govuk-link">Lex UK Law skill</a> for enhanced legal research guidance.</p>
+
+                            <details class="govuk-details">
+                                <summary class="govuk-details__summary">
+                                    <span class="govuk-details__summary-text">Configuration options</span>
+                                </summary>
+                                <div class="govuk-details__text">
+                                    <p class="govuk-body-s"><strong>Scope options:</strong></p>
+                                    <ul class="govuk-list govuk-list--bullet govuk-body-s">
+                                        <li><code>--scope local</code> (default) — Available only in current project</li>
+                                        <li><code>--scope project</code> — Shared via <code>.mcp.json</code> file</li>
+                                        <li><code>--scope user</code> — Available across all projects</li>
+                                    </ul>
+
+                                    <p class="govuk-body-s"><strong>Manage servers:</strong></p>
+                                    <div class="code-block">
+                                        <pre id="claude-code-manage"># List configured servers
+claude mcp list
+
+# Check server status (in Claude Code)
+/mcp
+
+# Remove a server
+claude mcp remove lex</pre>
+                                        <button class="copy-button" onclick="copyToClipboard('claude-code-manage')" aria-label="Copy Claude Code management commands to clipboard">Copy</button>
+                                    </div>
+                                </div>
+                            </details>
+                        </div>
+
+                        <!-- Skill Installation -->
+                        <div id="skill-panel" class="mcp-tabs__content" role="tabpanel" aria-labelledby="skill-tab">
+                            <h3 class="govuk-heading-m">Lex UK Law Skill</h3>
+                            <p class="govuk-body">Install the Lex UK Law skill for automatic legal research guidance. Skills work across Claude Code, Claude Desktop, and claude.ai.</p>
+
+                            <h4 class="govuk-heading-s">Claude Code</h4>
+                            <p class="govuk-body-s">Run these commands in Claude Code:</p>
+
+                            <div class="code-block">
+                                <pre id="skill-install"># Add the marketplace
+/plugin marketplace add i-dot-ai/lex
+
+# Install the skill
+/plugin install lex-uk-law</pre>
+                                <button class="copy-button" onclick="copyToClipboard('skill-install')" aria-label="Copy skill install commands to clipboard">Copy</button>
+                            </div>
+
+                            <h4 class="govuk-heading-s">Claude Desktop / claude.ai</h4>
+                            <p class="govuk-body-s">Download the skill and upload via Settings → Capabilities → Upload skill:</p>
+                            <a href="/lex-uk-law-skill.zip"
+                               class="govuk-button govuk-button--secondary"
+                               download>
+                                Download Skill (.zip)
+                            </a>
+
+                            <details class="govuk-details">
+                                <summary class="govuk-details__summary">
+                                    <span class="govuk-details__summary-text">What are skills?</span>
+                                </summary>
+                                <div class="govuk-details__text">
+                                    <p class="govuk-body-s">Skills are reusable capabilities that Claude automatically activates based on your request. Unlike MCP servers which provide tools, skills provide context and guidance for specific domains.</p>
+                                    <p class="govuk-body-s"><strong>When you ask about UK law</strong>, Claude will automatically use the Lex skill to guide its legal research approach.</p>
+                                </div>
+                            </details>
+
+                            <details class="govuk-details">
+                                <summary class="govuk-details__summary">
+                                    <span class="govuk-details__summary-text">Skill vs MCP server</span>
+                                </summary>
+                                <div class="govuk-details__text">
+                                    <p class="govuk-body-s"><strong>Use both together for best results:</strong></p>
+                                    <ul class="govuk-list govuk-list--bullet govuk-body-s">
+                                        <li><strong>MCP Server</strong> — Provides the search tools (required)</li>
+                                        <li><strong>Skill</strong> — Provides domain expertise and best practices (recommended)</li>
+                                    </ul>
+                                    <p class="govuk-body-s">Install the MCP server first, then add the skill for enhanced legal research guidance.</p>
+                                </div>
+                            </details>
+                        </div>
+
+                        <!-- Cursor Configuration -->
+                        <div id="cursor-panel" class="mcp-tabs__content" role="tabpanel" aria-labelledby="cursor-tab">
+                            <h3 class="govuk-heading-m">Cursor Configuration</h3>
+                            <p class="govuk-body">Add the Lex API MCP server to Cursor with one click or configure manually.</p>
+
+                            <div class="cursor-install-section">
+                                <h4 class="govuk-heading-s">One-Click Install</h4>
+                                <p class="govuk-body-s">Click the button below to automatically add Lex to your Cursor configuration:</p>
+                                <a id="cursor-install-link" href="#" class="govuk-button cursor-install-button" role="button">
+                                    <img src="/cursor.svg" alt="" class="cursor-install-icon"> Add to Cursor
+                                </a>
+                            </div>
+
+                            <details class="govuk-details">
+                                <summary class="govuk-details__summary">
+                                    <span class="govuk-details__summary-text">Manual Configuration</span>
+                                </summary>
+                                <div class="govuk-details__text">
+                                    <p class="govuk-body-s">Add this to your Cursor MCP configuration file:</p>
+                                    <p class="govuk-body-s"><strong>Config file location:</strong> <code>~/.cursor/mcp.json</code> (global) or <code>.cursor/mcp.json</code> (project)</p>
+
+                                    <div class="code-block">
+                                        <pre id="cursor-config"><span class="json-punctuation">{</span>
+  <span class="json-key">"mcpServers"</span><span class="json-punctuation">:</span> <span class="json-punctuation">{</span>
+    <span class="json-key">"lex"</span><span class="json-punctuation">:</span> <span class="json-punctuation">{</span>
+      <span class="json-key">"url"</span><span class="json-punctuation">:</span> <span class="json-string">"{{ base_url }}/mcp"</span>
+    <span class="json-punctuation">}</span>
+  <span class="json-punctuation">}</span>
+<span class="json-punctuation">}</span></pre>
+                                        <button class="copy-button" onclick="copyToClipboard('cursor-config')" aria-label="Copy Cursor MCP configuration to clipboard">Copy</button>
+                                    </div>
+                                </div>
+                            </details>
+                        </div>
+
                         <!-- Microsoft Copilot Configuration -->
                         <div id="copilot-panel" class="mcp-tabs__content" role="tabpanel" aria-labelledby="copilot-tab">
                             <h3 class="govuk-heading-m">Microsoft Copilot Studio Configuration</h3>
@@ -1036,25 +1666,74 @@
                                 <li><strong>Set Authentication:</strong> Configure API key authentication if required</li>
                             </ol>
                             
-                            <div class="govuk-notification-banner" role="region">
-                                <div class="govuk-notification-banner__header">
-                                    <h4 class="govuk-notification-banner__title">Requirements</h4>
-                                </div>
-                                <div class="govuk-notification-banner__content">
-                                    <ul class="govuk-list govuk-list--bullet">
+                            <p class="govuk-body-s"><strong>Server URL:</strong></p>
+                            <div class="code-block">
+                                <pre id="copilot-url">{{ base_url }}/mcp</pre>
+                                <button class="copy-button" onclick="copyToClipboard('copilot-url')" aria-label="Copy Microsoft Copilot MCP server URL to clipboard">Copy</button>
+                            </div>
+
+                            <details class="govuk-details">
+                                <summary class="govuk-details__summary">
+                                    <span class="govuk-details__summary-text">Requirements</span>
+                                </summary>
+                                <div class="govuk-details__text">
+                                    <ul class="govuk-list govuk-list--bullet govuk-body-s">
                                         <li>Microsoft Copilot Studio access</li>
                                         <li>Generative Orchestration must be enabled</li>
                                         <li>Streamable transport support (current standard)</li>
                                     </ul>
                                 </div>
-                            </div>
-                            
-                            <p class="govuk-body-s"><strong>Server URL:</strong></p>
-                            <div class="code-block">
-                                <button class="copy-button" onclick="copyToClipboard('copilot-url')" aria-label="Copy Microsoft Copilot MCP server URL to clipboard">Copy</button>
-                                <pre id="copilot-url">https://lex-api.victoriousdesert-f8e685e0.uksouth.azurecontainerapps.io/mcp</pre>
-                            </div>
+                            </details>
                         </div>
+
+                        <!-- VS Code Configuration -->
+                        <div id="vscode-panel" class="mcp-tabs__content" role="tabpanel" aria-labelledby="vscode-tab">
+                            <h3 class="govuk-heading-m">VS Code + GitHub Copilot Configuration</h3>
+                            <p class="govuk-body">Add this configuration to your VS Code MCP settings file:</p>
+                            <p class="govuk-body-s"><strong>Config file location:</strong> <code>.vscode/mcp.json</code> (workspace) or user profile <code>mcp.json</code></p>
+
+                            <div class="code-block">
+                                <pre id="vscode-config"><span class="json-punctuation">{</span>
+  <span class="json-key">"servers"</span><span class="json-punctuation">:</span> <span class="json-punctuation">{</span>
+    <span class="json-key">"lex"</span><span class="json-punctuation">:</span> <span class="json-punctuation">{</span>
+      <span class="json-key">"type"</span><span class="json-punctuation">:</span> <span class="json-string">"http"</span><span class="json-punctuation">,</span>
+      <span class="json-key">"url"</span><span class="json-punctuation">:</span> <span class="json-string">"{{ base_url }}/mcp"</span>
+    <span class="json-punctuation">}</span>
+  <span class="json-punctuation">}</span>
+<span class="json-punctuation">}</span></pre>
+                                <button class="copy-button" onclick="copyToClipboard('vscode-config')" aria-label="Copy VS Code MCP configuration to clipboard">Copy</button>
+                            </div>
+
+                            <details class="govuk-details">
+                                <summary class="govuk-details__summary">
+                                    <span class="govuk-details__summary-text">Alternative setup methods</span>
+                                </summary>
+                                <div class="govuk-details__text">
+                                    <p class="govuk-body-s"><strong>Via Command Palette:</strong></p>
+                                    <ol class="govuk-list govuk-list--number govuk-body-s">
+                                        <li>Open Command Palette (<code>Cmd+Shift+P</code> / <code>Ctrl+Shift+P</code>)</li>
+                                        <li>Search for <code>MCP: Add Server</code></li>
+                                        <li>Select <code>HTTP</code> transport</li>
+                                        <li>Enter URL: <code>{{ base_url }}/mcp</code></li>
+                                        <li>Enter server ID: <code>lex</code></li>
+                                    </ol>
+                                </div>
+                            </details>
+
+                            <details class="govuk-details">
+                                <summary class="govuk-details__summary">
+                                    <span class="govuk-details__summary-text">Requirements</span>
+                                </summary>
+                                <div class="govuk-details__text">
+                                    <ul class="govuk-list govuk-list--bullet govuk-body-s">
+                                        <li>VS Code 1.99 or later</li>
+                                        <li>GitHub Copilot extension installed</li>
+                                        <li>Agent mode enabled in Copilot Chat</li>
+                                    </ul>
+                                </div>
+                            </details>
+                        </div>
+
                     </div>
                     
                 </div>
@@ -1070,22 +1749,17 @@
                         <div class="govuk-grid-column-one-half">
                             <h3 class="govuk-heading-m">Available Documents</h3>
                             <ul class="govuk-list govuk-list--bullet">
-                                <li><strong id="acts-count">X</strong> Acts and Statutory Instruments</li>
-                                <li><strong id="provisions-count">X</strong> individual legal provisions</li>
-                                <li><strong id="judgments-count">X</strong> court judgments and decisions</li>
-                                <li><strong id="paragraphs-count">X</strong> court case paragraphs</li>
-                                <li><strong id="explanatory-count">X</strong> explanatory note sections</li>
-                                <li><strong id="amendments-count">X</strong> legislative amendments</li>
+                                <li><strong id="acts-count" class="stat-number">X</strong> Acts and Statutory Instruments</li>
+                                <li><strong id="provisions-count" class="stat-number">X</strong> individual legal sections</li>
+                                <li><strong id="judgments-count" class="stat-number">X</strong> court judgments and decisions</li>
+                                <li><strong id="summaries-count" class="stat-number">X</strong> AI-generated case summaries</li>
+                                <li><strong id="paragraphs-count" class="stat-number">X</strong> court case paragraphs</li>
+                                <li><strong id="explanatory-count" class="stat-number">X</strong> explanatory note sections</li>
+                                <li><strong id="amendments-count" class="stat-number">X</strong> legislative amendments</li>
                             </ul>
-                            
-                            <h3 class="govuk-heading-m">PDF Digitisation</h3>
-                            <p class="govuk-body-s">Historical legislation digitised using AI for improved accessibility:</p>
-                            <ul class="govuk-list govuk-list--bullet govuk-body-s">
-                                <li><strong id="pdf-legislation-count">X</strong> PDF-sourced Acts (LLM extracted)</li>
-                                <li><strong id="pdf-provisions-count">X</strong> PDF-sourced provisions (LLM extracted)</li>
-                            </ul>
+
                         </div>
-                        
+
                         <div class="govuk-grid-column-one-half">
                             <h3 class="govuk-heading-m">Temporal Coverage</h3>
                             <ul class="govuk-list govuk-list--bullet">
@@ -1096,10 +1770,73 @@
                             </ul>
                         </div>
                     </div>
-                    
-                    <div class="govuk-inset-text">
-                        <p>This service is provided for research and development. The dataset is updated regularly to include new legislation and court decisions as they become available.</p>
+
+                    <div class="pdf-section-with-warning">
+                        <div class="pdf-section-content">
+                            <h3 class="govuk-heading-m">PDF Digitisation</h3>
+                            <p class="govuk-body-s">Historical legislation digitised using AI for improved accessibility:</p>
+                            <ul class="govuk-list govuk-list--bullet govuk-body-s">
+                                <li><strong id="pdf-legislation-count" class="stat-number">X</strong> PDF-sourced Acts (LLM extracted)</li>
+                                <li><strong id="pdf-provisions-count" class="stat-number">X</strong> PDF-sourced sections (LLM extracted)</li>
+                            </ul>
+                        </div>
+                        <div class="pdf-warning-connector">
+                            <div class="govuk-warning-text">
+                                <span class="govuk-warning-text__icon" aria-hidden="true">!</span>
+                                <strong class="govuk-warning-text__text">
+                                    <span class="govuk-visually-hidden">Warning</span>
+                                    LLM transcriptions are not independently verified. Data is labelled in API responses. Verify at source where accuracy is critical.
+                                </strong>
+                            </div>
+                        </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Bulk Downloads section -->
+            <div class="govuk-grid-row govuk-!-margin-bottom-8">
+                <div class="govuk-grid-column-full">
+                    <h2 class="govuk-heading-l">Bulk Downloads</h2>
+                    <p class="govuk-body">Download complete datasets in Parquet format. Updated weekly every Sunday at 03:00 UTC.</p>
+
+                    <div class="govuk-grid-row">
+                        <div class="govuk-grid-column-one-half">
+                            <h3 class="govuk-heading-m">Legislation</h3>
+                            <ul class="govuk-list govuk-list--bullet">
+                                <li><a href="{{ downloads_base_url }}/legislation/legislation_latest.parquet" class="govuk-link" download>legislation_latest.parquet</a> — All Acts and SIs</li>
+                                <li><a href="{{ downloads_base_url }}/explanatory_note/explanatory_note_latest.parquet" class="govuk-link" download>explanatory_note_latest.parquet</a> — Explanatory notes</li>
+                                <li><a href="{{ downloads_base_url }}/amendment/amendment_latest.parquet" class="govuk-link" download>amendment_latest.parquet</a> — Legislative amendments</li>
+                            </ul>
+
+                            <details class="govuk-details">
+                                <summary class="govuk-details__summary">
+                                    <span class="govuk-details__summary-text">Legislation Sections (by year)</span>
+                                </summary>
+                                <div class="govuk-details__text" id="legislation-section-years">
+                                    <p class="govuk-body-s">Files split by year for manageability. See <a href="{{ downloads_base_url }}/manifest_latest.json" class="govuk-link" target="_blank">manifest_latest.json</a> for current file list.</p>
+                                </div>
+                            </details>
+                        </div>
+
+                        <div class="govuk-grid-column-one-half">
+                            <h3 class="govuk-heading-m">Caselaw</h3>
+                            <ul class="govuk-list govuk-list--bullet">
+                                <li><a href="{{ downloads_base_url }}/caselaw/caselaw_latest.parquet" class="govuk-link" download>caselaw_latest.parquet</a> — All court judgments</li>
+                                <li><a href="{{ downloads_base_url }}/caselaw_summary/caselaw_summary_latest.parquet" class="govuk-link" download>caselaw_summary_latest.parquet</a> — AI-generated summaries</li>
+                            </ul>
+
+                            <details class="govuk-details">
+                                <summary class="govuk-details__summary">
+                                    <span class="govuk-details__summary-text">Caselaw Sections (by year)</span>
+                                </summary>
+                                <div class="govuk-details__text" id="caselaw-section-years">
+                                    <p class="govuk-body-s">Files split by year (2001-present). See <a href="{{ downloads_base_url }}/manifest_latest.json" class="govuk-link" target="_blank">manifest_latest.json</a> for current file list.</p>
+                                </div>
+                            </details>
+                        </div>
+                    </div>
+
+                    <p class="govuk-body-s" style="margin-top: 20px;"><strong>Format:</strong> Snappy-compressed Apache Parquet. 4-week retention for dated files. <a href="{{ downloads_base_url }}/manifest_latest.json" class="govuk-link" target="_blank">View manifest</a> for file sizes and record counts.</p>
                 </div>
             </div>
 
@@ -1129,49 +1866,6 @@
                 </div>
             </div>
 
-            <!-- Available Capabilities Section -->
-            <div class="govuk-grid-row govuk-!-margin-bottom-8">
-                <div class="govuk-grid-column-full">
-                    <h2 class="govuk-heading-l">Available Capabilities</h2>
-                    <p class="govuk-body">Once configured, AI assistants will have access to these comprehensive legal research capabilities:</p>
-                    
-                    <div class="govuk-grid-row">
-                        <div class="govuk-grid-column-one-half">
-                            <h3 class="govuk-heading-m">Legislation</h3>
-                            <ul class="govuk-list govuk-list--bullet">
-                                <li><code>search_for_legislation_acts</code> - Search UK legislation acts</li>
-                                <li><code>search_for_legislation_sections</code> - Search within legislation sections</li>
-                                <li><code>lookup_legislation</code> - Find legislation by reference</li>
-                                <li><code>get_legislation_sections</code> - Get specific legislation sections</li>
-                                <li><code>get_legislation_full_text</code> - Get full text of legislation</li>
-                            </ul>
-                            
-                            <h3 class="govuk-heading-m">Amendments</h3>
-                            <ul class="govuk-list govuk-list--bullet">
-                                <li><code>search_amendments</code> - Search legislative amendments</li>
-                                <li><code>search_amendment_sections</code> - Search amendment sections</li>
-                            </ul>
-                        </div>
-                        
-                        <div class="govuk-grid-column-one-half">
-                            <h3 class="govuk-heading-m">Caselaw</h3>
-                            <ul class="govuk-list govuk-list--bullet">
-                                <li><code>search_for_caselaw</code> - Search court cases and judgements</li>
-                                <li><code>search_for_caselaw_section</code> - Search within case sections</li>
-                                <li><code>search_for_caselaw_by_reference</code> - Find cases citing legislation/caselaw</li>
-                            </ul>
-                            
-                            <h3 class="govuk-heading-m">Explanatory Notes</h3>
-                            <ul class="govuk-list govuk-list--bullet">
-                                <li><code>search_explanatory_note</code> - Search explanatory notes</li>
-                                <li><code>get_explanatory_note_by_legislation</code> - Get notes for legislation</li>
-                                <li><code>get_explanatory_note_by_section</code> - Get notes for specific sections</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <!-- GitHub Self-hosting section -->
             <div class="govuk-grid-row govuk-!-margin-bottom-8">
                 <div class="govuk-grid-column-full">
@@ -1190,9 +1884,9 @@
                                rel="noopener noreferrer">
                                 <span class="govuk-visually-hidden">Open </span>View Source Code
                             </a>
-                            <a href="https://github.com/i-dot-ai/lex/blob/main/README.md#deployment" 
-                               class="govuk-button govuk-button--secondary" 
-                               target="_blank" 
+                            <a href="https://github.com/i-dot-ai/lex/blob/main/docs/deployment.md"
+                               class="govuk-button govuk-button--secondary"
+                               target="_blank"
                                rel="noopener noreferrer">
                                 <span class="govuk-visually-hidden">View </span>Deployment Guide
                             </a>
@@ -1224,7 +1918,7 @@
                     <div class="govuk-grid-column-one-half">
                         <div class="govuk-footer__content">
                             <p class="govuk-body-s">
-                                Built by the <strong>Incubator for AI</strong> to harness AI for public good
+                                Built by the <strong>Incubator for AI</strong> for the public good
                             </p>
                             <p class="govuk-body-s">
                                 <a href="https://github.com/i-dot-ai/lex" class="govuk-footer__link" target="_blank" rel="noopener noreferrer">GitHub</a> • 
@@ -1296,16 +1990,12 @@
         function showCopyFeedback(element) {
             const btn = element.parentNode.querySelector('.copy-button');
             if (!btn) return;
-            
+
             const originalText = btn.textContent;
-            const originalBg = btn.style.backgroundColor;
-            const originalColor = btn.style.color;
-            
-            btn.textContent = 'Copied!';
-            btn.style.backgroundColor = '#00703c';
-            btn.style.color = '#ffffff';
-            btn.style.borderColor = '#00703c';
-            
+
+            btn.textContent = '✓ Copied!';
+            btn.classList.add('copied');
+
             // Announce to screen readers
             const announcement = document.createElement('div');
             announcement.setAttribute('aria-live', 'polite');
@@ -1313,12 +2003,10 @@
             announcement.className = 'govuk-visually-hidden';
             announcement.textContent = 'Configuration copied to clipboard';
             document.body.appendChild(announcement);
-            
+
             setTimeout(() => {
                 btn.textContent = originalText;
-                btn.style.backgroundColor = originalBg;
-                btn.style.color = originalColor;
-                btn.style.borderColor = '';
+                btn.classList.remove('copied');
                 document.body.removeChild(announcement);
             }, 2000);
         }
@@ -1367,39 +2055,99 @@
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
-                
+
                 const stats = await response.json();
-                
+
                 // Update all counts using the flat API response structure
                 const elements = {
                     'acts-count': stats.acts_and_sis,
                     'provisions-count': stats.provisions,
                     'judgments-count': stats.court_judgments,
+                    'summaries-count': stats.caselaw_summaries,
                     'paragraphs-count': stats.case_paragraphs,
                     'explanatory-count': stats.explanatory_sections,
                     'amendments-count': stats.amendments,
                     'pdf-legislation-count': stats.pdf_legislation,
                     'pdf-provisions-count': stats.pdf_provisions
                 };
-                
+
                 // Update each element if it exists and has a value
                 Object.entries(elements).forEach(([elementId, value]) => {
                     const element = document.getElementById(elementId);
                     if (element && value !== undefined) {
-                        element.textContent = value; // Values are already formatted from API
+                        element.dataset.finalValue = value;
+                        // Only set to 0 if not yet animated, otherwise update directly
+                        if (!element.dataset.animated) {
+                            element.textContent = '0';
+                        } else {
+                            element.textContent = value;
+                        }
                     }
                 });
-                
+
+                // Set up animation observer after stats are loaded
+                setupStatsAnimation();
+
             } catch (error) {
                 console.warn('Failed to fetch live stats:', error);
                 // Keep static fallback values if API fails
             }
         }
-        
+
+        // Stats animation using Intersection Observer
+        function setupStatsAnimation() {
+            const statElements = document.querySelectorAll('.stat-number');
+
+            // Check if reduced motion is preferred
+            const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting && !entry.target.dataset.animated) {
+                        entry.target.dataset.animated = 'true';
+                        if (prefersReducedMotion) {
+                            // Skip animation for accessibility
+                            entry.target.textContent = entry.target.dataset.finalValue || entry.target.textContent;
+                        } else {
+                            animateNumber(entry.target);
+                        }
+                    }
+                });
+            }, { threshold: 0.5 });
+
+            statElements.forEach(el => observer.observe(el));
+        }
+
+        function animateNumber(element) {
+            const finalText = element.dataset.finalValue || element.textContent;
+            const finalNumber = parseInt(finalText.replace(/,/g, ''));
+
+            if (isNaN(finalNumber) || finalNumber === 0) {
+                element.textContent = finalText;
+                return;
+            }
+
+            const duration = 500;
+            const steps = 30;
+            const increment = finalNumber / steps;
+            let step = 0;
+
+            const timer = setInterval(() => {
+                step++;
+                const current = Math.min(Math.round(increment * step), finalNumber);
+                element.textContent = current.toLocaleString();
+
+                if (step >= steps) {
+                    clearInterval(timer);
+                    element.textContent = finalText; // Restore exact original formatting
+                }
+            }, duration / steps);
+        }
+
         // Update stats on page load and refresh every 30 seconds for live updates
         document.addEventListener('DOMContentLoaded', function() {
             updateLiveStats();
-            
+
             // Refresh every 30 seconds (30,000 milliseconds) for live updates
             setInterval(updateLiveStats, 30000);
         });
@@ -1411,6 +2159,88 @@
                 console.log('Download started:', this.getAttribute('href'));
             });
         });
+
+        // Dark mode toggle functionality
+        function toggleDarkMode() {
+            const html = document.documentElement;
+            const isDark = html.classList.toggle('dark-mode');
+
+            document.getElementById('dark-mode-icon').textContent = isDark ? 'Light' : 'Dark';
+            localStorage.setItem('darkMode', isDark ? 'true' : 'false');
+        }
+
+        // Initialise dark mode on page load
+        function initDarkMode() {
+            const savedPref = localStorage.getItem('darkMode');
+            const systemPref = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+            if (savedPref === 'true' || (savedPref === null && systemPref)) {
+                document.documentElement.classList.add('dark-mode');
+                const icon = document.getElementById('dark-mode-icon');
+                if (icon) icon.textContent = 'Light';
+            }
+        }
+
+        // API status check functionality
+        async function checkApiStatus() {
+            const dot = document.getElementById('status-dot');
+            const text = document.getElementById('status-text');
+
+            if (!dot || !text) return;
+
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+                const response = await fetch('/healthcheck', { signal: controller.signal });
+                clearTimeout(timeoutId);
+
+                if (response.ok) {
+                    dot.className = 'status-dot operational';
+                    text.textContent = 'All systems operational';
+                } else {
+                    dot.className = 'status-dot degraded';
+                    text.textContent = 'Degraded performance';
+                }
+            } catch (err) {
+                dot.className = 'status-dot down';
+                text.textContent = 'Service unavailable';
+            }
+        }
+
+        // Initialise dark mode and API status on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initDarkMode();
+            checkApiStatus();
+            // Refresh status every 60 seconds
+            setInterval(checkApiStatus, 60000);
+
+            // Generate Cursor install deeplink
+            generateCursorInstallLink();
+        });
+
+        // Generate Cursor MCP install deeplink
+        function generateCursorInstallLink() {
+            const linkElement = document.getElementById('cursor-install-link');
+            if (!linkElement) return;
+
+            // Get the base URL from the page (injected by Jinja)
+            const baseUrl = '{{ base_url }}';
+
+            // Create the MCP server configuration
+            const config = {
+                url: baseUrl + '/mcp'
+            };
+
+            // Base64 encode the configuration
+            const configJson = JSON.stringify(config);
+            const configBase64 = btoa(configJson);
+
+            // Build the Cursor deeplink URL
+            const cursorDeeplink = `cursor://anysphere.cursor-deeplink/mcp/install?name=lex&config=${encodeURIComponent(configBase64)}`;
+
+            linkElement.href = cursorDeeplink;
+        }
     </script>
 </body>
 </html>

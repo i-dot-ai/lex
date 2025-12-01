@@ -3,6 +3,9 @@
 from qdrant_client.models import (
     Distance,
     PayloadSchemaType,
+    ScalarQuantization,
+    ScalarQuantizationConfig,
+    ScalarType,
     SparseIndexParams,
     SparseVectorParams,
     VectorParams,
@@ -45,4 +48,11 @@ def get_explanatory_note_schema():
             "section_type": PayloadSchemaType.KEYWORD,  # Filter by section type (enum)
             "section_number": PayloadSchemaType.INTEGER,  # Exact match on section number
         },
+        "quantization_config": ScalarQuantization(
+            scalar=ScalarQuantizationConfig(
+                type=ScalarType.INT8,
+                quantile=0.99,
+                always_ram=True,
+            )
+        ),
     }

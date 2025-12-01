@@ -34,6 +34,9 @@ param posthogKey string = ''
 @description('PostHog Host URL')
 param posthogHost string = 'https://eu.i.posthog.com'
 
+@description('Custom domain hostname (optional). Requires DNS CNAME and TXT records configured first.')
+param customDomain string = ''
+
 @description('Rate limit per minute')
 param rateLimitPerMinute int = 60
 
@@ -48,6 +51,7 @@ var logAnalyticsName = '${resourcePrefix}-logs'
 var appInsightsName = '${resourcePrefix}-insights'
 var acrName = '${applicationName}acr'
 var redisName = '${resourcePrefix}-cache'
+var storageAccountName = '${applicationName}downloads'
 
 // Log Analytics Workspace
 resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2023-09-01' = {
@@ -88,7 +92,7 @@ resource acr 'Microsoft.ContainerRegistry/registries@2023-11-01-preview' = {
 
 
 // Container Apps Environment
-resource containerEnvironment 'Microsoft.App/managedEnvironments@2024-03-01' = {
+resource containerEnvironment 'Microsoft.App/managedEnvironments@2025-07-01' = {
   name: containerEnvironmentName
   location: location
   properties: {
@@ -126,17 +130,55 @@ resource redisCache 'Microsoft.Cache/redis@2023-08-01' = {
   }
 }
 
+// Storage Account for Bulk Downloads
+resource storageAccount 'Microsoft.Storage/storageAccounts@2023-05-01' = {
+  name: storageAccountName
+  location: location
+  sku: {
+    name: 'Standard_LRS'
+  }
+  kind: 'StorageV2'
+  properties: {
+    accessTier: 'Hot'
+    allowBlobPublicAccess: true
+    minimumTlsVersion: 'TLS1_2'
+    supportsHttpsTrafficOnly: true
+  }
+  tags: {
+    Application: applicationName
+  }
+}
+
+resource blobService 'Microsoft.Storage/storageAccounts/blobServices@2023-05-01' = {
+  parent: storageAccount
+  name: 'default'
+}
+
+resource downloadsContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-05-01' = {
+  parent: blobService
+  name: 'downloads'
+  properties: {
+    publicAccess: 'Blob'
+  }
+}
+
 // Container App
-resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
+resource containerApp 'Microsoft.App/containerApps@2025-07-01' = {
   name: containerAppName
   location: location
   properties: {
     managedEnvironmentId: containerEnvironment.id
     configuration: {
       ingress: {
-        external: true  // Changed to external for direct access
+        external: true
         targetPort: 8000
         allowInsecure: false
+        customDomains: !empty(customDomain) ? [
+          {
+            name: customDomain
+            bindingType: 'Auto'
+          }
+        ] : []
         traffic: [
           {
             weight: 100
@@ -148,7 +190,7 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
         {
           server: acr.properties.loginServer
           username: acr.listCredentials().username
-          passwordSecretRef: 'acr-password'  # pragma: allowlist secret
+          passwordSecretRef: 'acr-password'  // pragma: allowlist secret
         }
       ]
       secrets: [
@@ -194,7 +236,7 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
           env: [
             {
               name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
-              secretRef: 'app-insights-connection-string'  # pragma: allowlist secret
+              secretRef: 'app-insights-connection-string'  // pragma: allowlist secret
             }
             {
               name: 'PORT'
@@ -206,15 +248,15 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
             }
             {
               name: 'QDRANT_CLOUD_URL'
-              secretRef: 'qdrant-cloud-url'  # pragma: allowlist secret
+              secretRef: 'qdrant-cloud-url'  // pragma: allowlist secret
             }
             {
               name: 'QDRANT_CLOUD_API_KEY'
-              secretRef: 'qdrant-cloud-api-key'  # pragma: allowlist secret
+              secretRef: 'qdrant-cloud-api-key'  // pragma: allowlist secret
             }
             {
               name: 'AZURE_OPENAI_API_KEY'
-              secretRef: 'azure-openai-api-key'  # pragma: allowlist secret
+              secretRef: 'azure-openai-api-key'  // pragma: allowlist secret
             }
             {
               name: 'AZURE_OPENAI_ENDPOINT'
@@ -234,7 +276,7 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
             }
             {
               name: 'REDIS_PASSWORD'
-              secretRef: 'redis-primary-key'  # pragma: allowlist secret
+              secretRef: 'redis-primary-key'  // pragma: allowlist secret
             }
             {
               name: 'RATE_LIMIT_PER_MINUTE'
@@ -246,7 +288,7 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
             }
             {
               name: 'POSTHOG_KEY'
-              secretRef: 'posthog-key'  # pragma: allowlist secret
+              secretRef: 'posthog-key'  // pragma: allowlist secret
             }
             {
               name: 'POSTHOG_HOST'
@@ -296,6 +338,101 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
 }
 
 
+// Container Apps Job for Weekly Bulk Export
+resource exportJob 'Microsoft.App/jobs@2024-03-01' = {
+  name: '${resourcePrefix}-export-job'
+  location: location
+  properties: {
+    environmentId: containerEnvironment.id
+    configuration: {
+      triggerType: 'Schedule'
+      scheduleTriggerConfig: {
+        cronExpression: '0 3 * * 0'  // Every Sunday at 03:00 UTC
+        parallelism: 1
+        replicaCompletionCount: 1
+      }
+      replicaTimeout: 21600  // 6 hour timeout for 7.3M documents
+      replicaRetryLimit: 2
+      registries: [
+        {
+          server: acr.properties.loginServer
+          username: acr.listCredentials().username
+          passwordSecretRef: 'acr-password'  // pragma: allowlist secret
+        }
+      ]
+      secrets: [
+        {
+          name: 'acr-password'
+          value: acr.listCredentials().passwords[0].value
+        }
+        {
+          name: 'qdrant-cloud-url'
+          value: qdrantCloudUrl
+        }
+        {
+          name: 'qdrant-cloud-api-key'
+          value: qdrantCloudApiKey
+        }
+        {
+          name: 'azure-openai-api-key'
+          value: azureOpenAIApiKey
+        }
+        {
+          name: 'storage-connection-string'
+          value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};AccountKey=${storageAccount.listKeys().keys[0].value};EndpointSuffix=core.windows.net'
+        }
+      ]
+    }
+    template: {
+      containers: [
+        {
+          name: 'export-job'
+          image: containerImage
+          command: ['uv', 'run', 'python', 'scripts/bulk_export_parquet.py']
+          resources: {
+            cpu: json('2.0')
+            memory: '4Gi'  // Max for 2 CPU in consumption plan; streaming approach is memory-efficient
+          }
+          env: [
+            {
+              name: 'USE_CLOUD_QDRANT'
+              value: 'true'
+            }
+            {
+              name: 'QDRANT_CLOUD_URL'
+              secretRef: 'qdrant-cloud-url'  // pragma: allowlist secret
+            }
+            {
+              name: 'QDRANT_CLOUD_API_KEY'
+              secretRef: 'qdrant-cloud-api-key'  // pragma: allowlist secret
+            }
+            {
+              name: 'AZURE_OPENAI_API_KEY'
+              secretRef: 'azure-openai-api-key'  // pragma: allowlist secret
+            }
+            {
+              name: 'AZURE_OPENAI_ENDPOINT'
+              value: azureOpenAIEndpoint
+            }
+            {
+              name: 'AZURE_STORAGE_CONNECTION_STRING'
+              secretRef: 'storage-connection-string'  // pragma: allowlist secret
+            }
+            {
+              name: 'BULK_DOWNLOAD_CONTAINER'
+              value: 'downloads'
+            }
+            {
+              name: 'DOWNLOADS_BASE_URL'
+              value: 'https://${storageAccount.name}.blob.core.windows.net/downloads'
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
+
 // Outputs
 output containerAppUrl string = 'https://${containerApp.properties.configuration.ingress.fqdn}'
 output mcpEndpointUrl string = 'https://${containerApp.properties.configuration.ingress.fqdn}/mcp'
@@ -305,3 +442,5 @@ output acrName string = acr.name
 output containerAppFqdn string = containerApp.properties.configuration.ingress.fqdn
 output redisHostname string = redisCache.properties.hostName
 output redisSslPort int = redisCache.properties.sslPort
+output storageAccountName string = storageAccount.name
+output downloadsBaseUrl string = 'https://${storageAccount.name}.blob.core.windows.net/downloads'

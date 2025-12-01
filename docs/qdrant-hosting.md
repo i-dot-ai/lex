@@ -1,17 +1,17 @@
 # Qdrant Cloud Hosting Cost Estimate
 
-**Last Updated:** October 2025
+**Last Updated:** November 2025
 
 ## Dataset Overview
 
-- **Total Vectors:** ~4M points across 7 collections
-  - legislation_section: 997,461
+- **Total Vectors:** ~5M points across 7 collections
   - caselaw_section: 2,403,490
-  - embedding_cache: 333,000+
-  - legislation: 125,255
+  - legislation_section: 1,472,584
+  - amendment: 892,210
+  - legislation: 155,989
   - explanatory_note: 82,344
   - caselaw: 30,512
-  - amendment: 32
+  - embedding_cache: 333,000+
 
 - **Vector Dimensions:** 1024D dense (text-embedding-3-large) + ~200D sparse (BM25)
 - **Payload Size:** ~3 KB average per document (full text + metadata)
@@ -23,11 +23,13 @@
 **Region:** UK South (uksouth)
 
 **Resources:**
-- RAM: 4 GiB
-- vCPUs: 1.0 vCPU
-- Disk Space: 16 GiB
+- RAM: 16 GiB (minimum for quantization with `always_ram=True`)
+- vCPUs: 4
+- Disk Space: 128 GiB
 - Nodes: 1 Node
 - Replication Factor: 1
+
+**Note:** Quantization optimisation requires extra RAM headroom. 4GB causes OOM during index rebuilds.
 
 **Quantization:** Scalar (INT8)
 - Reduces vector storage by ~60%
@@ -36,11 +38,9 @@
 
 ### Cost Breakdown
 
-**Hourly:** $0.0822/hour
+**Monthly:** ~$200-250/month (16GB RAM tier)
 
-**Monthly:** $60.17/month*
-
-*\* Approximated average price. VAT excluded.*
+*VAT excluded. Check [Qdrant pricing](https://qdrant.tech/pricing/) for current rates.*
 
 ## Storage Requirements
 
@@ -76,31 +76,47 @@
 
 ## Enabling Quantization
 
-After migration, enable scalar quantization per collection:
+Quantization is enabled by default in schema files (`src/lex/*/qdrant_schema.py`).
+
+To enable on existing collections, run:
+
+```bash
+uv run python scripts/enable_quantization.py
+```
+
+Collections transition: grey → yellow (optimising) → green (complete).
+
+**Warning:** Optimisation temporarily increases memory usage. With 5M points, 4GB RAM causes OOM. Use 16GB+ during index rebuilds.
+
+## Troubleshooting
+
+### Grey Collection Status
+If a Qdrant node restarts during optimisation, collections may go "grey" (paused). Trigger optimisers to resume:
 
 ```python
-from qdrant_client import models
+from qdrant_client import QdrantClient
+from qdrant_client.models import OptimizersConfigDiff
 
-qdrant_client.update_collection(
-    collection_name="legislation_section",
-    quantization_config=models.ScalarQuantization(
-        scalar=models.ScalarQuantizationConfig(
-            type=models.ScalarType.INT8,
-            quantile=0.99,
-            always_ram=True
-        )
-    )
+client = QdrantClient(url=QDRANT_URL, api_key=API_KEY)
+client.update_collection(
+    collection_name="collection_name",
+    optimizers_config=OptimizersConfigDiff(indexing_threshold=10000)
 )
+```
+
+### Check Status
+```python
+for name in collections:
+    info = client.get_collection(name)
+    print(f'{name}: {info.status}')  # green = ready, yellow = optimising, grey = paused
 ```
 
 ## Alternative: Self-Hosted
 
 For comparison, running Qdrant on your own infrastructure:
-- Similar specs on AWS EC2 t3.medium: ~$30-35/month
-- Azure B2s: ~$35-40/month
+- Similar specs on AWS EC2: ~$100-150/month (16GB RAM instance)
+- Azure: ~$120-180/month
 - Requires managing updates, monitoring, backups yourself
-
-Qdrant Cloud premium: $60/month vs self-hosted: ~$35/month = **$25/month convenience premium**
 
 ## References
 

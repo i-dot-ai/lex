@@ -18,6 +18,7 @@ LEGISLATION_COLLECTION = "legislation"
 LEGISLATION_SECTION_COLLECTION = "legislation_section"
 CASELAW_COLLECTION = "caselaw"
 CASELAW_SECTION_COLLECTION = "caselaw_section"
+CASELAW_SUMMARY_COLLECTION = "caselaw_summary"
 EXPLANATORY_NOTE_COLLECTION = "explanatory_note"
 AMENDMENT_COLLECTION = "amendment"
 
@@ -100,3 +101,8 @@ EMBEDDING_DEPLOYMENT = os.environ.get("AZURE_OPENAI_EMBEDDING_DEPLOYMENT", "text
 # PostHog Analytics configuration (cookieless, EU region, GDPR compliant)
 POSTHOG_KEY = os.environ.get("POSTHOG_KEY", "")
 POSTHOG_HOST = os.environ.get("POSTHOG_HOST", "https://eu.i.posthog.com")
+
+# Bulk Downloads configuration
+DOWNLOADS_BASE_URL = os.environ.get(
+    "DOWNLOADS_BASE_URL", "https://lexdownloads.blob.core.windows.net/downloads"
+)

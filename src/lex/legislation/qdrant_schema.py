@@ -3,6 +3,9 @@
 from qdrant_client.models import (
     Distance,
     PayloadSchemaType,
+    ScalarQuantization,
+    ScalarQuantizationConfig,
+    ScalarType,
     SparseIndexParams,
     SparseVectorParams,
     VectorParams,
@@ -54,6 +57,13 @@ def get_legislation_schema():
             "number": PayloadSchemaType.INTEGER,  # Exact match lookups
             "provenance_source": PayloadSchemaType.KEYWORD,  # Filter by source (xml/llm_ocr)
         },
+        "quantization_config": ScalarQuantization(
+            scalar=ScalarQuantizationConfig(
+                type=ScalarType.INT8,
+                quantile=0.99,
+                always_ram=True,
+            )
+        ),
     }
 
 
@@ -92,4 +102,11 @@ def get_legislation_section_schema():
             "provision_type": PayloadSchemaType.KEYWORD,  # Filter by section/schedule type
             "provenance_source": PayloadSchemaType.KEYWORD,  # Filter by source (xml/llm_ocr)
         },
+        "quantization_config": ScalarQuantization(
+            scalar=ScalarQuantizationConfig(
+                type=ScalarType.INT8,
+                quantile=0.99,
+                always_ram=True,
+            )
+        ),
     }

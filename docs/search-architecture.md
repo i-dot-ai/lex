@@ -55,19 +55,35 @@ Single-method approaches fail:
 
 ## Performance Optimizations
 
-### 1. Reduced Section Limit
+### 1. Scalar Quantization (INT8)
+All collections use INT8 scalar quantization:
+- **4x memory reduction** (float32 → int8)
+- **20-50% faster searches** (fewer memory transfers)
+- **<1% accuracy loss** (Qdrant rescores with original vectors)
+
+Config: `quantile=0.99, always_ram=True`
+
+**Memory sizing** (5M points, 1024D):
+- Original vectors: ~20GB (float32)
+- Quantized vectors: ~5GB (int8, kept in RAM)
+- Sparse + HNSW overhead: ~3-5GB
+- **Minimum RAM**: 16GB recommended
+
+**Script**: `scripts/enable_quantization.py`
+
+### 2. Reduced Section Limit
 ```python
 # Reduced from 500 to 200 sections
 # 60% faster queries, no quality loss
 ```
 
-### 2. Exclude Text Payloads
+### 3. Exclude Text Payloads
 ```python
 # When include_text=False
 # 60% faster, 90% less data transfer
 ```
 
-### 3. Embedding Cache
+### 4. Embedding Cache
 - Qdrant collection with 333K+ cached embeddings
 - O(1) lookup via UUID5(SHA-256(query))
 - **35x speedup** for repeated queries
@@ -76,10 +92,21 @@ Single-method approaches fail:
 
 ## Performance Characteristics
 
-**Typical query**: 250ms total
+**Measured latencies** (November 2025, post-quantization):
+
+| Endpoint | Latency |
+|----------|---------|
+| `/legislation/search` | ~3s |
+| `/legislation/section/search` | ~0.6s |
+| `/caselaw/search` | ~3.4s |
+| `/caselaw/reference` | ~0.2s |
+| `/amendment/search` | ~0.15s |
+| `/explanatory_note/section/search` | ~2s |
+
+**Breakdown**:
 - Embedding generation: 50-100ms (cached: <5ms)
-- Qdrant vector search: 150-200ms
-- Metadata lookup: 20-40ms
+- Qdrant vector search: 150-500ms
+- Result aggregation + metadata: varies by endpoint
 
 **Relevance**:
 - Semantic queries: 90%+ relevant in top 10

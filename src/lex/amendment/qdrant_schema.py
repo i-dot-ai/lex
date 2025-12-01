@@ -3,6 +3,9 @@
 from qdrant_client.models import (
     Distance,
     PayloadSchemaType,
+    ScalarQuantization,
+    ScalarQuantizationConfig,
+    ScalarType,
     SparseIndexParams,
     SparseVectorParams,
     VectorParams,
@@ -44,4 +47,11 @@ def get_amendment_schema():
             "changed_provision_url": PayloadSchemaType.KEYWORD,  # Filter amendments to provision
             "affecting_provision_url": PayloadSchemaType.KEYWORD,  # Filter amendments by provision
         },
+        "quantization_config": ScalarQuantization(
+            scalar=ScalarQuantizationConfig(
+                type=ScalarType.INT8,
+                quantile=0.99,
+                always_ram=True,
+            )
+        ),
     }
