@@ -4,7 +4,7 @@ from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
-from lex.settings import POSTHOG_HOST, POSTHOG_KEY
+from lex.settings import DOWNLOADS_BASE_URL, POSTHOG_HOST, POSTHOG_KEY
 
 router = APIRouter()
 templates = Jinja2Templates(directory="src/backend/templates")
@@ -25,5 +25,6 @@ async def serve_homepage(request: Request):
             "posthog_key": POSTHOG_KEY,
             "posthog_host": POSTHOG_HOST,
             "base_url": base_url,
+            "downloads_base_url": DOWNLOADS_BASE_URL,
         },
     )

@@ -12,6 +12,9 @@ COPY pyproject.toml uv.lock README.md ./
 # Copy source code
 COPY src/ ./src/
 
+# Copy bulk export script for scheduled job
+COPY scripts/bulk_export_parquet.py ./scripts/
+
 # Install dependencies
 RUN uv sync
 

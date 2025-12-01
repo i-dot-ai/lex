@@ -51,6 +51,7 @@ var logAnalyticsName = '${resourcePrefix}-logs'
 var appInsightsName = '${resourcePrefix}-insights'
 var acrName = '${applicationName}acr'
 var redisName = '${resourcePrefix}-cache'
+var storageAccountName = '${applicationName}downloads'
 
 // Log Analytics Workspace
 resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2023-09-01' = {
@@ -126,6 +127,38 @@ resource redisCache 'Microsoft.Cache/redis@2023-08-01' = {
   }
   tags: {
     Application: applicationName
+  }
+}
+
+// Storage Account for Bulk Downloads
+resource storageAccount 'Microsoft.Storage/storageAccounts@2023-05-01' = {
+  name: storageAccountName
+  location: location
+  sku: {
+    name: 'Standard_LRS'
+  }
+  kind: 'StorageV2'
+  properties: {
+    accessTier: 'Hot'
+    allowBlobPublicAccess: true
+    minimumTlsVersion: 'TLS1_2'
+    supportsHttpsTrafficOnly: true
+  }
+  tags: {
+    Application: applicationName
+  }
+}
+
+resource blobService 'Microsoft.Storage/storageAccounts/blobServices@2023-05-01' = {
+  parent: storageAccount
+  name: 'default'
+}
+
+resource downloadsContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-05-01' = {
+  parent: blobService
+  name: 'downloads'
+  properties: {
+    publicAccess: 'Blob'
   }
 }
 
@@ -305,6 +338,101 @@ resource containerApp 'Microsoft.App/containerApps@2025-07-01' = {
 }
 
 
+// Container Apps Job for Weekly Bulk Export
+resource exportJob 'Microsoft.App/jobs@2024-03-01' = {
+  name: '${resourcePrefix}-export-job'
+  location: location
+  properties: {
+    environmentId: containerEnvironment.id
+    configuration: {
+      triggerType: 'Schedule'
+      scheduleTriggerConfig: {
+        cronExpression: '0 3 * * 0'  // Every Sunday at 03:00 UTC
+        parallelism: 1
+        replicaCompletionCount: 1
+      }
+      replicaTimeout: 21600  // 6 hour timeout for 7.3M documents
+      replicaRetryLimit: 2
+      registries: [
+        {
+          server: acr.properties.loginServer
+          username: acr.listCredentials().username
+          passwordSecretRef: 'acr-password'  // pragma: allowlist secret
+        }
+      ]
+      secrets: [
+        {
+          name: 'acr-password'
+          value: acr.listCredentials().passwords[0].value
+        }
+        {
+          name: 'qdrant-cloud-url'
+          value: qdrantCloudUrl
+        }
+        {
+          name: 'qdrant-cloud-api-key'
+          value: qdrantCloudApiKey
+        }
+        {
+          name: 'azure-openai-api-key'
+          value: azureOpenAIApiKey
+        }
+        {
+          name: 'storage-connection-string'
+          value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};AccountKey=${storageAccount.listKeys().keys[0].value};EndpointSuffix=core.windows.net'
+        }
+      ]
+    }
+    template: {
+      containers: [
+        {
+          name: 'export-job'
+          image: containerImage
+          command: ['uv', 'run', 'python', 'scripts/bulk_export_parquet.py']
+          resources: {
+            cpu: json('2.0')
+            memory: '4Gi'  // Max for 2 CPU in consumption plan; streaming approach is memory-efficient
+          }
+          env: [
+            {
+              name: 'USE_CLOUD_QDRANT'
+              value: 'true'
+            }
+            {
+              name: 'QDRANT_CLOUD_URL'
+              secretRef: 'qdrant-cloud-url'  // pragma: allowlist secret
+            }
+            {
+              name: 'QDRANT_CLOUD_API_KEY'
+              secretRef: 'qdrant-cloud-api-key'  // pragma: allowlist secret
+            }
+            {
+              name: 'AZURE_OPENAI_API_KEY'
+              secretRef: 'azure-openai-api-key'  // pragma: allowlist secret
+            }
+            {
+              name: 'AZURE_OPENAI_ENDPOINT'
+              value: azureOpenAIEndpoint
+            }
+            {
+              name: 'AZURE_STORAGE_CONNECTION_STRING'
+              secretRef: 'storage-connection-string'  // pragma: allowlist secret
+            }
+            {
+              name: 'BULK_DOWNLOAD_CONTAINER'
+              value: 'downloads'
+            }
+            {
+              name: 'DOWNLOADS_BASE_URL'
+              value: 'https://${storageAccount.name}.blob.core.windows.net/downloads'
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
+
 // Outputs
 output containerAppUrl string = 'https://${containerApp.properties.configuration.ingress.fqdn}'
 output mcpEndpointUrl string = 'https://${containerApp.properties.configuration.ingress.fqdn}/mcp'
@@ -314,3 +442,5 @@ output acrName string = acr.name
 output containerAppFqdn string = containerApp.properties.configuration.ingress.fqdn
 output redisHostname string = redisCache.properties.hostName
 output redisSslPort int = redisCache.properties.sslPort
+output storageAccountName string = storageAccount.name
+output downloadsBaseUrl string = 'https://${storageAccount.name}.blob.core.windows.net/downloads'
