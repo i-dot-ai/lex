@@ -67,7 +67,7 @@ logger = logging.getLogger(__name__)
 # Collection configurations
 COLLECTIONS = {
     LEGISLATION_COLLECTION: {"split_by_year": False, "year_field": None},
-    LEGISLATION_SECTION_COLLECTION: {"split_by_year": True, "year_field": "year"},
+    LEGISLATION_SECTION_COLLECTION: {"split_by_year": True, "year_field": "legislation_year"},
     CASELAW_COLLECTION: {"split_by_year": False, "year_field": None},
     CASELAW_SECTION_COLLECTION: {"split_by_year": True, "year_field": "year"},
     CASELAW_SUMMARY_COLLECTION: {"split_by_year": False, "year_field": None},
