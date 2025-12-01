@@ -3,7 +3,25 @@
 Bulk export all Qdrant collections to Parquet files in Azure Blob Storage.
 
 This script exports all 7 Qdrant collections to Snappy-compressed Parquet files,
-uploading both dated versions and *_latest versions for reliable linking.
+with a clean nested folder structure for easy navigation.
+
+Output structure:
+    downloads/
+    ├── latest/                         # Current exports (stable URLs)
+    │   ├── legislation.parquet
+    │   ├── legislation_section/
+    │   │   ├── 1801.parquet
+    │   │   └── ...
+    │   ├── caselaw.parquet
+    │   ├── caselaw_section/
+    │   │   └── ...
+    │   ├── caselaw_summary.parquet
+    │   ├── explanatory_note.parquet
+    │   ├── amendment.parquet
+    │   └── manifest.json
+    └── archive/                        # Historical exports
+        └── 2024-12-01/
+            └── (same structure)
 
 Collections:
 - legislation (~220K docs) - Single file
@@ -26,6 +44,7 @@ Usage:
 """
 
 import argparse
+import gc
 import json
 import logging
 import os
@@ -65,17 +84,46 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Collection configurations
+# batch_size tuned for memory: large text fields need smaller batches
 COLLECTIONS = {
-    LEGISLATION_COLLECTION: {"split_by_year": False, "year_field": None},
-    LEGISLATION_SECTION_COLLECTION: {"split_by_year": True, "year_field": "legislation_year"},
-    CASELAW_COLLECTION: {"split_by_year": False, "year_field": None},
-    CASELAW_SECTION_COLLECTION: {"split_by_year": True, "year_field": "year"},
-    CASELAW_SUMMARY_COLLECTION: {"split_by_year": False, "year_field": None},
-    EXPLANATORY_NOTE_COLLECTION: {"split_by_year": False, "year_field": None},
-    AMENDMENT_COLLECTION: {"split_by_year": False, "year_field": None},
+    LEGISLATION_COLLECTION: {
+        "split_by_year": False,
+        "year_field": None,
+        "batch_size": 2000,
+    },
+    LEGISLATION_SECTION_COLLECTION: {
+        "split_by_year": True,
+        "year_field": "legislation_year",
+        "batch_size": 500,  # Smaller: sections have large text
+    },
+    CASELAW_COLLECTION: {
+        "split_by_year": False,
+        "year_field": None,
+        "batch_size": 100,  # Smallest: full judgment text is huge
+    },
+    CASELAW_SECTION_COLLECTION: {
+        "split_by_year": True,
+        "year_field": "year",
+        "batch_size": 500,
+    },
+    CASELAW_SUMMARY_COLLECTION: {
+        "split_by_year": False,
+        "year_field": None,
+        "batch_size": 2000,
+    },
+    EXPLANATORY_NOTE_COLLECTION: {
+        "split_by_year": False,
+        "year_field": None,
+        "batch_size": 1000,
+    },
+    AMENDMENT_COLLECTION: {
+        "split_by_year": False,
+        "year_field": None,
+        "batch_size": 2000,
+    },
 }
 
-# Retention period
+# Retention period for archive
 RETENTION_WEEKS = 4
 
 
@@ -90,7 +138,7 @@ def get_blob_service_client() -> BlobServiceClient:
 def scroll_collection_batched(
     qdrant_client,
     collection_name: str,
-    batch_size: int = 1000,
+    batch_size: int = 500,
     year_filter: int | None = None,
     year_field: str | None = None,
 ):
@@ -113,7 +161,7 @@ def scroll_collection_batched(
             limit=batch_size,
             offset=offset,
             with_payload=True,
-            with_vectors=False,  # Payload only - no vectors
+            with_vectors=False,
             scroll_filter=scroll_filter,
         )
 
@@ -123,8 +171,8 @@ def scroll_collection_batched(
         payloads = [point.payload for point in results]
         total_records += len(payloads)
 
-        if batch_num % 10 == 0:
-            logger.info(f"  Batch {batch_num}: {total_records:,} records so far")
+        if batch_num % 20 == 0:
+            logger.info(f"    Batch {batch_num}: {total_records:,} records")
 
         yield payloads
 
@@ -136,26 +184,45 @@ def scroll_collection_batched(
 def infer_schema_from_sample(
     qdrant_client,
     collection_name: str,
-    sample_size: int = 100,
+    sample_size: int = 50,
+    year_filter: int | None = None,
+    year_field: str | None = None,
 ) -> pa.Schema:
-    """Infer Arrow schema from a small sample to avoid schema drift."""
+    """Infer Arrow schema from a small sample."""
+    scroll_filter = None
+    if year_filter is not None and year_field:
+        scroll_filter = Filter(
+            must=[FieldCondition(key=year_field, match=MatchValue(value=year_filter))]
+        )
+
     results, _ = qdrant_client.scroll(
         collection_name=collection_name,
         limit=sample_size,
         with_payload=True,
         with_vectors=False,
+        scroll_filter=scroll_filter,
     )
+
+    if not results:
+        raise ValueError(f"No records found for schema inference in {collection_name}")
+
     sample_payloads = [point.payload for point in results]
     sample_table = pa.Table.from_pylist(sample_payloads)
-    logger.info(f"  Inferred schema with {len(sample_table.schema)} fields")
-    return sample_table.schema
+    schema = sample_table.schema
+
+    # Cleanup
+    del sample_table
+    del sample_payloads
+    gc.collect()
+
+    return schema
 
 
 def payloads_to_parquet_streaming(
     qdrant_client,
     collection_name: str,
     output_path: Path,
-    batch_size: int = 5000,
+    batch_size: int = 500,
     year_filter: int | None = None,
     year_field: str | None = None,
 ) -> int:
@@ -164,7 +231,15 @@ def payloads_to_parquet_streaming(
 
     Memory usage: O(batch_size) instead of O(total records).
     """
-    schema = infer_schema_from_sample(qdrant_client, collection_name)
+    # Infer schema from filtered sample for consistency
+    schema = infer_schema_from_sample(
+        qdrant_client,
+        collection_name,
+        sample_size=50,
+        year_filter=year_filter,
+        year_field=year_field,
+    )
+
     total_records = 0
     writer = None
 
@@ -195,8 +270,10 @@ def payloads_to_parquet_streaming(
             writer.write_table(batch_table)
             total_records += len(batch_payloads)
 
-            # Explicit cleanup
+            # Explicit cleanup after each batch
             del batch_table
+            del batch_payloads
+            gc.collect()
 
     finally:
         if writer:
@@ -214,13 +291,12 @@ def upload_to_blob(
 ) -> str:
     """Upload file to Azure Blob Storage."""
     if dry_run:
-        logger.info(f"  [DRY RUN] Would upload {local_path.name} -> {blob_name}")
+        logger.info(f"    [DRY RUN] Would upload -> {blob_name}")
         return f"https://example.blob.core.windows.net/{container_name}/{blob_name}"
 
     container_client = blob_service_client.get_container_client(container_name)
     blob_client = container_client.get_blob_client(blob_name)
 
-    # Upload with content type
     with open(local_path, "rb") as data:
         blob_client.upload_blob(
             data,
@@ -235,10 +311,9 @@ def get_years_in_collection(
     qdrant_client, collection_name: str, year_field: str
 ) -> list[int]:
     """Get distinct years present in a collection by sampling."""
-    # Get a sample to find year range
     results, _ = qdrant_client.scroll(
         collection_name=collection_name,
-        limit=1000,
+        limit=2000,
         with_payload=True,
         with_vectors=False,
     )
@@ -249,7 +324,6 @@ def get_years_in_collection(
         if year is not None:
             years.add(int(year))
 
-    # Extend range based on sample
     if years:
         min_year = min(years)
         max_year = max(years)
@@ -275,6 +349,9 @@ def export_collection(
     logger.info(f"Exporting: {collection_name}")
     logger.info("=" * 60)
 
+    batch_size = config.get("batch_size", 500)
+    logger.info(f"  Batch size: {batch_size}")
+
     stats = {
         "collection": collection_name,
         "files": [],
@@ -286,52 +363,55 @@ def export_collection(
         temp_path = Path(temp_dir)
 
         if config["split_by_year"]:
-            # Export by year (memory-efficient streaming)
+            # Export by year
             years = get_years_in_collection(
                 qdrant_client, collection_name, config["year_field"]
             )
             year_range = f"{min(years)} - {max(years)}" if years else "none"
-            logger.info(f"Found years: {year_range}")
+            logger.info(f"  Found years: {year_range} ({len(years)} years)")
 
             for year in years:
-                logger.info(f"\n  Processing year {year}...")
+                logger.info(f"\n  Year {year}...")
 
-                # Write to temp file using streaming (memory-efficient)
-                filename = f"{collection_name}_{year}.parquet"
+                filename = f"{year}.parquet"
                 local_path = temp_path / filename
 
-                record_count = payloads_to_parquet_streaming(
-                    qdrant_client,
-                    collection_name,
-                    local_path,
-                    batch_size=5000,
-                    year_filter=year,
-                    year_field=config["year_field"],
-                )
+                try:
+                    record_count = payloads_to_parquet_streaming(
+                        qdrant_client,
+                        collection_name,
+                        local_path,
+                        batch_size=batch_size,
+                        year_filter=year,
+                        year_field=config["year_field"],
+                    )
+                except ValueError as e:
+                    logger.info(f"    Skipping year {year}: {e}")
+                    continue
 
                 if record_count == 0:
-                    logger.info(f"  No records for year {year}")
+                    logger.info(f"    No records for year {year}")
                     continue
 
                 file_size = local_path.stat().st_size
                 size_mb = file_size / 1024 / 1024
-                logger.info(f"  Year {year}: {record_count:,} records, {size_mb:.1f} MB")
+                logger.info(f"    {record_count:,} records, {size_mb:.1f} MB")
 
                 if blob_service_client:
-                    # Upload dated version
-                    dated_blob = f"{collection_name}/{collection_name}_{year}_{date_str}.parquet"
+                    # Upload to archive
+                    archive_blob = f"archive/{date_str}/{collection_name}/{year}.parquet"
                     upload_to_blob(
-                        blob_service_client, container_name, local_path, dated_blob, dry_run
+                        blob_service_client, container_name, local_path, archive_blob, dry_run
                     )
 
-                    # Upload latest version
-                    latest_blob = f"{collection_name}/{collection_name}_{year}_latest.parquet"
+                    # Upload to latest
+                    latest_blob = f"latest/{collection_name}/{year}.parquet"
                     url = upload_to_blob(
                         blob_service_client, container_name, local_path, latest_blob, dry_run
                     )
 
                     stats["files"].append({
-                        "name": f"{collection_name}_{year}_latest.parquet",
+                        "name": f"{collection_name}/{year}.parquet",
                         "url": url,
                         "records": record_count,
                         "bytes": file_size,
@@ -341,11 +421,13 @@ def export_collection(
                 stats["total_records"] += record_count
                 stats["total_bytes"] += file_size
 
-        else:
-            # Single file export (memory-efficient streaming)
-            logger.info("  Streaming collection to Parquet...")
+                # Cleanup between years
+                gc.collect()
 
-            # Write to temp file using streaming
+        else:
+            # Single file export
+            logger.info("  Streaming to Parquet...")
+
             filename = f"{collection_name}.parquet"
             local_path = temp_path / filename
 
@@ -353,7 +435,7 @@ def export_collection(
                 qdrant_client,
                 collection_name,
                 local_path,
-                batch_size=5000,
+                batch_size=batch_size,
             )
 
             if record_count == 0:
@@ -364,20 +446,20 @@ def export_collection(
             logger.info(f"  Total: {record_count:,} records, {file_size / 1024 / 1024:.1f} MB")
 
             if blob_service_client:
-                # Upload dated version
-                dated_blob = f"{collection_name}/{collection_name}_{date_str}.parquet"
+                # Upload to archive
+                archive_blob = f"archive/{date_str}/{collection_name}.parquet"
                 upload_to_blob(
-                    blob_service_client, container_name, local_path, dated_blob, dry_run
+                    blob_service_client, container_name, local_path, archive_blob, dry_run
                 )
 
-                # Upload latest version
-                latest_blob = f"{collection_name}/{collection_name}_latest.parquet"
+                # Upload to latest
+                latest_blob = f"latest/{collection_name}.parquet"
                 url = upload_to_blob(
                     blob_service_client, container_name, local_path, latest_blob, dry_run
                 )
 
                 stats["files"].append({
-                    "name": f"{collection_name}_latest.parquet",
+                    "name": f"{collection_name}.parquet",
                     "url": url,
                     "records": record_count,
                     "bytes": file_size,
@@ -395,9 +477,9 @@ def cleanup_old_exports(
     retention_weeks: int = RETENTION_WEEKS,
     dry_run: bool = False,
 ) -> int:
-    """Delete exports older than retention period."""
+    """Delete archive exports older than retention period."""
     logger.info(f"\n{'=' * 60}")
-    logger.info(f"Cleaning up exports older than {retention_weeks} weeks")
+    logger.info(f"Cleaning up archives older than {retention_weeks} weeks")
     logger.info("=" * 60)
 
     cutoff_date = datetime.now(timezone.utc) - timedelta(weeks=retention_weeks)
@@ -405,11 +487,7 @@ def cleanup_old_exports(
 
     container_client = blob_service_client.get_container_client(container_name)
 
-    for blob in container_client.list_blobs():
-        # Skip *_latest files
-        if "_latest" in blob.name:
-            continue
-
+    for blob in container_client.list_blobs(name_starts_with="archive/"):
         # Check if blob is older than cutoff
         if blob.last_modified and blob.last_modified < cutoff_date:
             if dry_run:
@@ -428,12 +506,14 @@ def generate_manifest(
     container_name: str,
     all_stats: list[dict],
     date_str: str,
+    base_url: str,
     dry_run: bool = False,
 ) -> None:
     """Generate and upload manifest.json."""
     manifest = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "export_date": date_str,
+        "base_url": base_url,
         "collections": {},
         "totals": {
             "total_records": sum(s["total_records"] for s in all_stats),
@@ -452,24 +532,23 @@ def generate_manifest(
     manifest_json = json.dumps(manifest, indent=2)
 
     if dry_run:
-        logger.info("\n[DRY RUN] Would upload manifest_latest.json:")
-        logger.info(manifest_json[:500] + "..." if len(manifest_json) > 500 else manifest_json)
+        logger.info("\n[DRY RUN] Would upload latest/manifest.json")
         return
 
     if blob_service_client:
         container_client = blob_service_client.get_container_client(container_name)
 
-        # Upload dated manifest
-        dated_blob = f"manifest_{date_str}.json"
-        blob_client = container_client.get_blob_client(dated_blob)
+        # Upload to archive
+        archive_blob = f"archive/{date_str}/manifest.json"
+        blob_client = container_client.get_blob_client(archive_blob)
         blob_client.upload_blob(
             manifest_json,
             overwrite=True,
             content_settings=ContentSettings(content_type="application/json"),
         )
 
-        # Upload latest manifest
-        latest_blob = "manifest_latest.json"
+        # Upload to latest
+        latest_blob = "latest/manifest.json"
         blob_client = container_client.get_blob_client(latest_blob)
         blob_client.upload_blob(
             manifest_json,
@@ -519,6 +598,10 @@ def main():
             args.dry_run = True
 
     container_name = os.environ.get("BULK_DOWNLOAD_CONTAINER", "downloads")
+    base_url = os.environ.get(
+        "DOWNLOADS_BASE_URL",
+        f"https://lexdownloads.blob.core.windows.net/{container_name}"
+    )
     date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
     # Filter collections if specified
@@ -540,8 +623,14 @@ def main():
                 dry_run=args.dry_run,
             )
             all_stats.append(stats)
+
+            # Force garbage collection between collections
+            gc.collect()
+
         except Exception as e:
             logger.error(f"Failed to export {collection_name}: {e}")
+            import traceback
+            traceback.print_exc()
             all_stats.append({
                 "collection": collection_name,
                 "files": [],
@@ -556,6 +645,7 @@ def main():
         container_name,
         all_stats,
         date_str,
+        base_url,
         dry_run=args.dry_run,
     )
 
