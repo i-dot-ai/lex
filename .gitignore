@@ -236,6 +236,9 @@ lex_exports_*/
 # Backup files
 *.bak
 
+# PDF processing artifacts
+.pdf_processing/
+
 # Migration scripts (add to repo if needed)
 scripts/migrate_to_cloud_qdrant.py
 data/pdf_legislation*.jsonl
