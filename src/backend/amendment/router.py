@@ -1,10 +1,10 @@
-import traceback
 from typing import List
 
 from fastapi import APIRouter, HTTPException
 
 from backend.amendment.models import AmendmentSearch, AmendmentSectionSearch
 from backend.amendment.search import search_amendment_sections, search_amendments
+from backend.core.error_handling import handle_errors
 from lex.amendment.models import Amendment
 
 router = APIRouter(
@@ -21,17 +21,9 @@ router = APIRouter(
     summary="Search legislative amendments",
     description="Find amendments to Acts and SIs by content, title, or affected legislation.",
 )
+@handle_errors
 async def search_amendments_endpoint(search: AmendmentSearch):
-    try:
-        result = await search_amendments(search)
-        return result
-    except Exception as e:
-        error_detail = {
-            "error_type": type(e).__name__,
-            "error_message": str(e),
-            "traceback": traceback.format_exc(),
-        }
-        raise HTTPException(status_code=500, detail=error_detail)
+    return await search_amendments(search)
 
 
 @router.post(
@@ -41,14 +33,6 @@ async def search_amendments_endpoint(search: AmendmentSearch):
     summary="Search within amendment sections",
     description="Find text within specific sections of legislative amendments.",
 )
+@handle_errors
 async def search_amendment_sections_endpoint(search: AmendmentSectionSearch):
-    try:
-        result = await search_amendment_sections(search)
-        return result
-    except Exception as e:
-        error_detail = {
-            "error_type": type(e).__name__,
-            "error_message": str(e),
-            "traceback": traceback.format_exc(),
-        }
-        raise HTTPException(status_code=500, detail=error_detail)
+    return await search_amendment_sections(search)

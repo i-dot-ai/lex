@@ -1,6 +1,5 @@
 import asyncio
 import logging
-import traceback
 from datetime import datetime, timedelta
 from typing import List
 
@@ -8,6 +7,7 @@ import httpx
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import Response
 
+from backend.core.error_handling import handle_errors
 from backend.legislation.models import (
     LegislationActSearch,
     LegislationFullText,
@@ -70,17 +70,9 @@ router = APIRouter(
     summary="Search within specific sections of legislation",
     description="Find text within sections of Acts, SIs, or other legislation types. Use for detailed content searches.",
 )
+@handle_errors
 async def search_for_legislation_sections(search: LegislationSectionSearch):
-    try:
-        result = await legislation_section_search(search)
-        return result
-    except Exception as e:
-        error_detail = {
-            "error_type": type(e).__name__,
-            "error_message": str(e),
-            "traceback": traceback.format_exc(),
-        }
-        raise HTTPException(status_code=500, detail=error_detail)
+    return await legislation_section_search(search)
 
 
 @router.post(
@@ -90,17 +82,9 @@ async def search_for_legislation_sections(search: LegislationSectionSearch):
     summary="Search for Acts and Statutory Instruments",
     description="Find legislation by title, content, or metadata. Returns full Acts and SIs with match scores.",
 )
+@handle_errors
 async def search_for_legislation_acts(search: LegislationActSearch):
-    try:
-        result = await legislation_act_search(search)
-        return result
-    except Exception as e:
-        error_detail = {
-            "error_type": type(e).__name__,
-            "error_message": str(e),
-            "traceback": traceback.format_exc(),
-        }
-        raise HTTPException(status_code=500, detail=error_detail)
+    return await legislation_act_search(search)
 
 
 @router.post(
@@ -111,24 +95,15 @@ async def search_for_legislation_acts(search: LegislationActSearch):
     description="Retrieve a single Act or SI using its official citation (e.g. ukpga/2018/12).",
     responses={404: {"description": "Legislation not found"}},
 )
+@handle_errors
 async def lookup_legislation_endpoint(lookup: LegislationLookup):
-    try:
-        result = await legislation_lookup(lookup)
-        if result is None:
-            raise HTTPException(
-                status_code=404,
-                detail=f"Legislation not found: {lookup.legislation_type.value} {lookup.year} No. {lookup.number}",
-            )
-        return result
-    except HTTPException:
-        raise
-    except Exception as e:
-        error_detail = {
-            "error_type": type(e).__name__,
-            "error_message": str(e),
-            "traceback": traceback.format_exc(),
-        }
-        raise HTTPException(status_code=500, detail=error_detail)
+    result = await legislation_lookup(lookup)
+    if result is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Legislation not found: {lookup.legislation_type.value} {lookup.year} No. {lookup.number}",
+        )
+    return result
 
 
 @router.post(
@@ -139,24 +114,15 @@ async def lookup_legislation_endpoint(lookup: LegislationLookup):
     description="Retrieve the complete structure and content of all sections within a piece of legislation.",
     responses={404: {"description": "No sections found for the specified legislation title"}},
 )
+@handle_errors
 async def get_sections_by_id(input: LegislationSectionLookup):
-    try:
-        sections = await get_legislation_sections(input)
-        if not sections:
-            raise HTTPException(
-                status_code=404,
-                detail=f"No sections found for legislation ID: {input.legislation_id}",
-            )
-        return sections
-    except HTTPException:
-        raise
-    except Exception as e:
-        error_detail = {
-            "error_type": type(e).__name__,
-            "error_message": str(e),
-            "traceback": traceback.format_exc(),
-        }
-        raise HTTPException(status_code=500, detail=error_detail)
+    sections = await get_legislation_sections(input)
+    if not sections:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No sections found for legislation ID: {input.legislation_id}",
+        )
+    return sections
 
 
 @router.post(
@@ -167,23 +133,14 @@ async def get_sections_by_id(input: LegislationSectionLookup):
     description="Retrieve the full text content of an Act or SI as a single document.",
     responses={404: {"description": "Legislation not found"}},
 )
+@handle_errors
 async def get_full_text_by_id(input: LegislationFullTextLookup):
-    try:
-        result = await get_legislation_full_text(input)
-        if not result:
-            raise HTTPException(
-                status_code=404, detail=f"Legislation not found: {input.legislation_id}"
-            )
-        return result
-    except HTTPException:
-        raise
-    except Exception as e:
-        error_detail = {
-            "error_type": type(e).__name__,
-            "error_message": str(e),
-            "traceback": traceback.format_exc(),
-        }
-        raise HTTPException(status_code=500, detail=error_detail)
+    result = await get_legislation_full_text(input)
+    if not result:
+        raise HTTPException(
+            status_code=404, detail=f"Legislation not found: {input.legislation_id}"
+        )
+    return result
 
 
 @router.get(
@@ -194,6 +151,7 @@ async def get_full_text_by_id(input: LegislationFullTextLookup):
         502: {"description": "External API error"},
     },
 )
+@handle_errors
 async def proxy_legislation_data(legislation_id: str):
     """Proxy endpoint to fetch enriched metadata from legislation.gov.uk.
 
@@ -288,12 +246,3 @@ async def proxy_legislation_data(legislation_id: str):
         raise HTTPException(status_code=502, detail=f"External API error: {str(e)}")
     except httpx.RequestError as e:
         raise HTTPException(status_code=502, detail=f"Request failed: {str(e)}")
-    except HTTPException:
-        raise
-    except Exception as e:
-        error_detail = {
-            "error_type": type(e).__name__,
-            "error_message": str(e),
-            "traceback": traceback.format_exc(),
-        }
-        raise HTTPException(status_code=500, detail=error_detail)

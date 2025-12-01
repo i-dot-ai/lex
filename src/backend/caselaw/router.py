@@ -1,4 +1,3 @@
-import traceback
 from typing import List
 
 import httpx
@@ -19,6 +18,7 @@ from backend.caselaw.search import (
     caselaw_section_search,
     caselaw_summary_search,
 )
+from backend.core.error_handling import handle_errors
 from lex.caselaw.models import Caselaw, CaselawSection
 
 router = APIRouter(
@@ -35,17 +35,9 @@ router = APIRouter(
     summary="Search court cases and judgments",
     description="Find cases by content, court, judge, or citation. Returns cases with match scores and metadata.",
 )
+@handle_errors
 async def search_caselaw_endpoint(search: CaselawSearch):
-    try:
-        result = await caselaw_search(search)
-        return result
-    except Exception as e:
-        error_detail = {
-            "error_type": type(e).__name__,
-            "error_message": str(e),
-            "traceback": traceback.format_exc(),
-        }
-        raise HTTPException(status_code=500, detail=error_detail)
+    return await caselaw_search(search)
 
 
 @router.post(
@@ -55,17 +47,9 @@ async def search_caselaw_endpoint(search: CaselawSearch):
     summary="Search within specific case sections",
     description="Find text within judgments, headnotes, or specific parts of court cases.",
 )
+@handle_errors
 async def search_caselaw_section_endpoint(search: CaselawSectionSearch):
-    try:
-        result = await caselaw_section_search(search)
-        return result
-    except Exception as e:
-        error_detail = {
-            "error_type": type(e).__name__,
-            "error_message": str(e),
-            "traceback": traceback.format_exc(),
-        }
-        raise HTTPException(status_code=500, detail=error_detail)
+    return await caselaw_section_search(search)
 
 
 @router.post(
@@ -75,17 +59,9 @@ async def search_caselaw_section_endpoint(search: CaselawSectionSearch):
     summary="Find cases that cite specific cases or legislation",
     description="Search for cases that reference a particular case or Act. Filter by court, division, and date range.",
 )
+@handle_errors
 async def search_caselaw_reference_endpoint(search: CaselawReferenceSearch):
-    try:
-        result = await caselaw_reference_search(search)
-        return result
-    except Exception as e:
-        error_detail = {
-            "error_type": type(e).__name__,
-            "error_message": str(e),
-            "traceback": traceback.format_exc(),
-        }
-        raise HTTPException(status_code=500, detail=error_detail)
+    return await caselaw_reference_search(search)
 
 
 @router.post(
@@ -110,17 +86,9 @@ async def search_caselaw_reference_alias(search: CaselawReferenceSearch):
         "reasoning, and obiter dicta."
     ),
 )
+@handle_errors
 async def search_caselaw_summaries_endpoint(search: CaselawSummarySearch):
-    try:
-        result = await caselaw_summary_search(search)
-        return result
-    except Exception as e:
-        error_detail = {
-            "error_type": type(e).__name__,
-            "error_message": str(e),
-            "traceback": traceback.format_exc(),
-        }
-        raise HTTPException(status_code=500, detail=error_detail)
+    return await caselaw_summary_search(search)
 
 
 @router.get(
@@ -128,6 +96,7 @@ async def search_caselaw_summaries_endpoint(search: CaselawSummarySearch):
     operation_id="proxy_caselaw_data",
     responses={404: {"description": "Case not found"}, 502: {"description": "External API error"}},
 )
+@handle_errors
 async def proxy_caselaw_data(case_id: str):
     """Proxy endpoint to fetch enriched metadata from caselaw.nationalarchives.gov.uk.
 
@@ -163,12 +132,3 @@ async def proxy_caselaw_data(case_id: str):
         raise HTTPException(status_code=502, detail=f"External API error: {str(e)}")
     except httpx.RequestError as e:
         raise HTTPException(status_code=502, detail=f"Request failed: {str(e)}")
-    except HTTPException:
-        raise
-    except Exception as e:
-        error_detail = {
-            "error_type": type(e).__name__,
-            "error_message": str(e),
-            "traceback": traceback.format_exc(),
-        }
-        raise HTTPException(status_code=500, detail=error_detail)
