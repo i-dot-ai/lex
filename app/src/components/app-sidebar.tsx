@@ -70,12 +70,14 @@ const data = {
       icon: BookOpen,
       items: [
         {
-          title: "API Docs",
-          url: `${API_CONFIG.baseUrl}/docs`,
+          title: "About Lex",
+          url: `${API_CONFIG.backendUrl}/`,
+          external: true,
         },
         {
-          title: "About Lex",
-          url: "#",
+          title: "API Reference",
+          url: `${API_CONFIG.backendUrl}/docs`,
+          external: true,
         },
       ],
     },

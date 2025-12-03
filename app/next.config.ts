@@ -8,6 +8,8 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_API_URL: '/api/proxy',
     // Server-side uses direct API URL (no CORS issues)
     API_URL: API_URL,
+    // Backend URL for external links (docs, etc.) - not proxied
+    NEXT_PUBLIC_BACKEND_URL: API_URL,
   },
   async rewrites() {
     return [
