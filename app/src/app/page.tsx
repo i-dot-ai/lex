@@ -15,8 +15,9 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
-import { FileText, Search, Scale } from "lucide-react"
+import { FileText, Search, Scale, ExternalLink } from "lucide-react"
 import Link from "next/link"
+import { API_CONFIG } from "@/lib/config"
 
 export default function Home() {
   return (
@@ -42,11 +43,33 @@ export default function Home() {
 
         <div className="flex flex-1 flex-col gap-8 p-4 pt-0">
           {/* Hero Section */}
-          <div className="space-y-3 text-center max-w-2xl mx-auto mt-12">
-            <h1 className="text-4xl font-bold tracking-tight">Welcome to Lex</h1>
+          <div className="space-y-4 text-center max-w-2xl mx-auto mt-12">
+            <h1 className="text-4xl font-bold tracking-tight">Lex API Demo</h1>
             <p className="text-muted-foreground text-lg">
-              Search legislation and caselaw with semantic search
+              See what you can build with the Lex UK Legal Research API.
+              Semantic search across legislation and caselaw.
             </p>
+            <div className="flex items-center justify-center gap-3 pt-2">
+              <a
+                href={`${API_CONFIG.backendUrl}/docs`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Button variant="outline" size="sm">
+                  <ExternalLink className="mr-2 h-4 w-4" />
+                  API Reference
+                </Button>
+              </a>
+              <a
+                href={`${API_CONFIG.backendUrl}/`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Button variant="ghost" size="sm">
+                  About Lex
+                </Button>
+              </a>
+            </div>
           </div>
 
           {/* Search Options */}

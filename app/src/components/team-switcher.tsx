@@ -6,6 +6,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
+import { Badge } from "@/components/ui/badge"
 
 export function TeamSwitcher({
   teams,
@@ -30,7 +31,12 @@ export function TeamSwitcher({
             <activeTeam.logo className="size-4" />
           </div>
           <div className="grid flex-1 text-left text-sm leading-tight">
-            <span className="truncate font-medium">{activeTeam.name}</span>
+            <span className="truncate font-medium flex items-center gap-2">
+              {activeTeam.name}
+              <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                Demo
+              </Badge>
+            </span>
             <span className="truncate text-xs">{activeTeam.plan}</span>
           </div>
         </SidebarMenuButton>
