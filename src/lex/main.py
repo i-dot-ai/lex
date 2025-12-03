@@ -20,7 +20,7 @@ from lex.core.utils import parse_years, set_logging_level
 from lex.explanatory_note.pipeline import pipe_explanatory_note
 from lex.explanatory_note.qdrant_schema import get_explanatory_note_schema
 from lex.legislation.models import LegislationType
-from lex.legislation.pipeline import pipe_legislation, pipe_legislation_sections
+from lex.legislation.pipeline import pipe_legislation, pipe_legislation_sections, pipe_legislation_unified
 from lex.legislation.qdrant_schema import get_legislation_schema, get_legislation_section_schema
 from lex.settings import (
     AMENDMENT_COLLECTION,
@@ -72,6 +72,11 @@ collection_mapping = {
     "caselaw-unified": CollectionMapping(
         None,  # Special case - uses multiple collections
         pipe_caselaw_unified,
+        None,  # Schemas handled per collection type
+    ),
+    "legislation-unified": CollectionMapping(
+        None,  # Special case - uses multiple collections
+        pipe_legislation_unified,
         None,  # Schemas handled per collection type
     ),
     "explanatory-note": CollectionMapping(
@@ -282,13 +287,102 @@ def process_unified_caselaw(args):
         logger.info(f"Unified pipeline complete: {caselaw_count} cases, {section_count} sections")
 
 
+def process_unified_legislation(args):
+    """
+    Process unified legislation pipeline that outputs to multiple collections.
+    """
+    # Create both collections if they don't exist
+    create_collection_if_none(
+        collection_name=LEGISLATION_COLLECTION,
+        schema=get_legislation_schema(),
+        non_interactive=args.non_interactive,
+    )
+    create_collection_if_none(
+        collection_name=LEGISLATION_SECTION_COLLECTION,
+        schema=get_legislation_section_schema(),
+        non_interactive=args.non_interactive,
+    )
+
+    documents_iterator = pipe_legislation_unified
+    documents = documents_iterator(**vars(args))
+
+    batch_size = args.batch_size if hasattr(args, "batch_size") else 50
+    logger.info(f"Processing unified legislation with batch size: {batch_size}")
+
+    # Separate batches for each index type
+    legislation_batch = []
+    section_batch = []
+    legislation_count = 0
+    section_count = 0
+
+    # Determine embedding fields for legislation metadata
+    legislation_embedding_fields = ["title", "description", "type", "year"]
+
+    for index_type, doc in documents:
+        if index_type == "legislation":
+            legislation_batch.append(doc)
+            legislation_count += 1
+            if len(legislation_batch) >= batch_size:
+                upload_documents(
+                    collection_name=LEGISLATION_COLLECTION,
+                    documents=legislation_batch,
+                    embedding_fields=legislation_embedding_fields,
+                )
+                logger.info(
+                    f"Uploaded batch of {len(legislation_batch)} legislation documents (total: {legislation_count})"
+                )
+                legislation_batch = []
+
+        elif index_type == "legislation-section":
+            section_batch.append(doc)
+            section_count += 1
+            if len(section_batch) >= batch_size:
+                upload_documents(
+                    collection_name=LEGISLATION_SECTION_COLLECTION, documents=section_batch
+                )
+                logger.info(
+                    f"Uploaded batch of {len(section_batch)} section documents (total: {section_count})"
+                )
+                section_batch = []
+
+        # Garbage collection after processing batches
+        if (legislation_count + section_count) % (batch_size * 2) == 0:
+            import gc
+
+            gc.collect()
+
+    # Upload any remaining documents
+    if legislation_batch:
+        upload_documents(
+            collection_name=LEGISLATION_COLLECTION,
+            documents=legislation_batch,
+            embedding_fields=legislation_embedding_fields,
+        )
+        logger.info(
+            f"Uploaded final legislation batch of {len(legislation_batch)} (total: {legislation_count})"
+        )
+
+    if section_batch:
+        upload_documents(collection_name=LEGISLATION_SECTION_COLLECTION, documents=section_batch)
+        logger.info(
+            f"Uploaded final section batch of {len(section_batch)} (total: {section_count})"
+        )
+
+    logger.info(
+        f"Unified legislation pipeline complete: {legislation_count} legislation, {section_count} sections"
+    )
+
+
 def process_documents(args):
     """
     Core pipeline logic to process and upload documents
     """
-    # Special handling for unified pipeline
+    # Special handling for unified pipelines
     if args.model == "caselaw-unified":
         return process_unified_caselaw(args)
+
+    if args.model == "legislation-unified":
+        return process_unified_legislation(args)
 
     collection, documents_iterator, schema_func = collection_mapping[args.model]
 
