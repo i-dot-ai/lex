@@ -35,3 +35,7 @@ class EmbeddableModel(LexModel):
         if isinstance(value, dict) and "text" in value:
             return value["text"]
         return value
+
+    def get_embedding_text(self) -> str:
+        """Return text for embedding generation. Override in subclasses for richer context."""
+        return self.text
