@@ -33,6 +33,27 @@ Before using tools, identify:
 ## 2. Tool Usage Strategy
 Use tools strategically and sparingly (aim for 3-5 tool calls total):
 
+### CASELAW TOOLS (Prefer summaries for efficiency)
+
+**search_caselaw_summaries** ⭐ PREFERRED FOR CASELAW
+- Use when: You need case law, judicial interpretation, or legal precedent
+- Returns: AI-generated case summaries with structured legal analysis:
+  - Material facts (key facts of the case)
+  - Legal issues (questions the court addressed)
+  - Ratio decidendi (the binding legal principle)
+  - Reasoning (how the court reached its decision)
+  - Obiter dicta (non-binding observations)
+- Filters: court, division, year_from, year_to
+- **Why preferred**: Summaries provide the essential legal analysis in a structured format, making it faster to identify relevant precedent and extract the ratio decidendi
+
+**search_caselaw** - Full case text search
+- Use when: You need to search the full judgment text or need cases not yet summarised
+- Returns: Case metadata (court, name, cite_as, date, header text)
+- Filters: court, division, year_from, year_to
+- Note: Use search_caselaw_summaries first; fall back to this for comprehensive searches
+
+### LEGISLATION TOOLS
+
 **search_legislation_acts** - Find relevant Acts/SIs by topic
 - Use when: You need to identify which legislation covers a topic
 - Returns: Legislation metadata (title, type, year, status, extent)
@@ -45,11 +66,11 @@ Use tools strategically and sparingly (aim for 3-5 tool calls total):
 - Filters: legislation_id, year_from, year_to, legislation_type, legislation_category
 - Searches: Within legislation text (hybrid semantic + BM25)
 
-**search_caselaw** - Find judicial interpretation and precedent
-- Use when: You need case law or judicial interpretation of legislation
-- Returns: Case metadata (court, name, cite_as, date, header text)
-- Filters: court, division, year_from, year_to
-- Searches: Case names, citations, summaries (semantic search)
+**search_amendments** - Find amendments to legislation
+- Use when: You need to understand how legislation has been changed over time
+- Returns: Amendment details showing what was added, removed, or modified
+- Required: legislation_id (e.g., "ukpga/2018/12" for Data Protection Act 2018)
+- Use search_amended=true for amendments TO the legislation, false for amendments BY it
 
 **Tool Call Preamble**: Before each tool call, briefly tell the user what you're searching for (e.g., "Searching for relevant data protection legislation..."). After results arrive, do not repeat or summarize them - proceed directly to next search if needed.
 
@@ -137,7 +158,8 @@ Structure your answer clearly:
 
 CRITICAL: Always provide a final answer after searches complete. Cite specifically. Format clearly. Be concise but complete.`;
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+// Use server-side API_URL (full URL, no CORS issues) instead of client-side proxy
+const API_URL = process.env.API_URL || 'http://localhost:8000';
 
 export async function POST(req: Request) {
   try {
@@ -234,11 +256,101 @@ export async function POST(req: Request) {
           }
         },
       });
+
+      // Amendments search
+      tools.search_amendments = tool({
+        description: 'Find amendments to a specific piece of legislation. Shows what provisions have been added, removed, or modified.',
+        inputSchema: z.object({
+          legislation_id: z.string().describe('The legislation ID (e.g., "ukpga/2018/12" for Data Protection Act 2018)'),
+          search_amended: z.boolean().optional().describe('If true (default), find amendments TO this legislation. If false, find amendments made BY this legislation.'),
+          size: z.number().optional().describe('Number of results (default 100)'),
+        }),
+        execute: async ({ legislation_id, search_amended = true, size = 100 }) => {
+          const startTime = Date.now();
+          try {
+            console.log(`[TOOL] Amendments search starting for: "${legislation_id}"`);
+            console.log(`[TOOL] Fetching: ${API_URL}/amendment/search`);
+            const fetchStart = Date.now();
+            const response = await fetch(`${API_URL}/amendment/search`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ legislation_id, search_amended, size }),
+              signal: AbortSignal.timeout(60000),
+            });
+            const fetchElapsed = Date.now() - fetchStart;
+            console.log(`[TOOL] Fetch completed in ${fetchElapsed}ms, status: ${response.status}`);
+
+            if (!response.ok) {
+              return { error: `Search failed with status ${response.status}`, results: [] };
+            }
+
+            const result = await response.json();
+            const elapsed = Date.now() - startTime;
+            console.log(`[TOOL] Amendments search completed in ${elapsed}ms`);
+            return result;
+          } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            console.error('Amendments search error:', errorMessage);
+
+            if (errorMessage.includes('aborted') || errorMessage.includes('timeout')) {
+              return { error: 'Search timed out after 60 seconds.', results: [] };
+            }
+
+            return { error: `Search failed: ${errorMessage}`, results: [] };
+          }
+        },
+      });
     }
 
     if (includeCaselaw) {
+      // PREFERRED: Caselaw summaries with structured legal analysis
+      tools.search_caselaw_summaries = tool({
+        description: 'Search AI-generated case summaries with structured legal analysis (material facts, legal issues, ratio decidendi, reasoning, obiter dicta). PREFERRED for caselaw research.',
+        inputSchema: z.object({
+          query: z.string().describe('The search query - searches across summaries including material facts, legal issues, ratio decidendi, reasoning, and obiter dicta'),
+          size: z.number().optional().describe('Number of results (default 10)'),
+          year_from: z.number().optional().describe('Filter by cases from this year onwards'),
+          year_to: z.number().optional().describe('Filter by cases up to this year'),
+        }),
+        execute: async ({ query, size = 10, year_from, year_to }) => {
+          const startTime = Date.now();
+          try {
+            console.log(`[TOOL] Caselaw summary search starting: "${query}"`);
+            console.log(`[TOOL] Fetching: ${API_URL}/caselaw/summary/search`);
+            const fetchStart = Date.now();
+            const response = await fetch(`${API_URL}/caselaw/summary/search`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ query, size, is_semantic_search: true, year_from, year_to }),
+              signal: AbortSignal.timeout(60000),
+            });
+            const fetchElapsed = Date.now() - fetchStart;
+            console.log(`[TOOL] Fetch completed in ${fetchElapsed}ms, status: ${response.status}`);
+
+            if (!response.ok) {
+              return { error: `Search failed with status ${response.status}`, results: [], total: 0 };
+            }
+
+            const result = await response.json();
+            const elapsed = Date.now() - startTime;
+            console.log(`[TOOL] Caselaw summary search completed in ${elapsed}ms`);
+            return result;
+          } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            console.error('Caselaw summary search error:', errorMessage);
+
+            if (errorMessage.includes('aborted') || errorMessage.includes('timeout')) {
+              return { error: 'Search timed out after 60 seconds. Try a more specific query.', results: [], total: 0 };
+            }
+
+            return { error: `Search failed: ${errorMessage}`, results: [], total: 0 };
+          }
+        },
+      });
+
+      // Full text caselaw search (fallback)
       tools.search_caselaw = tool({
-        description: 'Search UK court cases using semantic search',
+        description: 'Search UK court cases using full text semantic search. Use search_caselaw_summaries first for structured analysis.',
         inputSchema: z.object({
           query: z.string().describe('The search query'),
           size: z.number().optional().describe('Number of results (default 10)'),

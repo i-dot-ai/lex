@@ -444,27 +444,86 @@ export default function ResearchPage() {
 
                                 {isExpanded && hasResults && card.result && (
                                   <div className={`mt-1 pl-6 space-y-1.5 text-xs text-muted-foreground/80 ${ANIMATION.CLASSES}`}>
-                                    {/* Render results based on structure */}
-                                    {card.result.results && Array.isArray(card.result.results) && (
-                                      card.result.results.slice(0, 3).map((result: { title?: string; citation?: string; name?: string }, i: number) => (
-                                        <div key={i} className="border-l-2 border-muted-foreground/20 pl-2 py-0.5">
-                                          {result.title && (
-                                            <div className="font-medium text-muted-foreground/90">{result.title}</div>
+                                    {/* Render results based on structure - handle both wrapped and direct arrays */}
+                                    {(() => {
+                                      // Get results array - handle both direct array and wrapped in {results: []}
+                                      const resultsArray = Array.isArray(card.result)
+                                        ? card.result
+                                        : (card.result.results && Array.isArray(card.result.results) ? card.result.results : [])
+
+                                      // Determine tool type for appropriate rendering
+                                      const isLegislationSection = card.name === 'search_legislation_sections'
+                                      const isCaselawSummary = card.name === 'search_caselaw_summaries'
+                                      const isAmendment = card.name === 'search_amendments'
+
+                                      return (
+                                        <>
+                                          {resultsArray.slice(0, 3).map((result: Record<string, unknown>, i: number) => (
+                                            <div key={i} className="border-l-2 border-muted-foreground/20 pl-2 py-0.5">
+                                              {/* Legislation sections: show title and reference */}
+                                              {isLegislationSection && (
+                                                <>
+                                                  <div className="font-medium text-muted-foreground/90">
+                                                    {result.title as string || 'Untitled section'}
+                                                  </div>
+                                                  <div className="text-muted-foreground/70">
+                                                    {(result.legislation_type as string || '').toUpperCase()} {result.legislation_year}/{result.legislation_number}
+                                                    {result.number && ` s.${result.number}`}
+                                                  </div>
+                                                </>
+                                              )}
+
+                                              {/* Caselaw summaries: show name and citation */}
+                                              {isCaselawSummary && (
+                                                <>
+                                                  <div className="font-medium text-muted-foreground/90">
+                                                    {result.name as string || 'Unnamed case'}
+                                                  </div>
+                                                  <div className="text-muted-foreground/70">
+                                                    {result.cite_as as string || `${(result.court as string || '').toUpperCase()} ${result.year}`}
+                                                  </div>
+                                                </>
+                                              )}
+
+                                              {/* Amendments: show amending/amended legislation */}
+                                              {isAmendment && (
+                                                <>
+                                                  <div className="font-medium text-muted-foreground/90">
+                                                    {result.amending_title as string || result.amended_title as string || 'Amendment'}
+                                                  </div>
+                                                  <div className="text-muted-foreground/70">
+                                                    {result.change_type as string || 'Modified'}
+                                                  </div>
+                                                </>
+                                              )}
+
+                                              {/* Default fallback for other tools */}
+                                              {!isLegislationSection && !isCaselawSummary && !isAmendment && (
+                                                <>
+                                                  {result.title && (
+                                                    <div className="font-medium text-muted-foreground/90">{result.title as string}</div>
+                                                  )}
+                                                  {result.citation && (
+                                                    <div className="text-muted-foreground/70">{result.citation as string}</div>
+                                                  )}
+                                                  {result.cite_as && !result.citation && (
+                                                    <div className="text-muted-foreground/70">{result.cite_as as string}</div>
+                                                  )}
+                                                  {result.name && !result.title && (
+                                                    <div className="font-medium text-muted-foreground/90">{result.name as string}</div>
+                                                  )}
+                                                </>
+                                              )}
+                                            </div>
+                                          ))}
+                                          {resultsArray.length > 3 && (
+                                            <div className="pl-2 text-muted-foreground/60 italic">
+                                              +{resultsArray.length - 3} more result{resultsArray.length - 3 !== 1 ? 's' : ''}
+                                            </div>
                                           )}
-                                          {result.citation && (
-                                            <div className="text-muted-foreground/70">{result.citation}</div>
-                                          )}
-                                          {result.name && !result.title && (
-                                            <div className="font-medium text-muted-foreground/90">{result.name}</div>
-                                          )}
-                                        </div>
-                                      ))
-                                    )}
-                                    {card.result.results && card.result.results.length > 3 && (
-                                      <div className="pl-2 text-muted-foreground/60 italic">
-                                        +{card.result.results.length - 3} more result{card.result.results.length - 3 !== 1 ? 's' : ''}
-                                      </div>
-                                    )}
+                                        </>
+                                      )
+                                    })()}
                                   </div>
                                 )}
                               </div>

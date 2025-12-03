@@ -1,8 +1,21 @@
 import type { NextConfig } from "next";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
 const nextConfig: NextConfig = {
   env: {
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
+    // Client-side uses local proxy to avoid CORS
+    NEXT_PUBLIC_API_URL: '/api/proxy',
+    // Server-side uses direct API URL (no CORS issues)
+    API_URL: API_URL,
+  },
+  async rewrites() {
+    return [
+      {
+        source: '/api/proxy/:path*',
+        destination: `${API_URL}/:path*`,
+      },
+    ];
   },
   images: {
     remotePatterns: [
