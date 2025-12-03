@@ -433,6 +433,89 @@ resource exportJob 'Microsoft.App/jobs@2024-03-01' = {
   }
 }
 
+// Container Apps Job for Daily Data Ingest
+resource ingestJob 'Microsoft.App/jobs@2024-03-01' = {
+  name: '${resourcePrefix}-ingest-job'
+  location: location
+  properties: {
+    environmentId: containerEnvironment.id
+    configuration: {
+      triggerType: 'Schedule'
+      scheduleTriggerConfig: {
+        cronExpression: '0 2 * * *'  // Daily at 02:00 UTC
+        parallelism: 1
+        replicaCompletionCount: 1
+      }
+      replicaTimeout: 14400  // 4 hour timeout
+      replicaRetryLimit: 1
+      registries: [
+        {
+          server: acr.properties.loginServer
+          username: acr.listCredentials().username
+          passwordSecretRef: 'acr-password'  // pragma: allowlist secret
+        }
+      ]
+      secrets: [
+        {
+          name: 'acr-password'
+          value: acr.listCredentials().passwords[0].value
+        }
+        {
+          name: 'qdrant-cloud-url'
+          value: qdrantCloudUrl
+        }
+        {
+          name: 'qdrant-cloud-api-key'
+          value: qdrantCloudApiKey
+        }
+        {
+          name: 'azure-openai-api-key'
+          value: azureOpenAIApiKey
+        }
+      ]
+    }
+    template: {
+      containers: [
+        {
+          name: 'ingest-job'
+          image: containerImage
+          command: ['uv', 'run', 'python', '-m', 'lex.ingest', '--mode', 'daily']
+          resources: {
+            cpu: json('2.0')
+            memory: '4Gi'
+          }
+          env: [
+            {
+              name: 'USE_CLOUD_QDRANT'
+              value: 'true'
+            }
+            {
+              name: 'QDRANT_CLOUD_URL'
+              secretRef: 'qdrant-cloud-url'  // pragma: allowlist secret
+            }
+            {
+              name: 'QDRANT_CLOUD_API_KEY'
+              secretRef: 'qdrant-cloud-api-key'  // pragma: allowlist secret
+            }
+            {
+              name: 'AZURE_OPENAI_API_KEY'
+              secretRef: 'azure-openai-api-key'  // pragma: allowlist secret
+            }
+            {
+              name: 'AZURE_OPENAI_ENDPOINT'
+              value: azureOpenAIEndpoint
+            }
+            {
+              name: 'AZURE_OPENAI_EMBEDDING_MODEL'
+              value: azureOpenAIEmbeddingModel
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
+
 // Outputs
 output containerAppUrl string = 'https://${containerApp.properties.configuration.ingress.fqdn}'
 output mcpEndpointUrl string = 'https://${containerApp.properties.configuration.ingress.fqdn}/mcp'
