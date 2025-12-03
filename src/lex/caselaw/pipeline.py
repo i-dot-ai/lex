@@ -64,10 +64,13 @@ def pipe_caselaw_sections(
 def pipe_caselaw_unified(years: list[int], limit: int, types: list[Court], **kwargs):
     """
     Unified pipeline that yields both Caselaw and CaselawSection documents.
-    Note: This function doesn't use URL tracking or the simplified pipeline yet.
-    It's kept for backwards compatibility with existing usage in main.py.
+
+    Yields tuples of (collection_type, document):
+        - ("caselaw", Caselaw) for core caselaw metadata
+        - ("caselaw-section", CaselawSection) for each section
+
+    Idempotency is handled by the caller using deterministic UUIDs.
     """
-    # For now, just import the parsers and run them separately
     from lex.caselaw.parser import CaselawAndCaselawSectionsParser
 
     scraper = CaselawScraper()
@@ -75,9 +78,6 @@ def pipe_caselaw_unified(years: list[int], limit: int, types: list[Court], **kwa
     run_id = str(uuid.uuid4())
 
     logger.info(f"Starting unified caselaw pipeline: run_id={run_id}")
-    logger.warning(
-        "pipe_caselaw_unified doesn't use URL tracking yet - consider using separate pipelines"
-    )
 
     remaining_limit = limit if limit is not None else float("inf")
 
