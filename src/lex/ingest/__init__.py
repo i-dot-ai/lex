@@ -11,7 +11,9 @@ Design principles:
 """
 
 from lex.ingest.orchestrator import (
+    ingest_amendments,
     ingest_caselaw_summaries,
+    ingest_explanatory_notes,
     run_daily_ingest,
     run_full_ingest,
 )
@@ -20,7 +22,9 @@ from lex.ingest.state import filter_new_items, get_existing_ids
 __all__ = [
     "run_daily_ingest",
     "run_full_ingest",
+    "ingest_amendments",
     "ingest_caselaw_summaries",
+    "ingest_explanatory_notes",
     "get_existing_ids",
     "filter_new_items",
 ]

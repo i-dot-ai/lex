@@ -5,10 +5,10 @@ Coordinates the two-stage DAG:
         - Caselaw unified (core + sections)
         - Legislation unified (core + sections)
         - Amendments
+        - Explanatory notes
 
     Stage 2: AI enrichment (parallel, after Stage 1)
         - Caselaw summaries
-        - Explanatory notes
 """
 
 import asyncio
@@ -18,6 +18,9 @@ from datetime import date
 
 from qdrant_client.models import PointStruct
 
+from lex.amendment.models import Amendment
+from lex.amendment.pipeline import pipe_amendments
+from lex.amendment.qdrant_schema import get_amendment_schema
 from lex.caselaw.models import Caselaw, CaselawSection, CaselawSummary, Court
 from lex.caselaw.pipeline import pipe_caselaw_summaries, pipe_caselaw_unified
 from lex.caselaw.qdrant_schema import (
@@ -28,6 +31,9 @@ from lex.caselaw.qdrant_schema import (
 from lex.core.embeddings import generate_hybrid_embeddings
 from lex.core.qdrant_client import qdrant_client
 from lex.core.utils import create_collection_if_none
+from lex.explanatory_note.models import ExplanatoryNote
+from lex.explanatory_note.pipeline import pipe_explanatory_note
+from lex.explanatory_note.qdrant_schema import get_explanatory_note_schema
 from lex.legislation.models import Legislation, LegislationSection, LegislationType
 from lex.legislation.pipeline import pipe_legislation_unified
 from lex.legislation.qdrant_schema import (
@@ -35,9 +41,11 @@ from lex.legislation.qdrant_schema import (
     get_legislation_section_schema,
 )
 from lex.settings import (
+    AMENDMENT_COLLECTION,
     CASELAW_COLLECTION,
     CASELAW_SECTION_COLLECTION,
     CASELAW_SUMMARY_COLLECTION,
+    EXPLANATORY_NOTE_COLLECTION,
     LEGISLATION_COLLECTION,
     LEGISLATION_SECTION_COLLECTION,
 )
@@ -74,6 +82,8 @@ async def run_daily_ingest(
     stage1_results = await asyncio.gather(
         asyncio.to_thread(ingest_caselaw, years, limit),
         asyncio.to_thread(ingest_legislation, years, limit, enable_pdf_fallback),
+        asyncio.to_thread(ingest_amendments, years, limit),
+        asyncio.to_thread(ingest_explanatory_notes, years, limit),
         return_exceptions=True,
     )
 
@@ -86,6 +96,16 @@ async def run_daily_ingest(
         stats["legislation"] = {"error": str(stage1_results[1])}
     else:
         stats["legislation"] = stage1_results[1]
+
+    if isinstance(stage1_results[2], Exception):
+        stats["amendments"] = {"error": str(stage1_results[2])}
+    else:
+        stats["amendments"] = stage1_results[2]
+
+    if isinstance(stage1_results[3], Exception):
+        stats["explanatory_notes"] = {"error": str(stage1_results[3])}
+    else:
+        stats["explanatory_notes"] = stage1_results[3]
 
     # Stage 2: AI enrichment (after Stage 1 completes)
     if enable_summaries:
@@ -130,6 +150,8 @@ async def run_full_ingest(
     # Stage 1: Scrape sources (sequential for full ingest to manage resources)
     stats["caselaw"] = ingest_caselaw(years, limit)
     stats["legislation"] = ingest_legislation(years, limit, enable_pdf_fallback)
+    stats["amendments"] = ingest_amendments(years, limit)
+    stats["explanatory_notes"] = ingest_explanatory_notes(years, limit)
 
     # Stage 2: AI enrichment (after Stage 1 completes)
     if enable_summaries:
@@ -300,6 +322,107 @@ def ingest_legislation(
     return stats
 
 
+def ingest_amendments(years: list[int], limit: int | None = None) -> dict:
+    """Ingest amendments using the amendments pipeline.
+
+    Args:
+        years: List of years to process
+        limit: Maximum number of items (None for unlimited)
+
+    Returns:
+        Statistics about the ingest
+    """
+    logger.info(f"Starting amendments ingest: years={years}, limit={limit}")
+
+    # Ensure collection exists
+    create_collection_if_none(
+        AMENDMENT_COLLECTION,
+        get_amendment_schema(),
+        non_interactive=True,
+    )
+
+    stats = {
+        "amendment_count": 0,
+        "errors": 0,
+    }
+
+    amendment_batch: list[PointStruct] = []
+    pipeline = pipe_amendments(years=years, limit=limit or 0)
+
+    for amendment in pipeline:
+        try:
+            point = _create_point(amendment)
+            amendment_batch.append(point)
+            stats["amendment_count"] += 1
+
+            if len(amendment_batch) >= BATCH_SIZE:
+                _upload_batch(AMENDMENT_COLLECTION, amendment_batch)
+                amendment_batch = []
+                gc.collect()
+
+        except Exception as e:
+            logger.warning(f"Failed to process amendment: {e}")
+            stats["errors"] += 1
+
+    # Upload remaining batch
+    if amendment_batch:
+        _upload_batch(AMENDMENT_COLLECTION, amendment_batch)
+
+    logger.info(f"Amendments ingest complete: {stats}")
+    return stats
+
+
+def ingest_explanatory_notes(years: list[int], limit: int | None = None) -> dict:
+    """Ingest explanatory notes using the explanatory notes pipeline.
+
+    Args:
+        years: List of years to process
+        limit: Maximum number of items (None for unlimited)
+
+    Returns:
+        Statistics about the ingest
+    """
+    logger.info(f"Starting explanatory notes ingest: years={years}, limit={limit}")
+
+    # Ensure collection exists
+    create_collection_if_none(
+        EXPLANATORY_NOTE_COLLECTION,
+        get_explanatory_note_schema(),
+        non_interactive=True,
+    )
+
+    stats = {
+        "explanatory_note_count": 0,
+        "errors": 0,
+    }
+
+    note_batch: list[PointStruct] = []
+    types = list(LegislationType)
+    pipeline = pipe_explanatory_note(years=years, types=types, limit=limit)
+
+    for note in pipeline:
+        try:
+            point = _create_point(note)
+            note_batch.append(point)
+            stats["explanatory_note_count"] += 1
+
+            if len(note_batch) >= BATCH_SIZE:
+                _upload_batch(EXPLANATORY_NOTE_COLLECTION, note_batch)
+                note_batch = []
+                gc.collect()
+
+        except Exception as e:
+            logger.warning(f"Failed to process explanatory note: {e}")
+            stats["errors"] += 1
+
+    # Upload remaining batch
+    if note_batch:
+        _upload_batch(EXPLANATORY_NOTE_COLLECTION, note_batch)
+
+    logger.info(f"Explanatory notes ingest complete: {stats}")
+    return stats
+
+
 def ingest_caselaw_summaries(
     years: list[int],
     limit: int | None = None,
@@ -365,7 +488,15 @@ def ingest_caselaw_summaries(
 
 
 def _create_point(
-    doc: Caselaw | CaselawSection | CaselawSummary | Legislation | LegislationSection,
+    doc: (
+        Caselaw
+        | CaselawSection
+        | CaselawSummary
+        | Legislation
+        | LegislationSection
+        | Amendment
+        | ExplanatoryNote
+    ),
 ) -> PointStruct:
     """Create a Qdrant PointStruct from a document.
 
