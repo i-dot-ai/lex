@@ -8,9 +8,12 @@
     {
       "name": "lex-uk-law",
       "description": "UK legal research skill - search legislation, case law, and legal provisions",
-      "source": "local:skills/lex-uk-law",
+      "source": "./skills/lex-uk-law",
       "version": "1.0.0",
-      "author": "i.AI"
+      "author": {
+        "name": "i.AI",
+        "email": "lex@cabinetoffice.gov.uk"
+      }
     }
   ]
 }
