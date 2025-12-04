@@ -19,7 +19,11 @@ import asyncio
 import logging
 import sys
 
-from lex.ingest.orchestrator import run_daily_ingest, run_full_ingest
+from lex.ingest.orchestrator import (
+    run_amendments_led_ingest,
+    run_daily_ingest,
+    run_full_ingest,
+)
 
 
 def main() -> int:
@@ -32,9 +36,9 @@ def main() -> int:
 
     parser.add_argument(
         "--mode",
-        choices=["daily", "full"],
+        choices=["daily", "full", "amendments-led"],
         default="daily",
-        help="Ingest mode: daily (incremental) or full (historical)",
+        help="Ingest mode: daily (year-based), full (historical), or amendments-led (smart)",
     )
 
     parser.add_argument(
@@ -93,7 +97,12 @@ def main() -> int:
                 enable_pdf_fallback=args.pdf_fallback,
                 enable_summaries=args.enable_summaries,
             ))
-        else:
+        elif args.mode == "amendments-led":
+            stats = asyncio.run(run_amendments_led_ingest(
+                limit=args.limit,
+                enable_pdf_fallback=args.pdf_fallback,
+            ))
+        else:  # full
             stats = asyncio.run(run_full_ingest(
                 years=args.years,
                 limit=args.limit,

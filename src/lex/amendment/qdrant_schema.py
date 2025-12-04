@@ -46,6 +46,8 @@ def get_amendment_schema():
             "affecting_url": PayloadSchemaType.KEYWORD,  # Filter amendments by legislation
             "changed_provision_url": PayloadSchemaType.KEYWORD,  # Filter amendments to provision
             "affecting_provision_url": PayloadSchemaType.KEYWORD,  # Filter amendments by provision
+            "affecting_year": PayloadSchemaType.INTEGER,  # Filter by year amendment was made (for amendments-led ingest)
+            "changed_legislation": PayloadSchemaType.KEYWORD,  # Filter by affected legislation ID
         },
         "quantization_config": ScalarQuantization(
             scalar=ScalarQuantizationConfig(

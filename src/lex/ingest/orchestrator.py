@@ -34,6 +34,11 @@ from lex.core.utils import create_collection_if_none
 from lex.explanatory_note.models import ExplanatoryNote
 from lex.explanatory_note.pipeline import pipe_explanatory_note
 from lex.explanatory_note.qdrant_schema import get_explanatory_note_schema
+from lex.ingest.amendments_led import (
+    get_changed_legislation_ids,
+    get_missing_legislation_ids,
+    parse_legislation_id,
+)
 from lex.legislation.models import Legislation, LegislationSection, LegislationType
 from lex.legislation.pipeline import pipe_legislation_unified
 from lex.legislation.qdrant_schema import (
@@ -538,3 +543,189 @@ def _upload_batch(collection: str, batch: list[PointStruct]) -> None:
     except Exception as e:
         logger.error(f"Failed to upload batch to {collection}: {e}")
         raise
+
+
+async def run_amendments_led_ingest(
+    limit: int | None = None,
+    enable_pdf_fallback: bool = False,
+) -> dict:
+    """Run amendment-led daily ingest.
+
+    Uses amendments as a change manifest to identify which legislation
+    needs refreshing, instead of blindly rescraping by year.
+
+    Steps:
+    1. Query amendments where affecting_year is current/previous year
+    2. Extract unique changed_legislation IDs
+    3. Filter to IDs missing from legislation collection
+    4. Rescrape only those specific legislation items
+    5. Also ingest new caselaw and amendments for current/prev year
+
+    Args:
+        limit: Maximum number of items per source (None for unlimited)
+        enable_pdf_fallback: Enable PDF processing for legislation without XML
+
+    Returns:
+        Statistics about the ingest run
+    """
+    years = [date.today().year, date.today().year - 1]
+    logger.info(f"Starting amendments-led ingest for years {years}, limit={limit}")
+
+    stats = {}
+
+    # Step 1-3: Get legislation IDs that were amended but may be stale
+    changed_ids = get_changed_legislation_ids(years)
+    missing_ids = get_missing_legislation_ids(changed_ids)
+
+    stats["amendments_queried"] = {
+        "changed_legislation_count": len(changed_ids),
+        "missing_count": len(missing_ids),
+    }
+
+    # Step 4: Rescrape missing/stale legislation by specific IDs
+    if missing_ids:
+        limited_ids = list(missing_ids)[:limit] if limit else list(missing_ids)
+        stats["legislation_rescrape"] = await asyncio.to_thread(
+            rescrape_legislation_by_ids, limited_ids, enable_pdf_fallback
+        )
+    else:
+        stats["legislation_rescrape"] = {"count": 0, "skipped": "all up to date"}
+
+    # Step 5: Also scrape new content (in parallel)
+    stage1_results = await asyncio.gather(
+        asyncio.to_thread(ingest_caselaw, years, limit),
+        asyncio.to_thread(ingest_amendments, years, limit),
+        return_exceptions=True,
+    )
+
+    if isinstance(stage1_results[0], Exception):
+        stats["caselaw"] = {"error": str(stage1_results[0])}
+    else:
+        stats["caselaw"] = stage1_results[0]
+
+    if isinstance(stage1_results[1], Exception):
+        stats["amendments"] = {"error": str(stage1_results[1])}
+    else:
+        stats["amendments"] = stage1_results[1]
+
+    logger.info(f"Amendments-led ingest complete: {stats}")
+    return stats
+
+
+def rescrape_legislation_by_ids(
+    legislation_ids: list[str],
+    enable_pdf_fallback: bool = False,
+) -> dict:
+    """Rescrape specific legislation items by their IDs.
+
+    Args:
+        legislation_ids: List of IDs like ["ukpga/2020/1", "uksi/2023/456"]
+        enable_pdf_fallback: Enable PDF processing for items without XML
+
+    Returns:
+        Statistics about the rescrape
+    """
+    from lex.legislation.parser.xml_parser import LegislationParser as XMLLegislationParser
+    from lex.legislation.pipeline import (
+        _legislation_with_content_to_legislation,
+        _provision_to_legislation_section,
+    )
+    from lex.legislation.scraper import LegislationScraper
+
+    logger.info(f"Rescraping {len(legislation_ids)} legislation items by ID")
+
+    # Ensure collections exist
+    create_collection_if_none(
+        LEGISLATION_COLLECTION,
+        get_legislation_schema(),
+        non_interactive=True,
+    )
+    create_collection_if_none(
+        LEGISLATION_SECTION_COLLECTION,
+        get_legislation_section_schema(),
+        non_interactive=True,
+    )
+
+    stats = {
+        "legislation_count": 0,
+        "section_count": 0,
+        "errors": 0,
+        "skipped": 0,
+    }
+
+    scraper = LegislationScraper()
+    parser = XMLLegislationParser()
+    legislation_batch: list[PointStruct] = []
+    section_batch: list[PointStruct] = []
+
+    for leg_id in legislation_ids:
+        parsed = parse_legislation_id(leg_id)
+        if not parsed:
+            logger.warning(f"Invalid legislation ID format: {leg_id}")
+            stats["skipped"] += 1
+            continue
+
+        leg_type, year, number = parsed
+        url = f"https://www.legislation.gov.uk/{leg_type}/{year}/{number}/data.xml"
+
+        try:
+            # Scrape the legislation using the scraper's internal method
+            soup = scraper._load_legislation_from_url(url)
+            if soup is None:
+                logger.warning(f"Failed to fetch {url}")
+                stats["errors"] += 1
+                continue
+
+            # Parse full legislation with sections
+            legislation_full = parser.parse(soup)
+            if legislation_full is None:
+                logger.warning(f"Failed to parse {url}")
+                stats["errors"] += 1
+                continue
+
+            # Convert to Legislation model and create point
+            legislation = _legislation_with_content_to_legislation(legislation_full)
+            leg_point = _create_point(legislation)
+            legislation_batch.append(leg_point)
+            stats["legislation_count"] += 1
+
+            # Process sections
+            for section in legislation_full.sections:
+                leg_section = _provision_to_legislation_section(
+                    section, legislation_full.id
+                )
+                section_point = _create_point(leg_section)
+                section_batch.append(section_point)
+                stats["section_count"] += 1
+
+            # Process schedules
+            for schedule in legislation_full.schedules:
+                leg_section = _provision_to_legislation_section(
+                    schedule, legislation_full.id
+                )
+                section_point = _create_point(leg_section)
+                section_batch.append(section_point)
+                stats["section_count"] += 1
+
+            # Upload in batches
+            if len(legislation_batch) >= BATCH_SIZE:
+                _upload_batch(LEGISLATION_COLLECTION, legislation_batch)
+                legislation_batch = []
+                gc.collect()
+
+            if len(section_batch) >= BATCH_SIZE:
+                _upload_batch(LEGISLATION_SECTION_COLLECTION, section_batch)
+                section_batch = []
+
+        except Exception as e:
+            logger.warning(f"Failed to rescrape {leg_id}: {e}")
+            stats["errors"] += 1
+
+    # Upload remaining batches
+    if legislation_batch:
+        _upload_batch(LEGISLATION_COLLECTION, legislation_batch)
+    if section_batch:
+        _upload_batch(LEGISLATION_SECTION_COLLECTION, section_batch)
+
+    logger.info(f"Legislation ID-based rescrape complete: {stats}")
+    return stats
