@@ -230,7 +230,7 @@ def generate_sparse_embeddings_batch(texts: List[str]) -> List[SparseVector]:
 
 
 def generate_hybrid_embeddings(text: str) -> Tuple[List[float], SparseVector]:
-    """Generate both dense and sparse embeddings for hybrid search with caching.
+    """Generate both dense and sparse embeddings for hybrid search.
 
     Args:
         text: Text to embed
@@ -241,44 +241,8 @@ def generate_hybrid_embeddings(text: str) -> Tuple[List[float], SparseVector]:
     Example:
         ([0.1, 0.2, ...], SparseVector(indices=[12, 45], values=[0.8, 0.6]))
     """
-    start_time = time.time()
-    from lex.core.embedding_cache import cache_embeddings, get_cached_embeddings
-
-    # Check cache
-    cache_start = time.time()
-    cached = get_cached_embeddings(text)
-    cache_time = time.time() - cache_start
-
-    if cached is not None:
-        total_time = time.time() - start_time
-        logger.info(f"✓ Cache HIT - Total: {total_time:.3f}s (cache lookup: {cache_time:.3f}s)")
-        return cached
-
-    logger.info(f"✗ Cache MISS - Generating embeddings (cache lookup: {cache_time:.3f}s)")
-
-    # Generate dense embedding
-    dense_start = time.time()
     dense = generate_dense_embedding(text)
-    dense_time = time.time() - dense_start
-    logger.info(f"  Dense embedding generated in {dense_time:.3f}s")
-
-    # Generate sparse embedding
-    sparse_start = time.time()
     sparse = generate_sparse_embedding(text)
-    sparse_time = time.time() - sparse_start
-    logger.info(f"  Sparse embedding generated in {sparse_time:.3f}s")
-
-    # Cache for future use
-    cache_write_start = time.time()
-    cache_embeddings(text, dense, sparse)
-    cache_write_time = time.time() - cache_write_start
-    logger.info(f"  Cached embeddings in {cache_write_time:.3f}s")
-
-    total_time = time.time() - start_time
-    logger.info(
-        f"  Total embedding time: {total_time:.3f}s (dense: {dense_time:.3f}s, sparse: {sparse_time:.3f}s, cache: {cache_write_time:.3f}s)"
-    )
-
     return dense, sparse
 
 
