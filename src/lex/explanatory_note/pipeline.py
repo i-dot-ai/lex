@@ -35,7 +35,7 @@ def pipe_explanatory_note(
                 try:
                     if content:
                         remaining_limit -= 1
-                        yield ExplanatoryNote(**content)
+                        yield content
                 except Exception as e:
                     logger.warning(f"Failed to process {url}: {e}", exc_info=False)
                     continue
