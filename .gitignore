@@ -242,3 +242,4 @@ lex_exports_*/
 # Migration scripts (add to repo if needed)
 scripts/migrate_to_cloud_qdrant.py
 data/pdf_legislation*.jsonl
+infrastructure/azure/main.json
