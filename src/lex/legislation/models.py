@@ -4,17 +4,17 @@ from typing import Dict, List, Literal, Optional
 
 from pydantic import BaseModel, Field, computed_field, field_validator, model_validator
 
-from lex.core.models import EmbeddableModel, LexModel
+from lex.core.models import EmbeddableModel
 
 
 class LegislationCategory(str, Enum):
-    """High-level categorization of legislation types.
+    """High-level categorisation of legislation types.
 
     This enum represents the three main categories of legislation:
-    - PRIMARY: Main acts of parliament and assemblies (e.g., UK Public General Acts, Scottish Parliament Acts)
-    - SECONDARY: Statutory instruments and rules (e.g., UK Statutory Instruments, Scottish Statutory Instruments)
-    - EUROPEAN: EU-derived legislation (e.g., EU Decisions, Directives, Regulations)
-    - EUROPEAN_RETAINED: EU-derived legislation that has been retained in UK law (e.g., EU retained legislation)
+    - PRIMARY: Main acts of parliament and assemblies
+    - SECONDARY: Statutory instruments and rules
+    - EUROPEAN: EU-derived legislation (Decisions, Directives, Regulations)
+    - EUROPEAN_RETAINED: EU-derived legislation retained in UK law
     """
 
     PRIMARY = "primary"
@@ -403,7 +403,7 @@ class Commentary(BaseModel):
     text: str
 
 
-class Legislation(LexModel):
+class Legislation(EmbeddableModel):
     """Represents a piece of legislation."""
 
     # Main information
@@ -411,6 +411,7 @@ class Legislation(LexModel):
     uri: str
     title: str
     description: str
+    text: str = Field(default="", description="Combined text content of the legislation.")
     # Dates
     enactment_date: Optional[date] = None
     valid_date: Optional[date] = None
@@ -430,6 +431,10 @@ class Legislation(LexModel):
     provenance_prompt_version: Optional[str] = None
     provenance_timestamp: Optional[datetime] = None
     provenance_response_id: Optional[str] = None
+
+    def get_embedding_text(self) -> str:
+        """Return text for embedding generation with title and description context."""
+        return f"{self.title}\n\n{self.description}\n\n{self.text}"
 
 
 class LegislationWithContent(Legislation):
@@ -475,7 +480,7 @@ class LegislationWithContent(Legislation):
         )
 
 
-class LegislationSection(LexModel):
+class LegislationSection(EmbeddableModel):
     id: str = Field(description="The ID of the section.")
     uri: str
     legislation_id: str = Field(description="The ID of the legislation.")
@@ -489,6 +494,10 @@ class LegislationSection(LexModel):
     provenance_prompt_version: Optional[str] = None
     provenance_timestamp: Optional[datetime] = None
     provenance_response_id: Optional[str] = None
+
+    def get_embedding_text(self) -> str:
+        """Return text for embedding generation with title context."""
+        return f"{self.title}\n\n{self.text}"
 
     @computed_field
     @property
@@ -528,7 +537,7 @@ class LegislationSection(LexModel):
     @field_validator("text", mode="before")
     @classmethod
     def coerce_text_from_dict(cls, value):
-        """If the input value is a dict with a 'text' key, extract it. This handles nested text fields from data sources."""
+        """Extract text from nested dict structures if present."""
         if isinstance(value, dict) and "text" in value:
             return value["text"]
         return value
