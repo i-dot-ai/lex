@@ -8,6 +8,7 @@ import {
   Home,
   Microscope,
   Settings,
+  Palette,
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -82,6 +83,12 @@ const data = {
       ],
     },
     {
+      title: "Design System",
+      url: "/design-system",
+      icon: Palette,
+      isActive: false,
+    },
+    {
       title: "Settings",
       url: "/settings",
       icon: Settings,
@@ -92,8 +99,8 @@ const data = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const platformItems = data.navMain.filter(item => !["Documentation", "Settings"].includes(item.title))
-  const documentationItems = data.navMain.filter(item => item.title === "Documentation")
+  const platformItems = data.navMain.filter(item => !["Documentation", "Design System", "Settings"].includes(item.title))
+  const documentationItems = data.navMain.filter(item => ["Documentation", "Design System"].includes(item.title))
   const settingsItems = data.navMain.filter(item => item.title === "Settings")
 
   return (
