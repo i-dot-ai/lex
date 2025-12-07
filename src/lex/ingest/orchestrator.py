@@ -18,20 +18,18 @@ from datetime import date
 
 from qdrant_client.models import PointStruct
 
-from lex.amendment.models import Amendment
 from lex.amendment.pipeline import pipe_amendments
 from lex.amendment.qdrant_schema import get_amendment_schema
-from lex.caselaw.models import Caselaw, CaselawSection, CaselawSummary, Court
+from lex.caselaw.models import Court
 from lex.caselaw.pipeline import pipe_caselaw_summaries, pipe_caselaw_unified
 from lex.caselaw.qdrant_schema import (
     get_caselaw_schema,
     get_caselaw_section_schema,
     get_caselaw_summary_schema,
 )
-from lex.core.embeddings import generate_hybrid_embeddings
+from lex.core.embeddings import generate_hybrid_embeddings_batch
 from lex.core.qdrant_client import qdrant_client
 from lex.core.utils import create_collection_if_none
-from lex.explanatory_note.models import ExplanatoryNote
 from lex.explanatory_note.pipeline import pipe_explanatory_note
 from lex.explanatory_note.qdrant_schema import get_explanatory_note_schema
 from lex.ingest.amendments_led import (
@@ -39,7 +37,7 @@ from lex.ingest.amendments_led import (
     get_missing_legislation_ids,
     parse_legislation_id,
 )
-from lex.legislation.models import Legislation, LegislationSection, LegislationType
+from lex.legislation.models import LegislationType
 from lex.legislation.pipeline import pipe_legislation_unified
 from lex.legislation.qdrant_schema import (
     get_legislation_schema,
@@ -200,43 +198,45 @@ def ingest_caselaw(years: list[int], limit: int | None = None) -> dict:
         "errors": 0,
     }
 
-    # Batches for each collection
-    caselaw_batch: list[PointStruct] = []
-    section_batch: list[PointStruct] = []
+    # Collect docs, then batch embed when ready
+    caselaw_docs: list = []
+    section_docs: list = []
 
     courts = list(Court)
     pipeline = pipe_caselaw_unified(years=years, limit=limit, types=courts)
 
     for collection_type, doc in pipeline:
         try:
-            point = _create_point(doc)
-
             if collection_type == "caselaw":
-                caselaw_batch.append(point)
+                caselaw_docs.append(doc)
                 stats["caselaw_count"] += 1
 
-                if len(caselaw_batch) >= BATCH_SIZE:
-                    _upload_batch(CASELAW_COLLECTION, caselaw_batch)
-                    caselaw_batch = []
+                if len(caselaw_docs) >= BATCH_SIZE:
+                    points = _create_points_batch(caselaw_docs)
+                    _upload_batch(CASELAW_COLLECTION, points)
+                    caselaw_docs = []
                     gc.collect()
 
             elif collection_type == "caselaw-section":
-                section_batch.append(point)
+                section_docs.append(doc)
                 stats["section_count"] += 1
 
-                if len(section_batch) >= BATCH_SIZE:
-                    _upload_batch(CASELAW_SECTION_COLLECTION, section_batch)
-                    section_batch = []
+                if len(section_docs) >= BATCH_SIZE:
+                    points = _create_points_batch(section_docs)
+                    _upload_batch(CASELAW_SECTION_COLLECTION, points)
+                    section_docs = []
 
         except Exception as e:
             logger.warning(f"Failed to process {collection_type} document: {e}")
             stats["errors"] += 1
 
-    # Upload remaining batches
-    if caselaw_batch:
-        _upload_batch(CASELAW_COLLECTION, caselaw_batch)
-    if section_batch:
-        _upload_batch(CASELAW_SECTION_COLLECTION, section_batch)
+    # Upload remaining docs
+    if caselaw_docs:
+        points = _create_points_batch(caselaw_docs)
+        _upload_batch(CASELAW_COLLECTION, points)
+    if section_docs:
+        points = _create_points_batch(section_docs)
+        _upload_batch(CASELAW_SECTION_COLLECTION, points)
 
     logger.info(f"Caselaw ingest complete: {stats}")
     return stats
@@ -280,9 +280,9 @@ def ingest_legislation(
         "errors": 0,
     }
 
-    # Batches for each collection
-    legislation_batch: list[PointStruct] = []
-    section_batch: list[PointStruct] = []
+    # Collect docs, then batch embed when ready
+    legislation_docs: list = []
+    section_docs: list = []
 
     types = list(LegislationType)
     pipeline = pipe_legislation_unified(
@@ -294,34 +294,36 @@ def ingest_legislation(
 
     for collection_type, doc in pipeline:
         try:
-            point = _create_point(doc)
-
             if collection_type == "legislation":
-                legislation_batch.append(point)
+                legislation_docs.append(doc)
                 stats["legislation_count"] += 1
 
-                if len(legislation_batch) >= BATCH_SIZE:
-                    _upload_batch(LEGISLATION_COLLECTION, legislation_batch)
-                    legislation_batch = []
+                if len(legislation_docs) >= BATCH_SIZE:
+                    points = _create_points_batch(legislation_docs)
+                    _upload_batch(LEGISLATION_COLLECTION, points)
+                    legislation_docs = []
                     gc.collect()
 
             elif collection_type == "legislation-section":
-                section_batch.append(point)
+                section_docs.append(doc)
                 stats["section_count"] += 1
 
-                if len(section_batch) >= BATCH_SIZE:
-                    _upload_batch(LEGISLATION_SECTION_COLLECTION, section_batch)
-                    section_batch = []
+                if len(section_docs) >= BATCH_SIZE:
+                    points = _create_points_batch(section_docs)
+                    _upload_batch(LEGISLATION_SECTION_COLLECTION, points)
+                    section_docs = []
 
         except Exception as e:
             logger.warning(f"Failed to process {collection_type} document: {e}")
             stats["errors"] += 1
 
-    # Upload remaining batches
-    if legislation_batch:
-        _upload_batch(LEGISLATION_COLLECTION, legislation_batch)
-    if section_batch:
-        _upload_batch(LEGISLATION_SECTION_COLLECTION, section_batch)
+    # Upload remaining docs
+    if legislation_docs:
+        points = _create_points_batch(legislation_docs)
+        _upload_batch(LEGISLATION_COLLECTION, points)
+    if section_docs:
+        points = _create_points_batch(section_docs)
+        _upload_batch(LEGISLATION_SECTION_COLLECTION, points)
 
     logger.info(f"Legislation ingest complete: {stats}")
     return stats
@@ -351,27 +353,28 @@ def ingest_amendments(years: list[int], limit: int | None = None) -> dict:
         "errors": 0,
     }
 
-    amendment_batch: list[PointStruct] = []
+    amendment_docs: list = []
     pipeline = pipe_amendments(years=years, limit=limit or 0)
 
     for amendment in pipeline:
         try:
-            point = _create_point(amendment)
-            amendment_batch.append(point)
+            amendment_docs.append(amendment)
             stats["amendment_count"] += 1
 
-            if len(amendment_batch) >= BATCH_SIZE:
-                _upload_batch(AMENDMENT_COLLECTION, amendment_batch)
-                amendment_batch = []
+            if len(amendment_docs) >= BATCH_SIZE:
+                points = _create_points_batch(amendment_docs)
+                _upload_batch(AMENDMENT_COLLECTION, points)
+                amendment_docs = []
                 gc.collect()
 
         except Exception as e:
             logger.warning(f"Failed to process amendment: {e}")
             stats["errors"] += 1
 
-    # Upload remaining batch
-    if amendment_batch:
-        _upload_batch(AMENDMENT_COLLECTION, amendment_batch)
+    # Upload remaining docs
+    if amendment_docs:
+        points = _create_points_batch(amendment_docs)
+        _upload_batch(AMENDMENT_COLLECTION, points)
 
     logger.info(f"Amendments ingest complete: {stats}")
     return stats
@@ -401,28 +404,29 @@ def ingest_explanatory_notes(years: list[int], limit: int | None = None) -> dict
         "errors": 0,
     }
 
-    note_batch: list[PointStruct] = []
+    note_docs: list = []
     types = list(LegislationType)
     pipeline = pipe_explanatory_note(years=years, types=types, limit=limit)
 
     for note in pipeline:
         try:
-            point = _create_point(note)
-            note_batch.append(point)
+            note_docs.append(note)
             stats["explanatory_note_count"] += 1
 
-            if len(note_batch) >= BATCH_SIZE:
-                _upload_batch(EXPLANATORY_NOTE_COLLECTION, note_batch)
-                note_batch = []
+            if len(note_docs) >= BATCH_SIZE:
+                points = _create_points_batch(note_docs)
+                _upload_batch(EXPLANATORY_NOTE_COLLECTION, points)
+                note_docs = []
                 gc.collect()
 
         except Exception as e:
             logger.warning(f"Failed to process explanatory note: {e}")
             stats["errors"] += 1
 
-    # Upload remaining batch
-    if note_batch:
-        _upload_batch(EXPLANATORY_NOTE_COLLECTION, note_batch)
+    # Upload remaining docs
+    if note_docs:
+        points = _create_points_batch(note_docs)
+        _upload_batch(EXPLANATORY_NOTE_COLLECTION, points)
 
     logger.info(f"Explanatory notes ingest complete: {stats}")
     return stats
@@ -459,7 +463,7 @@ def ingest_caselaw_summaries(
         "errors": 0,
     }
 
-    summary_batch: list[PointStruct] = []
+    summary_docs: list = []
     courts = list(Court)
 
     # pipe_caselaw_summaries treats 0/falsy as unlimited
@@ -471,56 +475,53 @@ def ingest_caselaw_summaries(
 
     for summary in pipeline:
         try:
-            point = _create_point(summary)
-            summary_batch.append(point)
+            summary_docs.append(summary)
             stats["summary_count"] += 1
 
-            if len(summary_batch) >= BATCH_SIZE:
-                _upload_batch(CASELAW_SUMMARY_COLLECTION, summary_batch)
-                summary_batch = []
+            if len(summary_docs) >= BATCH_SIZE:
+                points = _create_points_batch(summary_docs)
+                _upload_batch(CASELAW_SUMMARY_COLLECTION, points)
+                summary_docs = []
                 gc.collect()
 
         except Exception as e:
             logger.warning(f"Failed to process caselaw summary: {e}")
             stats["errors"] += 1
 
-    # Upload remaining batch
-    if summary_batch:
-        _upload_batch(CASELAW_SUMMARY_COLLECTION, summary_batch)
+    # Upload remaining docs
+    if summary_docs:
+        points = _create_points_batch(summary_docs)
+        _upload_batch(CASELAW_SUMMARY_COLLECTION, points)
 
     logger.info(f"Caselaw summary generation complete: {stats}")
     return stats
 
 
-def _create_point(
-    doc: (
-        Caselaw
-        | CaselawSection
-        | CaselawSummary
-        | Legislation
-        | LegislationSection
-        | Amendment
-        | ExplanatoryNote
-    ),
-) -> PointStruct:
-    """Create a Qdrant PointStruct from a document.
+def _create_points_batch(docs: list) -> list[PointStruct]:
+    """Create Qdrant PointStructs from documents with parallel batch embedding.
 
     Args:
-        doc: Document with id, get_embedding_text(), and model_dump() methods
+        docs: List of documents with id, get_embedding_text(), and model_dump()
 
     Returns:
-        PointStruct ready for upload
+        List of PointStructs ready for upload
     """
     from lex.core.document import uri_to_uuid
 
-    embedding_text = doc.get_embedding_text()
-    dense, sparse = generate_hybrid_embeddings(embedding_text)
+    if not docs:
+        return []
 
-    return PointStruct(
-        id=uri_to_uuid(doc.id),
-        vector={"dense": dense, "sparse": sparse},
-        payload=doc.model_dump(mode="json"),
-    )
+    texts = [doc.get_embedding_text() for doc in docs]
+    embeddings = generate_hybrid_embeddings_batch(texts)
+
+    return [
+        PointStruct(
+            id=uri_to_uuid(doc.id),
+            vector={"dense": dense, "sparse": sparse},
+            payload=doc.model_dump(mode="json"),
+        )
+        for doc, (dense, sparse) in zip(docs, embeddings)
+    ]
 
 
 def _upload_batch(collection: str, batch: list[PointStruct]) -> None:
@@ -548,6 +549,7 @@ def _upload_batch(collection: str, batch: list[PointStruct]) -> None:
 async def run_amendments_led_ingest(
     limit: int | None = None,
     enable_pdf_fallback: bool = False,
+    years_back: int = 2,
 ) -> dict:
     """Run amendment-led daily ingest.
 
@@ -555,20 +557,22 @@ async def run_amendments_led_ingest(
     needs refreshing, instead of blindly rescraping by year.
 
     Steps:
-    1. Query amendments where affecting_year is current/previous year
+    1. Query amendments where affecting_year is within years_back
     2. Extract unique changed_legislation IDs
     3. Filter to IDs missing from legislation collection
     4. Rescrape only those specific legislation items
-    5. Also ingest new caselaw and amendments for current/prev year
+    5. Also ingest new caselaw and amendments for those years
 
     Args:
         limit: Maximum number of items per source (None for unlimited)
         enable_pdf_fallback: Enable PDF processing for legislation without XML
+        years_back: Number of years to look back (default: 2)
 
     Returns:
         Statistics about the ingest run
     """
-    years = [date.today().year, date.today().year - 1]
+    current_year = date.today().year
+    years = list(range(current_year - years_back + 1, current_year + 1))
     logger.info(f"Starting amendments-led ingest for years {years}, limit={limit}")
 
     stats = {}
@@ -655,8 +659,8 @@ def rescrape_legislation_by_ids(
 
     scraper = LegislationScraper()
     parser = XMLLegislationParser()
-    legislation_batch: list[PointStruct] = []
-    section_batch: list[PointStruct] = []
+    legislation_docs: list = []
+    section_docs: list = []
 
     for leg_id in legislation_ids:
         parsed = parse_legislation_id(leg_id)
@@ -683,10 +687,9 @@ def rescrape_legislation_by_ids(
                 stats["errors"] += 1
                 continue
 
-            # Convert to Legislation model and create point
+            # Convert to Legislation model and collect doc
             legislation = _legislation_with_content_to_legislation(legislation_full)
-            leg_point = _create_point(legislation)
-            legislation_batch.append(leg_point)
+            legislation_docs.append(legislation)
             stats["legislation_count"] += 1
 
             # Process sections
@@ -694,8 +697,7 @@ def rescrape_legislation_by_ids(
                 leg_section = _provision_to_legislation_section(
                     section, legislation_full.id
                 )
-                section_point = _create_point(leg_section)
-                section_batch.append(section_point)
+                section_docs.append(leg_section)
                 stats["section_count"] += 1
 
             # Process schedules
@@ -703,29 +705,32 @@ def rescrape_legislation_by_ids(
                 leg_section = _provision_to_legislation_section(
                     schedule, legislation_full.id
                 )
-                section_point = _create_point(leg_section)
-                section_batch.append(section_point)
+                section_docs.append(leg_section)
                 stats["section_count"] += 1
 
             # Upload in batches
-            if len(legislation_batch) >= BATCH_SIZE:
-                _upload_batch(LEGISLATION_COLLECTION, legislation_batch)
-                legislation_batch = []
+            if len(legislation_docs) >= BATCH_SIZE:
+                points = _create_points_batch(legislation_docs)
+                _upload_batch(LEGISLATION_COLLECTION, points)
+                legislation_docs = []
                 gc.collect()
 
-            if len(section_batch) >= BATCH_SIZE:
-                _upload_batch(LEGISLATION_SECTION_COLLECTION, section_batch)
-                section_batch = []
+            if len(section_docs) >= BATCH_SIZE:
+                points = _create_points_batch(section_docs)
+                _upload_batch(LEGISLATION_SECTION_COLLECTION, points)
+                section_docs = []
 
         except Exception as e:
             logger.warning(f"Failed to rescrape {leg_id}: {e}")
             stats["errors"] += 1
 
-    # Upload remaining batches
-    if legislation_batch:
-        _upload_batch(LEGISLATION_COLLECTION, legislation_batch)
-    if section_batch:
-        _upload_batch(LEGISLATION_SECTION_COLLECTION, section_batch)
+    # Upload remaining docs
+    if legislation_docs:
+        points = _create_points_batch(legislation_docs)
+        _upload_batch(LEGISLATION_COLLECTION, points)
+    if section_docs:
+        points = _create_points_batch(section_docs)
+        _upload_batch(LEGISLATION_SECTION_COLLECTION, points)
 
     logger.info(f"Legislation ID-based rescrape complete: {stats}")
     return stats

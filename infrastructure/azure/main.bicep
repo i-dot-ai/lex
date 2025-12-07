@@ -479,7 +479,173 @@ resource ingestJob 'Microsoft.App/jobs@2024-03-01' = {
         {
           name: 'ingest-job'
           image: containerImage
-          command: ['uv', 'run', 'python', '-m', 'lex.ingest', '--mode', 'daily']
+          command: ['uv', 'run', 'python', '-m', 'lex.ingest', '--mode', 'amendments-led']
+          resources: {
+            cpu: json('2.0')
+            memory: '4Gi'
+          }
+          env: [
+            {
+              name: 'USE_CLOUD_QDRANT'
+              value: 'true'
+            }
+            {
+              name: 'QDRANT_CLOUD_URL'
+              secretRef: 'qdrant-cloud-url'  // pragma: allowlist secret
+            }
+            {
+              name: 'QDRANT_CLOUD_API_KEY'
+              secretRef: 'qdrant-cloud-api-key'  // pragma: allowlist secret
+            }
+            {
+              name: 'AZURE_OPENAI_API_KEY'
+              secretRef: 'azure-openai-api-key'  // pragma: allowlist secret
+            }
+            {
+              name: 'AZURE_OPENAI_ENDPOINT'
+              value: azureOpenAIEndpoint
+            }
+            {
+              name: 'AZURE_OPENAI_EMBEDDING_MODEL'
+              value: azureOpenAIEmbeddingModel
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
+
+// Container Apps Job for Weekly Deep Ingest (5-year amendments lookback)
+resource weeklyIngestJob 'Microsoft.App/jobs@2024-03-01' = {
+  name: '${resourcePrefix}-weekly-ingest-job'
+  location: location
+  properties: {
+    environmentId: containerEnvironment.id
+    configuration: {
+      triggerType: 'Schedule'
+      scheduleTriggerConfig: {
+        cronExpression: '0 2 * * 6'  // Saturday 02:00 UTC
+        parallelism: 1
+        replicaCompletionCount: 1
+      }
+      replicaTimeout: 86400  // 24 hour timeout
+      replicaRetryLimit: 1
+      registries: [
+        {
+          server: acr.properties.loginServer
+          username: acr.listCredentials().username
+          passwordSecretRef: 'acr-password'  // pragma: allowlist secret
+        }
+      ]
+      secrets: [
+        {
+          name: 'acr-password'
+          value: acr.listCredentials().passwords[0].value
+        }
+        {
+          name: 'qdrant-cloud-url'
+          value: qdrantCloudUrl
+        }
+        {
+          name: 'qdrant-cloud-api-key'
+          value: qdrantCloudApiKey
+        }
+        {
+          name: 'azure-openai-api-key'
+          value: azureOpenAIApiKey
+        }
+      ]
+    }
+    template: {
+      containers: [
+        {
+          name: 'weekly-ingest-job'
+          image: containerImage
+          command: ['uv', 'run', 'python', '-m', 'lex.ingest', '--mode', 'amendments-led', '--years-back', '5']
+          resources: {
+            cpu: json('2.0')
+            memory: '4Gi'
+          }
+          env: [
+            {
+              name: 'USE_CLOUD_QDRANT'
+              value: 'true'
+            }
+            {
+              name: 'QDRANT_CLOUD_URL'
+              secretRef: 'qdrant-cloud-url'  // pragma: allowlist secret
+            }
+            {
+              name: 'QDRANT_CLOUD_API_KEY'
+              secretRef: 'qdrant-cloud-api-key'  // pragma: allowlist secret
+            }
+            {
+              name: 'AZURE_OPENAI_API_KEY'
+              secretRef: 'azure-openai-api-key'  // pragma: allowlist secret
+            }
+            {
+              name: 'AZURE_OPENAI_ENDPOINT'
+              value: azureOpenAIEndpoint
+            }
+            {
+              name: 'AZURE_OPENAI_EMBEDDING_MODEL'
+              value: azureOpenAIEmbeddingModel
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
+
+// Container Apps Job for Monthly Full Ingest (all historical data)
+resource monthlyIngestJob 'Microsoft.App/jobs@2024-03-01' = {
+  name: '${resourcePrefix}-monthly-ingest-job'
+  location: location
+  properties: {
+    environmentId: containerEnvironment.id
+    configuration: {
+      triggerType: 'Schedule'
+      scheduleTriggerConfig: {
+        cronExpression: '0 1 1 * *'  // 1st of month, 01:00 UTC
+        parallelism: 1
+        replicaCompletionCount: 1
+      }
+      replicaTimeout: 604800  // 1 week timeout
+      replicaRetryLimit: 1
+      registries: [
+        {
+          server: acr.properties.loginServer
+          username: acr.listCredentials().username
+          passwordSecretRef: 'acr-password'  // pragma: allowlist secret
+        }
+      ]
+      secrets: [
+        {
+          name: 'acr-password'
+          value: acr.listCredentials().passwords[0].value
+        }
+        {
+          name: 'qdrant-cloud-url'
+          value: qdrantCloudUrl
+        }
+        {
+          name: 'qdrant-cloud-api-key'
+          value: qdrantCloudApiKey
+        }
+        {
+          name: 'azure-openai-api-key'
+          value: azureOpenAIApiKey
+        }
+      ]
+    }
+    template: {
+      containers: [
+        {
+          name: 'monthly-ingest-job'
+          image: containerImage
+          command: ['uv', 'run', 'python', '-m', 'lex.ingest', '--mode', 'full']
           resources: {
             cpu: json('2.0')
             memory: '4Gi'

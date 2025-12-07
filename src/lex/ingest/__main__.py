@@ -69,6 +69,13 @@ def main() -> int:
     )
 
     parser.add_argument(
+        "--years-back",
+        type=int,
+        default=2,
+        help="Number of years to look back for amendments-led mode (default: 2)",
+    )
+
+    parser.add_argument(
         "--enable-summaries",
         action="store_true",
         help="Enable AI summary generation (Stage 2)",
@@ -101,6 +108,7 @@ def main() -> int:
             stats = asyncio.run(run_amendments_led_ingest(
                 limit=args.limit,
                 enable_pdf_fallback=args.pdf_fallback,
+                years_back=args.years_back,
             ))
         else:  # full
             stats = asyncio.run(run_full_ingest(
