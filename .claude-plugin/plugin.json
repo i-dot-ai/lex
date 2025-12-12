@@ -2,5 +2,8 @@
   "name": "lex-uk-law",
   "version": "1.0.0",
   "description": "UK legal research skill for Claude Code using the Lex API",
-  "author": "i.AI (Incubator for Artificial Intelligence)"
+  "author": {
+    "name": "i.AI (Incubator for Artificial Intelligence)",
+    "email": "lex@cabinetoffice.gov.uk"
+  }
 }
