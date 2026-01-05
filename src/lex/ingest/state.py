@@ -75,9 +75,7 @@ def filter_new_items(
     new_items = [item for item in items if getattr(item, id_field) not in existing]
 
     if existing:
-        logger.info(
-            f"Skipping {len(existing)} existing, processing {len(new_items)} new items"
-        )
+        logger.info(f"Skipping {len(existing)} existing, processing {len(new_items)} new items")
 
     return new_items
 

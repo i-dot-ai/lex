@@ -1,6 +1,6 @@
 from typing import List
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 
 from backend.amendment.models import AmendmentSearch, AmendmentSectionSearch
 from backend.amendment.search import search_amendment_sections, search_amendments

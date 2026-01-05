@@ -173,9 +173,7 @@ def pipe_legislation_unified(
             if not valid_types:
                 continue
 
-            content_iterator = scraper.load_content(
-                years=[year], types=[leg_type], limit=None
-            )
+            content_iterator = scraper.load_content(years=[year], types=[leg_type], limit=None)
 
             for url, soup in content_iterator:
                 if remaining_limit <= 0:
@@ -198,9 +196,7 @@ def pipe_legislation_unified(
                         remaining_limit -= 1
 
                         # Yield the core legislation (without sections for embedding)
-                        legislation = _legislation_with_content_to_legislation(
-                            legislation_full
-                        )
+                        legislation = _legislation_with_content_to_legislation(legislation_full)
                         yield ("legislation", legislation)
 
                         # Yield each section as a LegislationSection

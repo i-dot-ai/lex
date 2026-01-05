@@ -22,7 +22,6 @@ Usage:
 import argparse
 import logging
 import time
-from datetime import datetime, timezone
 
 from dotenv import load_dotenv
 from qdrant_client.models import PointStruct
@@ -31,9 +30,9 @@ load_dotenv()
 
 from lex.caselaw.models import Caselaw
 from lex.caselaw.qdrant_schema import get_caselaw_summary_schema
+from lex.core.document import uri_to_uuid
 from lex.core.embeddings import generate_hybrid_embeddings
 from lex.core.qdrant_client import qdrant_client
-from lex.core.document import uri_to_uuid
 from lex.processing.caselaw_summaries.summary_generator import add_summaries_to_caselaw
 from lex.settings import CASELAW_COLLECTION, CASELAW_SUMMARY_COLLECTION
 
@@ -215,7 +214,7 @@ def main():
 
     # Stats
     text_lengths = [len(c.text) for c in caselaw_items]
-    logger.info(f"\nText length stats:")
+    logger.info("\nText length stats:")
     logger.info(f"  Min: {min(text_lengths):,} chars")
     logger.info(f"  Max: {max(text_lengths):,} chars")
     logger.info(f"  Avg: {sum(text_lengths) // len(text_lengths):,} chars")
@@ -236,8 +235,8 @@ def main():
     gen_time = time.time() - gen_start
 
     if summaries:
-        logger.info(f"\nGeneration complete:")
-        logger.info(f"  Time: {gen_time:.1f}s ({gen_time/60:.1f} minutes)")
+        logger.info("\nGeneration complete:")
+        logger.info(f"  Time: {gen_time:.1f}s ({gen_time / 60:.1f} minutes)")
         logger.info(f"  Generated: {len(summaries)} summaries")
         logger.info(f"  Skipped: {len(caselaw_items) - len(summaries)} (too short)")
         if gen_time > 0:
@@ -250,7 +249,9 @@ def main():
         logger.info("=" * 70)
 
         upload_start = time.time()
-        uploaded = upload_summaries_batch(summaries, batch_size=args.batch_size, dry_run=args.dry_run)
+        uploaded = upload_summaries_batch(
+            summaries, batch_size=args.batch_size, dry_run=args.dry_run
+        )
         upload_time = time.time() - upload_start
 
         logger.info(f"\nUpload complete in {upload_time:.1f}s")
@@ -266,7 +267,7 @@ def main():
     logger.info("\n" + "=" * 70)
     logger.info("COMPLETE")
     logger.info("=" * 70)
-    logger.info(f"Total time: {total_time:.1f}s ({total_time/60:.1f} minutes)")
+    logger.info(f"Total time: {total_time:.1f}s ({total_time / 60:.1f} minutes)")
 
     if summaries and not args.dry_run:
         time_per_summary = total_time / len(summaries)

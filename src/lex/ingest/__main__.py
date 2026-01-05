@@ -57,7 +57,8 @@ def main() -> int:
     )
 
     parser.add_argument(
-        "-v", "--verbose",
+        "-v",
+        "--verbose",
         action="store_true",
         help="Enable verbose logging",
     )
@@ -99,24 +100,30 @@ def main() -> int:
 
     try:
         if args.mode == "daily":
-            stats = asyncio.run(run_daily_ingest(
-                limit=args.limit,
-                enable_pdf_fallback=args.pdf_fallback,
-                enable_summaries=args.enable_summaries,
-            ))
+            stats = asyncio.run(
+                run_daily_ingest(
+                    limit=args.limit,
+                    enable_pdf_fallback=args.pdf_fallback,
+                    enable_summaries=args.enable_summaries,
+                )
+            )
         elif args.mode == "amendments-led":
-            stats = asyncio.run(run_amendments_led_ingest(
-                limit=args.limit,
-                enable_pdf_fallback=args.pdf_fallback,
-                years_back=args.years_back,
-            ))
+            stats = asyncio.run(
+                run_amendments_led_ingest(
+                    limit=args.limit,
+                    enable_pdf_fallback=args.pdf_fallback,
+                    years_back=args.years_back,
+                )
+            )
         else:  # full
-            stats = asyncio.run(run_full_ingest(
-                years=args.years,
-                limit=args.limit,
-                enable_pdf_fallback=args.pdf_fallback,
-                enable_summaries=args.enable_summaries,
-            ))
+            stats = asyncio.run(
+                run_full_ingest(
+                    years=args.years,
+                    limit=args.limit,
+                    enable_pdf_fallback=args.pdf_fallback,
+                    enable_summaries=args.enable_summaries,
+                )
+            )
 
         logger.info(f"Ingest complete: {stats}")
         return 0

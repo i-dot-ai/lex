@@ -20,7 +20,11 @@ from lex.core.utils import parse_years, set_logging_level
 from lex.explanatory_note.pipeline import pipe_explanatory_note
 from lex.explanatory_note.qdrant_schema import get_explanatory_note_schema
 from lex.legislation.models import LegislationType
-from lex.legislation.pipeline import pipe_legislation, pipe_legislation_sections, pipe_legislation_unified
+from lex.legislation.pipeline import (
+    pipe_legislation,
+    pipe_legislation_sections,
+    pipe_legislation_unified,
+)
 from lex.legislation.qdrant_schema import get_legislation_schema, get_legislation_section_schema
 from lex.settings import (
     AMENDMENT_COLLECTION,

@@ -91,9 +91,7 @@ def get_missing_legislation_ids(legislation_ids: set[str]) -> set[str]:
     existing = get_existing_ids(LEGISLATION_COLLECTION, list(legislation_ids))
     missing = legislation_ids - existing
 
-    logger.info(
-        f"Legislation status: {len(existing)} exist, {len(missing)} missing/stale"
-    )
+    logger.info(f"Legislation status: {len(existing)} exist, {len(missing)} missing/stale")
     return missing
 
 

@@ -126,9 +126,7 @@ def _get_existing_summary_ids(caselaw_ids: list[str]) -> set[str]:
         batch = summary_ids[i : i + 100]
         results, _ = qdrant_client.scroll(
             collection_name=CASELAW_SUMMARY_COLLECTION,
-            scroll_filter=Filter(
-                must=[FieldCondition(key="id", match=MatchAny(any=batch))]
-            ),
+            scroll_filter=Filter(must=[FieldCondition(key="id", match=MatchAny(any=batch))]),
             limit=len(batch),
             with_payload=["id"],
             with_vectors=False,
@@ -223,9 +221,7 @@ def pipe_caselaw_summaries(
         cases_to_summarise = [c for c in caselaw_batch if c.id not in existing_ids]
 
         if existing_ids:
-            logger.info(
-                f"Skipping {len(existing_ids)} cases that already have summaries"
-            )
+            logger.info(f"Skipping {len(existing_ids)} cases that already have summaries")
 
         if cases_to_summarise:
             # Generate summaries

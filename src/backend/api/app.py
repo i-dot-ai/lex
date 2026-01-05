@@ -8,6 +8,7 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from backend.amendment.router import router as amendment_router
+
 # from backend.caselaw.router import router as caselaw_router  # disabled
 from backend.core.middleware import monitoring_and_rate_limit_middleware
 from backend.core.telemetry import instrument_fastapi_app
