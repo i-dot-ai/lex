@@ -83,8 +83,8 @@ async def run_daily_ingest(
     stats = {}
 
     # Stage 1: Scrape sources (run in parallel using asyncio)
+    # Note: caselaw ingest disabled - caselaw API has been taken down
     stage1_results = await asyncio.gather(
-        asyncio.to_thread(ingest_caselaw, years, limit),
         asyncio.to_thread(ingest_legislation, years, limit, enable_pdf_fallback),
         asyncio.to_thread(ingest_amendments, years, limit),
         asyncio.to_thread(ingest_explanatory_notes, years, limit),
@@ -92,36 +92,19 @@ async def run_daily_ingest(
     )
 
     if isinstance(stage1_results[0], Exception):
-        stats["caselaw"] = {"error": str(stage1_results[0])}
+        stats["legislation"] = {"error": str(stage1_results[0])}
     else:
-        stats["caselaw"] = stage1_results[0]
+        stats["legislation"] = stage1_results[0]
 
     if isinstance(stage1_results[1], Exception):
-        stats["legislation"] = {"error": str(stage1_results[1])}
+        stats["amendments"] = {"error": str(stage1_results[1])}
     else:
-        stats["legislation"] = stage1_results[1]
+        stats["amendments"] = stage1_results[1]
 
     if isinstance(stage1_results[2], Exception):
-        stats["amendments"] = {"error": str(stage1_results[2])}
+        stats["explanatory_notes"] = {"error": str(stage1_results[2])}
     else:
-        stats["amendments"] = stage1_results[2]
-
-    if isinstance(stage1_results[3], Exception):
-        stats["explanatory_notes"] = {"error": str(stage1_results[3])}
-    else:
-        stats["explanatory_notes"] = stage1_results[3]
-
-    # Stage 2: AI enrichment (after Stage 1 completes)
-    if enable_summaries:
-        stage2_results = await asyncio.gather(
-            asyncio.to_thread(ingest_caselaw_summaries, years, limit),
-            return_exceptions=True,
-        )
-        if isinstance(stage2_results[0], Exception):
-            logger.error(f"Caselaw summary generation failed: {stage2_results[0]}")
-            stats["caselaw_summaries"] = {"error": str(stage2_results[0])}
-        else:
-            stats["caselaw_summaries"] = stage2_results[0]
+        stats["explanatory_notes"] = stage1_results[2]
 
     logger.info(f"Daily ingest complete: {stats}")
     return stats
@@ -152,18 +135,10 @@ async def run_full_ingest(
     stats = {}
 
     # Stage 1: Scrape sources (sequential for full ingest to manage resources)
-    stats["caselaw"] = ingest_caselaw(years, limit)
+    # Note: caselaw ingest disabled - caselaw API has been taken down
     stats["legislation"] = ingest_legislation(years, limit, enable_pdf_fallback)
     stats["amendments"] = ingest_amendments(years, limit)
     stats["explanatory_notes"] = ingest_explanatory_notes(years, limit)
-
-    # Stage 2: AI enrichment (after Stage 1 completes)
-    if enable_summaries:
-        try:
-            stats["caselaw_summaries"] = ingest_caselaw_summaries(years, limit)
-        except Exception as e:
-            logger.error(f"Caselaw summary generation failed: {e}")
-            stats["caselaw_summaries"] = {"error": str(e)}
 
     logger.info(f"Full ingest complete: {stats}")
     return stats
@@ -596,22 +571,17 @@ async def run_amendments_led_ingest(
     else:
         stats["legislation_rescrape"] = {"count": 0, "skipped": "all up to date"}
 
-    # Step 5: Also scrape new content (in parallel)
+    # Step 5: Also scrape new amendments
+    # Note: caselaw ingest disabled - caselaw API has been taken down
     stage1_results = await asyncio.gather(
-        asyncio.to_thread(ingest_caselaw, years, limit),
         asyncio.to_thread(ingest_amendments, years, limit),
         return_exceptions=True,
     )
 
     if isinstance(stage1_results[0], Exception):
-        stats["caselaw"] = {"error": str(stage1_results[0])}
+        stats["amendments"] = {"error": str(stage1_results[0])}
     else:
-        stats["caselaw"] = stage1_results[0]
-
-    if isinstance(stage1_results[1], Exception):
-        stats["amendments"] = {"error": str(stage1_results[1])}
-    else:
-        stats["amendments"] = stage1_results[1]
+        stats["amendments"] = stage1_results[0]
 
     logger.info(f"Amendments-led ingest complete: {stats}")
     return stats

@@ -27,6 +27,9 @@ MAX_RETRIES = 10
 BASE_BACKOFF = 1.0  # seconds
 MAX_BACKOFF = 120.0  # Cap backoff at 2 minutes
 
+# Parallelism config - keep low to avoid Azure OpenAI rate limits
+DEFAULT_MAX_WORKERS = int(os.environ.get("EMBEDDING_MAX_WORKERS", "5"))
+
 
 def get_openai_client() -> AzureOpenAI:
     """Lazy load Azure OpenAI client (thread-safe)."""
@@ -99,7 +102,8 @@ def generate_dense_embedding_with_retry(text: str, max_retries: int = MAX_RETRIE
             sleep_time = backoff + jitter
             error_type = type(e).__name__
             logger.warning(
-                f"{error_type}: {e}, retrying in {sleep_time:.1f}s (attempt {attempt + 1}/{max_retries})"
+                f"{error_type}: {e}, retrying in {sleep_time:.1f}s "
+                f"(attempt {attempt + 1}/{max_retries})"
             )
             time.sleep(sleep_time)
 
@@ -125,13 +129,13 @@ def generate_dense_embedding(text: str) -> List[float]:
 
 
 def generate_dense_embeddings_batch(
-    texts: List[str], max_workers: int = 25, progress_callback=None
+    texts: List[str], max_workers: int | None = None, progress_callback=None
 ) -> List[List[float]]:
     """Generate dense embeddings for multiple texts in parallel with rate limit handling.
 
     Args:
         texts: List of texts to embed
-        max_workers: Number of concurrent workers (default 25)
+        max_workers: Number of concurrent workers (default from EMBEDDING_MAX_WORKERS env or 5)
         progress_callback: Optional callback function(completed_count) for progress updates
 
     Returns:
@@ -139,6 +143,9 @@ def generate_dense_embeddings_batch(
     """
     if not texts:
         return []
+
+    if max_workers is None:
+        max_workers = DEFAULT_MAX_WORKERS
 
     results: List[Optional[List[float]]] = [None] * len(texts)
     completed = 0
@@ -247,14 +254,14 @@ def generate_hybrid_embeddings(text: str) -> Tuple[List[float], SparseVector]:
 
 
 def generate_hybrid_embeddings_batch(
-    texts: List[str], max_workers: int = 25, progress_callback=None
+    texts: List[str], max_workers: int | None = None, progress_callback=None
 ) -> List[Tuple[List[float], SparseVector]]:
     """
     Generate hybrid embeddings for multiple texts in parallel.
 
     Args:
         texts: List of texts to embed
-        max_workers: Number of concurrent workers for dense embeddings (default 25)
+        max_workers: Number of concurrent workers (default from EMBEDDING_MAX_WORKERS env or 5)
         progress_callback: Optional callback for progress updates
 
     Returns:
@@ -262,6 +269,9 @@ def generate_hybrid_embeddings_batch(
     """
     if not texts:
         return []
+
+    if max_workers is None:
+        max_workers = DEFAULT_MAX_WORKERS
 
     dense_embeddings = generate_dense_embeddings_batch(
         texts, max_workers=max_workers, progress_callback=progress_callback
