@@ -15,7 +15,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
-import { FileText, Search, Scale, ExternalLink } from "lucide-react"
+import { FileText, Search, ExternalLink } from "lucide-react"
 import Link from "next/link"
 import { API_CONFIG } from "@/lib/config"
 
@@ -47,7 +47,7 @@ export default function Home() {
             <h1 className="text-4xl font-bold tracking-tight">Lex API Demo</h1>
             <p className="text-muted-foreground text-lg">
               See what you can build with the Lex UK Legal Research API.
-              Semantic search across legislation and caselaw.
+              Semantic search across UK legislation.
             </p>
             <div className="flex items-center justify-center gap-3 pt-2">
               <a
@@ -73,7 +73,7 @@ export default function Home() {
           </div>
 
           {/* Search Options */}
-          <div className="grid gap-6 md:grid-cols-2 max-w-4xl mx-auto w-full">
+          <div className="grid gap-6 max-w-xl mx-auto w-full">
             <Link href="/legislation" className="group">
               <Card className="h-full transition-all hover:shadow-lg hover:border-primary/50">
                 <CardHeader className="pb-4">
@@ -96,6 +96,7 @@ export default function Home() {
               </Card>
             </Link>
 
+            {/* Caselaw disabled
             <Link href="/caselaw" className="group">
               <Card className="h-full transition-all hover:shadow-lg hover:border-primary/50">
                 <CardHeader className="pb-4">
@@ -117,6 +118,7 @@ export default function Home() {
                 </CardContent>
               </Card>
             </Link>
+            */}
           </div>
         </div>
       </SidebarInset>

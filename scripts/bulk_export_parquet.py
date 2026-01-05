@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 """
-Bulk export all Qdrant collections to Parquet files in Azure Blob Storage.
+Bulk export Qdrant collections to Parquet files in Azure Blob Storage.
 
-This script exports all 7 Qdrant collections to Snappy-compressed Parquet files,
+This script exports Qdrant collections to Snappy-compressed Parquet files,
 with a clean nested folder structure for easy navigation.
 
 Output structure:
@@ -12,10 +12,6 @@ Output structure:
     │   ├── legislation_section/
     │   │   ├── 1801.parquet
     │   │   └── ...
-    │   ├── caselaw.parquet
-    │   ├── caselaw_section/
-    │   │   └── ...
-    │   ├── caselaw_summary.parquet
     │   ├── explanatory_note.parquet
     │   ├── amendment.parquet
     │   └── manifest.json
@@ -26,9 +22,6 @@ Output structure:
 Collections:
 - legislation (~220K docs) - Single file
 - legislation_section (~2M docs) - Split by year
-- caselaw (~61K docs) - Single file
-- caselaw_section (~4M docs) - Split by year
-- caselaw_summary (~61K docs) - Single file
 - explanatory_note (~82K docs) - Single file
 - amendment (~892K docs) - Single file
 
@@ -68,9 +61,9 @@ from qdrant_client.models import FieldCondition, Filter, MatchValue  # noqa: E40
 from lex.core.qdrant_client import get_qdrant_client  # noqa: E402
 from lex.settings import (  # noqa: E402
     AMENDMENT_COLLECTION,
-    CASELAW_COLLECTION,
-    CASELAW_SECTION_COLLECTION,
-    CASELAW_SUMMARY_COLLECTION,
+    # CASELAW_COLLECTION,  # disabled
+    # CASELAW_SECTION_COLLECTION,  # disabled
+    # CASELAW_SUMMARY_COLLECTION,  # disabled
     EXPLANATORY_NOTE_COLLECTION,
     LEGISLATION_COLLECTION,
     LEGISLATION_SECTION_COLLECTION,
@@ -96,21 +89,22 @@ COLLECTIONS = {
         "year_field": "legislation_year",
         "batch_size": 500,  # Smaller: sections have large text
     },
-    CASELAW_COLLECTION: {
-        "split_by_year": False,
-        "year_field": None,
-        "batch_size": 100,  # Smallest: full judgment text is huge
-    },
-    CASELAW_SECTION_COLLECTION: {
-        "split_by_year": True,
-        "year_field": "year",
-        "batch_size": 500,
-    },
-    CASELAW_SUMMARY_COLLECTION: {
-        "split_by_year": False,
-        "year_field": None,
-        "batch_size": 2000,
-    },
+    # Caselaw collections disabled
+    # CASELAW_COLLECTION: {
+    #     "split_by_year": False,
+    #     "year_field": None,
+    #     "batch_size": 100,
+    # },
+    # CASELAW_SECTION_COLLECTION: {
+    #     "split_by_year": True,
+    #     "year_field": "year",
+    #     "batch_size": 500,
+    # },
+    # CASELAW_SUMMARY_COLLECTION: {
+    #     "split_by_year": False,
+    #     "year_field": None,
+    #     "batch_size": 2000,
+    # },
     EXPLANATORY_NOTE_COLLECTION: {
         "split_by_year": False,
         "year_field": None,
@@ -327,9 +321,6 @@ def get_years_in_collection(
     if years:
         min_year = min(years)
         max_year = max(years)
-        # For caselaw, start from 2001 (National Archives coverage)
-        if "caselaw" in collection_name:
-            min_year = max(2001, min_year)
         return list(range(min_year, max_year + 1))
 
     return []

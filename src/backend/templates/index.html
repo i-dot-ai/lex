@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Lex API</title>
-    <meta name="description" content="UK legal API for AI agents and researchers. Access comprehensive UK legislation and caselaw data with semantic search and Model Context Protocol integration.">
+    <meta name="description" content="UK legal API for AI agents and researchers. Access comprehensive UK legislation data with semantic search and Model Context Protocol integration.">
     
     <!-- Preconnect for performance -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1375,8 +1375,8 @@
             <!-- Hero section -->
             <div class="govuk-grid-row">
                 <div class="govuk-grid-column-two-thirds">
-                    <p class="govuk-body">UK legal API for AI agents and researchers. Access comprehensive UK legislation and caselaw data with semantic search and Model Context Protocol integration.</p>
-                    <p class="govuk-body">Our API provides programmatic access to millions of UK legal documents, court decisions, and statutory instruments with advanced semantic search capabilities, making it easier than ever to build AI-powered legal applications and conduct comprehensive legal analysis. Data is sourced from <a href="https://www.legislation.gov.uk/" class="govuk-link">legislation.gov.uk</a> under the <a href="https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/" class="govuk-link">Open Government Licence v3.0</a> and <a href="https://caselaw.nationalarchives.gov.uk/" class="govuk-link">The National Archives</a> under the <a href="https://caselaw.nationalarchives.gov.uk/open-justice-licence" class="govuk-link">Open Justice Licence</a>.</p>
+                    <p class="govuk-body">UK legal API for AI agents and researchers. Access comprehensive UK legislation data with semantic search and Model Context Protocol integration.</p>
+                    <p class="govuk-body">Our API provides programmatic access to millions of UK legal documents and statutory instruments with advanced semantic search capabilities, making it easier than ever to build AI-powered legal applications and conduct comprehensive legal analysis. Data is sourced from <a href="https://www.legislation.gov.uk/" class="govuk-link">legislation.gov.uk</a> under the <a href="https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/" class="govuk-link">Open Government Licence v3.0</a>.</p>
                     <p class="govuk-body">This API is hosted as an experimental service and should not be used as a production dependency.</p>
                 </div>
                 <div class="govuk-grid-column-one-third">
@@ -1751,9 +1751,6 @@ claude mcp remove lex</pre>
                             <ul class="govuk-list govuk-list--bullet">
                                 <li><strong id="acts-count" class="stat-number">X</strong> Acts and Statutory Instruments</li>
                                 <li><strong id="provisions-count" class="stat-number">X</strong> individual legal sections</li>
-                                <li><strong id="judgments-count" class="stat-number">X</strong> court judgments and decisions</li>
-                                <li><strong id="summaries-count" class="stat-number">X</strong> AI-generated case summaries</li>
-                                <li><strong id="paragraphs-count" class="stat-number">X</strong> court case paragraphs</li>
                                 <li><strong id="explanatory-count" class="stat-number">X</strong> explanatory note sections</li>
                                 <li><strong id="amendments-count" class="stat-number">X</strong> legislative amendments</li>
                             </ul>
@@ -1764,9 +1761,8 @@ claude mcp remove lex</pre>
                             <h3 class="govuk-heading-m">Temporal Coverage</h3>
                             <ul class="govuk-list govuk-list--bullet">
                                 <li><strong>Legislation:</strong> 1267-present (complete from 1963)</li>
-                                <li><strong>Court cases:</strong> 2001-present</li>
                                 <li><strong>Search capabilities:</strong> Both semantic and exact matching</li>
-                                <li><strong>Updates:</strong> Dataset grows as new legislation and cases are published</li>
+                                <li><strong>Updates:</strong> Dataset grows as new legislation is published</li>
                             </ul>
                         </div>
                     </div>
@@ -1799,42 +1795,20 @@ claude mcp remove lex</pre>
                     <h2 class="govuk-heading-l">Bulk Downloads</h2>
                     <p class="govuk-body">Download complete datasets in Parquet format. Updated weekly every Sunday at 03:00 UTC.</p>
 
-                    <div class="govuk-grid-row">
-                        <div class="govuk-grid-column-one-half">
-                            <h3 class="govuk-heading-m">Legislation</h3>
-                            <ul class="govuk-list govuk-list--bullet">
-                                <li><a href="{{ downloads_base_url }}/latest/legislation.parquet" class="govuk-link" download>legislation.parquet</a> — All Acts and SIs</li>
-                                <li><a href="{{ downloads_base_url }}/latest/explanatory_note.parquet" class="govuk-link" download>explanatory_note.parquet</a> — Explanatory notes</li>
-                                <li><a href="{{ downloads_base_url }}/latest/amendment.parquet" class="govuk-link" download>amendment.parquet</a> — Legislative amendments</li>
-                            </ul>
+                    <ul class="govuk-list govuk-list--bullet">
+                        <li><a href="{{ downloads_base_url }}/latest/legislation.parquet" class="govuk-link" download>legislation.parquet</a> — All Acts and SIs</li>
+                        <li><a href="{{ downloads_base_url }}/latest/explanatory_note.parquet" class="govuk-link" download>explanatory_note.parquet</a> — Explanatory notes</li>
+                        <li><a href="{{ downloads_base_url }}/latest/amendment.parquet" class="govuk-link" download>amendment.parquet</a> — Legislative amendments</li>
+                    </ul>
 
-                            <details class="govuk-details">
-                                <summary class="govuk-details__summary">
-                                    <span class="govuk-details__summary-text">Legislation Sections (by year)</span>
-                                </summary>
-                                <div class="govuk-details__text" id="legislation-section-years">
-                                    <p class="govuk-body-s">Files split by year for manageability. See <a href="{{ downloads_base_url }}/latest/manifest.json" class="govuk-link" target="_blank">manifest.json</a> for current file list.</p>
-                                </div>
-                            </details>
+                    <details class="govuk-details">
+                        <summary class="govuk-details__summary">
+                            <span class="govuk-details__summary-text">Legislation Sections (by year)</span>
+                        </summary>
+                        <div class="govuk-details__text" id="legislation-section-years">
+                            <p class="govuk-body-s">Files split by year for manageability. See <a href="{{ downloads_base_url }}/latest/manifest.json" class="govuk-link" target="_blank">manifest.json</a> for current file list.</p>
                         </div>
-
-                        <div class="govuk-grid-column-one-half">
-                            <h3 class="govuk-heading-m">Caselaw</h3>
-                            <ul class="govuk-list govuk-list--bullet">
-                                <li><a href="{{ downloads_base_url }}/latest/caselaw.parquet" class="govuk-link" download>caselaw.parquet</a> — All court judgments</li>
-                                <li><a href="{{ downloads_base_url }}/latest/caselaw_summary.parquet" class="govuk-link" download>caselaw_summary.parquet</a> — AI-generated summaries</li>
-                            </ul>
-
-                            <details class="govuk-details">
-                                <summary class="govuk-details__summary">
-                                    <span class="govuk-details__summary-text">Caselaw Sections (by year)</span>
-                                </summary>
-                                <div class="govuk-details__text" id="caselaw-section-years">
-                                    <p class="govuk-body-s">Files split by year (2001-present). See <a href="{{ downloads_base_url }}/latest/manifest.json" class="govuk-link" target="_blank">manifest.json</a> for current file list.</p>
-                                </div>
-                            </details>
-                        </div>
-                    </div>
+                    </details>
 
                     <p class="govuk-body-s" style="margin-top: 20px;"><strong>Format:</strong> Snappy-compressed Apache Parquet. 4-week retention for archived files. <a href="{{ downloads_base_url }}/latest/manifest.json" class="govuk-link" target="_blank">View manifest</a> for file sizes and record counts.</p>
                 </div>
@@ -1910,13 +1884,11 @@ claude mcp remove lex</pre>
                                 Thanks to our collaborators at <strong>The National Archives</strong> and <strong>Government Legal Department</strong>.
                             </p>
                             <p class="govuk-body-xs">
-                                <a href="https://caselaw.nationalarchives.gov.uk/" class="govuk-footer__link" target="_blank" rel="noopener noreferrer">Find Case Law</a> •
                                 <a href="https://www.legislation.gov.uk/" class="govuk-footer__link" target="_blank" rel="noopener noreferrer">UK Legislation</a>
                             </p>
                             <h3 class="govuk-heading-s" style="color: #ffffff; margin-bottom: 10px; margin-top: 20px;">Data Licensing</h3>
                             <p class="govuk-body-xs">
-                                Legislation data: <a href="https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/" class="govuk-footer__link" target="_blank" rel="noopener noreferrer">Open Government Licence v3.0</a><br>
-                                Case law data: <a href="https://caselaw.nationalarchives.gov.uk/open-justice-licence" class="govuk-footer__link" target="_blank" rel="noopener noreferrer">Open Justice Licence</a>
+                                Legislation data: <a href="https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/" class="govuk-footer__link" target="_blank" rel="noopener noreferrer">Open Government Licence v3.0</a>
                             </p>
                         </div>
                     </div>
@@ -2067,9 +2039,6 @@ claude mcp remove lex</pre>
                 const elements = {
                     'acts-count': stats.acts_and_sis,
                     'provisions-count': stats.provisions,
-                    'judgments-count': stats.court_judgments,
-                    'summaries-count': stats.caselaw_summaries,
-                    'paragraphs-count': stats.case_paragraphs,
                     'explanatory-count': stats.explanatory_sections,
                     'amendments-count': stats.amendments,
                     'pdf-legislation-count': stats.pdf_legislation,
