@@ -1,4 +1,5 @@
 """Error handling utilities for FastAPI routers."""
+
 import traceback
 from functools import wraps
 from typing import Callable, TypeVar
@@ -15,6 +16,7 @@ def handle_errors(func: Callable[..., T]) -> Callable[..., T]:
     Preserves HTTPExceptions (for auth, validation, etc.) but wraps unexpected exceptions
     with traceback details for debugging.
     """
+
     @wraps(func)
     async def wrapper(*args, **kwargs):
         try:

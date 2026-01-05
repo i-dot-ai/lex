@@ -55,8 +55,9 @@ from lex.settings import (
 
 logger = logging.getLogger(__name__)
 
-# Batch size for Qdrant uploads
-BATCH_SIZE = 100
+# Batch size for Qdrant uploads (keep small to avoid exceeding Qdrant's 32MB payload limit)
+# Some legislation sections are very large (~3MB each), so use small batches
+BATCH_SIZE = 10
 
 
 async def run_daily_ingest(
@@ -694,17 +695,13 @@ def rescrape_legislation_by_ids(
 
             # Process sections
             for section in legislation_full.sections:
-                leg_section = _provision_to_legislation_section(
-                    section, legislation_full.id
-                )
+                leg_section = _provision_to_legislation_section(section, legislation_full.id)
                 section_docs.append(leg_section)
                 stats["section_count"] += 1
 
             # Process schedules
             for schedule in legislation_full.schedules:
-                leg_section = _provision_to_legislation_section(
-                    schedule, legislation_full.id
-                )
+                leg_section = _provision_to_legislation_section(schedule, legislation_full.id)
                 section_docs.append(leg_section)
                 stats["section_count"] += 1
 

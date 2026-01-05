@@ -173,6 +173,69 @@ Documents are processed in configurable batches:
 - Connection pooling via requests session
 - Parallel processing not implemented (API friendly)
 
+## Automated Scheduling (Azure Container Apps Jobs)
+
+The system uses a tiered scheduling strategy for data freshness, running as Azure Container Apps Jobs.
+
+### Schedule Overview
+
+| Job | Schedule | Mode | Description | Timeout |
+|-----|----------|------|-------------|---------|
+| **Daily** | 02:00 UTC | `amendments-led` | Smart incremental update (2 years) | 4 hours |
+| **Weekly** | Saturday 02:00 UTC | `amendments-led --years-back 5` | Extended amendments scan (5 years) | 24 hours |
+| **Monthly** | 1st of month 01:00 UTC | `full` | Complete historical rescan | 1 week |
+| **Export** | Sunday 03:00 UTC | `bulk_export_parquet.py` | Generate downloadable datasets | 6 hours |
+
+### Ingest Modes
+
+#### Daily: Amendments-Led Mode (`--mode amendments-led`)
+Uses amendments as a "change manifest" to intelligently target updates:
+
+1. Query amendments collection for `affecting_year` in current + previous year
+2. Extract unique `changed_legislation` IDs from those amendments
+3. Check which legislation IDs are missing or stale in Qdrant
+4. Rescrape only those specific legislation items
+5. Also ingest new caselaw and amendments for the year range
+
+This approach is efficient because it only rescrapes legislation that we know has changed, rather than blindly processing by year.
+
+#### Weekly: Extended Lookback
+Same as daily but with `--years-back 5` to catch amendments affecting older legislation that may have been missed.
+
+#### Monthly: Full Historical
+Complete rescan using `--mode full` to ensure data integrity across all years (1963-present). This catches edge cases where very old legislation was recently amended.
+
+### CLI Usage
+
+```bash
+# Run daily amendments-led ingest (default 2 years)
+python -m lex.ingest --mode amendments-led
+
+# Run with extended lookback (5 years)
+python -m lex.ingest --mode amendments-led --years-back 5
+
+# Run full historical ingest
+python -m lex.ingest --mode full
+
+# Test with limit
+python -m lex.ingest --mode amendments-led --limit 10 -v
+```
+
+### Monitoring Jobs in Azure
+
+```bash
+# List recent job executions
+az containerapp job execution list --name lex-ingest-job --resource-group rg-lex -o table
+
+# Check specific execution status
+az containerapp job execution show --name lex-ingest-job --resource-group rg-lex \
+  --job-execution-name <execution-name> -o table
+
+# View job logs
+az containerapp job logs show --name lex-ingest-job --resource-group rg-lex \
+  --container ingest-job --execution <execution-name> --tail 50
+```
+
 ## Monitoring Progress
 
 ### Check Pipeline Status

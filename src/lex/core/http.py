@@ -13,7 +13,7 @@ from tenacity import (
     wait_exponential,
 )
 
-from lex.core.exceptions import RateLimitException
+from lex.core.exceptions import NotFoundError, RateLimitException
 from lex.core.rate_limiter import AdaptiveRateLimiter, CircuitBreaker
 
 logger = logging.getLogger(__name__)
@@ -140,6 +140,10 @@ class HttpClient:
             raise RateLimitException(
                 f"Rate limited (HTTP {response.status_code}) on {url}", retry_after
             )
+
+        # Handle 404s separately - don't retry, resource doesn't exist
+        if response.status_code == 404:
+            raise NotFoundError(f"Resource not found: {url}", url=url)
 
         response.raise_for_status()
         return response

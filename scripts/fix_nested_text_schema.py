@@ -190,7 +190,7 @@ def fix_collection(
             eta = (total_points - stats["records_checked"]) / rate if rate > 0 else 0
             logger.info(
                 f"  Progress: {stats['records_checked']:,} / {total_points:,} ({pct:.1f}%) "
-                f"- Found {stats['records_affected']:,} affected - ETA: {eta/60:.1f}min"
+                f"- Found {stats['records_affected']:,} affected - ETA: {eta / 60:.1f}min"
             )
 
         offset = next_offset
@@ -216,7 +216,7 @@ def fix_collection(
     elapsed = time.time() - start_time
     mode = "APPLIED" if apply else "DRY RUN"
     logger.info(f"\n  [{mode}] Results for {collection_name}:")
-    logger.info(f"    Time:     {elapsed:.1f}s ({elapsed/60:.1f} min)")
+    logger.info(f"    Time:     {elapsed:.1f}s ({elapsed / 60:.1f} min)")
     logger.info(f"    Checked:  {stats['records_checked']:,}")
     logger.info(f"    Affected: {stats['records_affected']:,}")
     if apply:
@@ -293,10 +293,12 @@ def main():
             all_stats.append(stats)
         except Exception as e:
             logger.error(f"Failed to process {collection_name}: {e}")
-            all_stats.append({
-                "collection": collection_name,
-                "error": str(e),
-            })
+            all_stats.append(
+                {
+                    "collection": collection_name,
+                    "error": str(e),
+                }
+            )
 
     # Summary
     total_elapsed = time.time() - total_start
@@ -314,11 +316,10 @@ def main():
         else:
             status = "FIXED" if args.apply and stats["records_fixed"] > 0 else "FOUND"
             logger.info(
-                f"  {stats['collection']}: "
-                f"{stats['records_affected']:,} affected [{status}]"
+                f"  {stats['collection']}: {stats['records_affected']:,} affected [{status}]"
             )
 
-    logger.info(f"\n  Total time:     {total_elapsed:.1f}s ({total_elapsed/60:.1f} min)")
+    logger.info(f"\n  Total time:     {total_elapsed:.1f}s ({total_elapsed / 60:.1f} min)")
     logger.info(f"  Total affected: {total_affected:,}")
     if args.apply:
         logger.info(f"  Total fixed:    {total_fixed:,}")

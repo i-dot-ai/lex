@@ -446,7 +446,7 @@ resource ingestJob 'Microsoft.App/jobs@2024-03-01' = {
         parallelism: 1
         replicaCompletionCount: 1
       }
-      replicaTimeout: 14400  // 4 hour timeout
+      replicaTimeout: 28800  // 8 hour timeout
       replicaRetryLimit: 1
       registries: [
         {

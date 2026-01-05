@@ -66,13 +66,21 @@ def retry_qdrant_operation(operation: Callable[[], T], operation_name: str) -> T
             if hasattr(e, "status_code"):
                 is_retryable = e.status_code in [502, 503, 504]
             # Parse status code from exception message (e.g., "Unexpected Response: 503")
-            elif any(code in error_str for code in ["502", "503", "504", "Bad Gateway", "Service Unavailable", "Gateway Timeout"]):
+            elif any(
+                code in error_str
+                for code in [
+                    "502",
+                    "503",
+                    "504",
+                    "Bad Gateway",
+                    "Service Unavailable",
+                    "Gateway Timeout",
+                ]
+            ):
                 is_retryable = True
 
             if not is_retryable or attempt == QDRANT_MAX_RETRIES - 1:
-                logger.error(
-                    f"Qdrant {operation_name} failed after {attempt + 1} attempts: {e}"
-                )
+                logger.error(f"Qdrant {operation_name} failed after {attempt + 1} attempts: {e}")
                 raise
 
             # Exponential backoff with jitter
@@ -91,6 +99,8 @@ def retry_qdrant_operation(operation: Callable[[], T], operation_name: str) -> T
             raise
 
     raise Exception(f"Qdrant {operation_name} failed after {QDRANT_MAX_RETRIES} retries")
+
+
 http_client = HttpClient()
 
 # Map XML DocumentMainType to LegislationType enum
@@ -535,8 +545,12 @@ def upload_to_qdrant(
     total_leg = len(legislation_records)
 
     if legislation_offset > 0:
-        logger.info(f"⏭️  Skipping first {legislation_offset:,} legislation records (already uploaded)")
-        logger.info(f"📤 Uploading {total_leg - legislation_offset:,} remaining legislation records in batches of {batch_size}...")
+        logger.info(
+            f"⏭️  Skipping first {legislation_offset:,} legislation records (already uploaded)"
+        )
+        logger.info(
+            f"📤 Uploading {total_leg - legislation_offset:,} remaining legislation records in batches of {batch_size}..."
+        )
     else:
         logger.info(f"📤 Uploading {total_leg:,} legislation records in batches of {batch_size}...")
 
@@ -574,7 +588,7 @@ def upload_to_qdrant(
                 points=leg_points,
                 wait=True,
             ),
-            operation_name=f"legislation upsert batch {i//batch_size + 1}",
+            operation_name=f"legislation upsert batch {i // batch_size + 1}",
         )
         leg_uploaded += len(leg_points)
 
@@ -591,9 +605,13 @@ def upload_to_qdrant(
 
     if section_offset > 0:
         logger.info(f"⏭️  Skipping first {section_offset:,} section records (already uploaded)")
-        logger.info(f"📤 Uploading {total_sections - section_offset:,} remaining section records in batches of {batch_size}...")
+        logger.info(
+            f"📤 Uploading {total_sections - section_offset:,} remaining section records in batches of {batch_size}..."
+        )
     else:
-        logger.info(f"📤 Uploading {total_sections:,} section records in batches of {batch_size}...")
+        logger.info(
+            f"📤 Uploading {total_sections:,} section records in batches of {batch_size}..."
+        )
 
     logger.info("⚡ Using parallel batch embeddings (10 workers for dense, bulk for sparse)")
 
@@ -627,7 +645,7 @@ def upload_to_qdrant(
                 points=section_points,
                 wait=True,
             ),
-            operation_name=f"section upsert batch {i//batch_size + 1}",
+            operation_name=f"section upsert batch {i // batch_size + 1}",
         )
         sections_uploaded += len(section_points)
 

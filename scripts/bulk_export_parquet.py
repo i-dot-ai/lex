@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 """
-Bulk export all Qdrant collections to Parquet files in Azure Blob Storage.
+Bulk export Qdrant collections to Parquet files in Azure Blob Storage.
 
-This script exports all 7 Qdrant collections to Snappy-compressed Parquet files,
+This script exports Qdrant collections to Snappy-compressed Parquet files,
 with a clean nested folder structure for easy navigation.
 
 Output structure:
@@ -12,10 +12,6 @@ Output structure:
     │   ├── legislation_section/
     │   │   ├── 1801.parquet
     │   │   └── ...
-    │   ├── caselaw.parquet
-    │   ├── caselaw_section/
-    │   │   └── ...
-    │   ├── caselaw_summary.parquet
     │   ├── explanatory_note.parquet
     │   ├── amendment.parquet
     │   └── manifest.json
@@ -26,9 +22,6 @@ Output structure:
 Collections:
 - legislation (~220K docs) - Single file
 - legislation_section (~2M docs) - Split by year
-- caselaw (~61K docs) - Single file
-- caselaw_section (~4M docs) - Split by year
-- caselaw_summary (~61K docs) - Single file
 - explanatory_note (~82K docs) - Single file
 - amendment (~892K docs) - Single file
 
@@ -68,9 +61,9 @@ from qdrant_client.models import FieldCondition, Filter, MatchValue  # noqa: E40
 from lex.core.qdrant_client import get_qdrant_client  # noqa: E402
 from lex.settings import (  # noqa: E402
     AMENDMENT_COLLECTION,
-    CASELAW_COLLECTION,
-    CASELAW_SECTION_COLLECTION,
-    CASELAW_SUMMARY_COLLECTION,
+    # CASELAW_COLLECTION,  # disabled
+    # CASELAW_SECTION_COLLECTION,  # disabled
+    # CASELAW_SUMMARY_COLLECTION,  # disabled
     EXPLANATORY_NOTE_COLLECTION,
     LEGISLATION_COLLECTION,
     LEGISLATION_SECTION_COLLECTION,
@@ -96,21 +89,22 @@ COLLECTIONS = {
         "year_field": "legislation_year",
         "batch_size": 500,  # Smaller: sections have large text
     },
-    CASELAW_COLLECTION: {
-        "split_by_year": False,
-        "year_field": None,
-        "batch_size": 100,  # Smallest: full judgment text is huge
-    },
-    CASELAW_SECTION_COLLECTION: {
-        "split_by_year": True,
-        "year_field": "year",
-        "batch_size": 500,
-    },
-    CASELAW_SUMMARY_COLLECTION: {
-        "split_by_year": False,
-        "year_field": None,
-        "batch_size": 2000,
-    },
+    # Caselaw collections disabled
+    # CASELAW_COLLECTION: {
+    #     "split_by_year": False,
+    #     "year_field": None,
+    #     "batch_size": 100,
+    # },
+    # CASELAW_SECTION_COLLECTION: {
+    #     "split_by_year": True,
+    #     "year_field": "year",
+    #     "batch_size": 500,
+    # },
+    # CASELAW_SUMMARY_COLLECTION: {
+    #     "split_by_year": False,
+    #     "year_field": None,
+    #     "batch_size": 2000,
+    # },
     EXPLANATORY_NOTE_COLLECTION: {
         "split_by_year": False,
         "year_field": None,
@@ -307,9 +301,7 @@ def upload_to_blob(
     return blob_client.url
 
 
-def get_years_in_collection(
-    qdrant_client, collection_name: str, year_field: str
-) -> list[int]:
+def get_years_in_collection(qdrant_client, collection_name: str, year_field: str) -> list[int]:
     """Get distinct years present in a collection by sampling."""
     results, _ = qdrant_client.scroll(
         collection_name=collection_name,
@@ -327,9 +319,6 @@ def get_years_in_collection(
     if years:
         min_year = min(years)
         max_year = max(years)
-        # For caselaw, start from 2001 (National Archives coverage)
-        if "caselaw" in collection_name:
-            min_year = max(2001, min_year)
         return list(range(min_year, max_year + 1))
 
     return []
@@ -364,9 +353,7 @@ def export_collection(
 
         if config["split_by_year"]:
             # Export by year
-            years = get_years_in_collection(
-                qdrant_client, collection_name, config["year_field"]
-            )
+            years = get_years_in_collection(qdrant_client, collection_name, config["year_field"])
             year_range = f"{min(years)} - {max(years)}" if years else "none"
             logger.info(f"  Found years: {year_range} ({len(years)} years)")
 
@@ -410,13 +397,15 @@ def export_collection(
                         blob_service_client, container_name, local_path, latest_blob, dry_run
                     )
 
-                    stats["files"].append({
-                        "name": f"{collection_name}/{year}.parquet",
-                        "url": url,
-                        "records": record_count,
-                        "bytes": file_size,
-                        "year": year,
-                    })
+                    stats["files"].append(
+                        {
+                            "name": f"{collection_name}/{year}.parquet",
+                            "url": url,
+                            "records": record_count,
+                            "bytes": file_size,
+                            "year": year,
+                        }
+                    )
 
                 stats["total_records"] += record_count
                 stats["total_bytes"] += file_size
@@ -458,12 +447,14 @@ def export_collection(
                     blob_service_client, container_name, local_path, latest_blob, dry_run
                 )
 
-                stats["files"].append({
-                    "name": f"{collection_name}.parquet",
-                    "url": url,
-                    "records": record_count,
-                    "bytes": file_size,
-                })
+                stats["files"].append(
+                    {
+                        "name": f"{collection_name}.parquet",
+                        "url": url,
+                        "records": record_count,
+                        "bytes": file_size,
+                    }
+                )
 
             stats["total_records"] = record_count
             stats["total_bytes"] = file_size
@@ -599,8 +590,7 @@ def main():
 
     container_name = os.environ.get("BULK_DOWNLOAD_CONTAINER", "downloads")
     base_url = os.environ.get(
-        "DOWNLOADS_BASE_URL",
-        f"https://lexdownloads.blob.core.windows.net/{container_name}"
+        "DOWNLOADS_BASE_URL", f"https://lexdownloads.blob.core.windows.net/{container_name}"
     )
     date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
@@ -630,14 +620,17 @@ def main():
         except Exception as e:
             logger.error(f"Failed to export {collection_name}: {e}")
             import traceback
+
             traceback.print_exc()
-            all_stats.append({
-                "collection": collection_name,
-                "files": [],
-                "total_records": 0,
-                "total_bytes": 0,
-                "error": str(e),
-            })
+            all_stats.append(
+                {
+                    "collection": collection_name,
+                    "files": [],
+                    "total_records": 0,
+                    "total_bytes": 0,
+                    "error": str(e),
+                }
+            )
 
     # Generate manifest
     generate_manifest(
@@ -675,9 +668,7 @@ def main():
         status = "OK" if stats["total_records"] > 0 else "EMPTY"
         if "error" in stats:
             status = "FAILED"
-        logger.info(
-            f"  - {stats['collection']}: {stats['total_records']:,} records [{status}]"
-        )
+        logger.info(f"  - {stats['collection']}: {stats['total_records']:,} records [{status}]")
 
 
 if __name__ == "__main__":

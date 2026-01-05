@@ -1,20 +1,19 @@
 # Lex
 
-UK legal API for AI agents and researchers. Access comprehensive UK legislation and caselaw data with semantic search and Model Context Protocol integration.
+UK legal API for AI agents and researchers. Access comprehensive UK legislation data with semantic search and Model Context Protocol integration.
 
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 ## What is Lex?
 
-Lex provides programmatic access to millions of UK legal documents, court decisions, and statutory instruments with advanced semantic search capabilities.
+Lex provides programmatic access to millions of UK legal documents and statutory instruments with advanced semantic search capabilities.
 
 **This is an experimental service and should not be used as a production dependency.**
 
 ### Dataset Coverage
 
 - **Legislation** - Acts and Statutory Instruments (1267-present, complete from 1963)
-- **Case Law** - Court judgments and decisions (2001-present)
 - **Explanatory Notes** - Legislative context and guidance
 - **Amendments** - Changes and modifications over time
 - **PDF Digitisation** - Historical legislation digitised using AI
@@ -63,12 +62,10 @@ make ingest-all-sample
 ```bash
 # Quick samples (recommended for testing)
 make ingest-legislation-sample
-make ingest-caselaw-sample
 make ingest-all-sample
 
 # Full datasets (production use)
 make ingest-legislation-full
-make ingest-caselaw-full
 make ingest-all-full
 
 # Create indexes for fast filtering
