@@ -9,6 +9,7 @@ needs refreshing instead of blindly rescraping by year.
 """
 
 import logging
+import time
 
 from qdrant_client.models import FieldCondition, Filter, MatchAny
 
@@ -17,6 +18,10 @@ from lex.ingest.state import get_existing_ids
 from lex.settings import AMENDMENT_COLLECTION, LEGISLATION_COLLECTION
 
 logger = logging.getLogger(__name__)
+
+# Retry config for Qdrant queries
+MAX_SCROLL_RETRIES = 3
+SCROLL_RETRY_DELAY = 5.0
 
 
 def get_changed_legislation_ids(years: list[int]) -> set[str]:
@@ -38,21 +43,36 @@ def get_changed_legislation_ids(years: list[int]) -> set[str]:
     logger.info(f"Querying amendments for affecting_year in {years}")
 
     while True:
-        points, offset = qdrant_client.scroll(
-            collection_name=AMENDMENT_COLLECTION,
-            scroll_filter=Filter(
-                must=[
-                    FieldCondition(
-                        key="affecting_year",
-                        match=MatchAny(any=years),
+        # Retry loop for transient connection issues
+        points = None
+        for attempt in range(MAX_SCROLL_RETRIES):
+            try:
+                points, offset = qdrant_client.scroll(
+                    collection_name=AMENDMENT_COLLECTION,
+                    scroll_filter=Filter(
+                        must=[
+                            FieldCondition(
+                                key="affecting_year",
+                                match=MatchAny(any=years),
+                            )
+                        ]
+                    ),
+                    limit=1000,
+                    offset=offset,
+                    with_payload=["changed_legislation"],
+                    with_vectors=False,
+                )
+                break  # Success
+            except Exception as e:
+                if attempt < MAX_SCROLL_RETRIES - 1:
+                    logger.warning(
+                        f"Qdrant scroll failed (attempt {attempt + 1}/{MAX_SCROLL_RETRIES}): {e}, "
+                        f"retrying in {SCROLL_RETRY_DELAY}s"
                     )
-                ]
-            ),
-            limit=1000,
-            offset=offset,
-            with_payload=["changed_legislation"],
-            with_vectors=False,
-        )
+                    time.sleep(SCROLL_RETRY_DELAY)
+                else:
+                    logger.error(f"Qdrant scroll failed after {MAX_SCROLL_RETRIES} attempts")
+                    raise
 
         if not points:
             break
