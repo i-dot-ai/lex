@@ -500,26 +500,35 @@ def _create_points_batch(docs: list) -> list[PointStruct]:
     ]
 
 
-def _upload_batch(collection: str, batch: list[PointStruct]) -> None:
-    """Upload a batch of points to Qdrant.
+def _upload_batch(collection: str, batch: list[PointStruct], chunk_size: int = 100) -> None:
+    """Upload a batch of points to Qdrant in chunks.
+
+    Splits large batches into smaller chunks to avoid Qdrant's 32MB payload limit.
 
     Args:
         collection: Collection name
         batch: List of PointStructs to upload
+        chunk_size: Maximum points per upload (default 100)
     """
     if not batch:
         return
 
-    try:
-        qdrant_client.upsert(
-            collection_name=collection,
-            points=batch,
-            wait=True,
-        )
-        logger.debug(f"Uploaded {len(batch)} points to {collection}")
-    except Exception as e:
-        logger.error(f"Failed to upload batch to {collection}: {e}")
-        raise
+    # Upload in chunks to avoid payload size limits
+    for i in range(0, len(batch), chunk_size):
+        chunk = batch[i : i + chunk_size]
+        try:
+            qdrant_client.upsert(
+                collection_name=collection,
+                points=chunk,
+                wait=True,
+            )
+            logger.debug(
+                f"Uploaded {len(chunk)} points to {collection} "
+                f"(chunk {i // chunk_size + 1}/{(len(batch) + chunk_size - 1) // chunk_size})"
+            )
+        except Exception as e:
+            logger.error(f"Failed to upload chunk to {collection}: {e}")
+            raise
 
 
 async def run_amendments_led_ingest(
