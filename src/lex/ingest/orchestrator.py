@@ -500,35 +500,58 @@ def _create_points_batch(docs: list) -> list[PointStruct]:
     ]
 
 
-def _upload_batch(collection: str, batch: list[PointStruct], chunk_size: int = 100) -> None:
-    """Upload a batch of points to Qdrant in chunks.
+def _upload_batch(
+    collection: str,
+    batch: list[PointStruct],
+    chunk_size: int = 100,
+    max_retries: int = 3,
+    retry_delay: float = 5.0,
+) -> None:
+    """Upload a batch of points to Qdrant in chunks with retry logic.
 
     Splits large batches into smaller chunks to avoid Qdrant's 32MB payload limit.
+    Retries transient failures (e.g., read timeouts) with exponential backoff.
 
     Args:
         collection: Collection name
         batch: List of PointStructs to upload
         chunk_size: Maximum points per upload (default 100)
+        max_retries: Maximum retry attempts per chunk
+        retry_delay: Base delay between retries in seconds
     """
     if not batch:
         return
 
+    import time
+
     # Upload in chunks to avoid payload size limits
     for i in range(0, len(batch), chunk_size):
         chunk = batch[i : i + chunk_size]
-        try:
-            qdrant_client.upsert(
-                collection_name=collection,
-                points=chunk,
-                wait=True,
-            )
-            logger.debug(
-                f"Uploaded {len(chunk)} points to {collection} "
-                f"(chunk {i // chunk_size + 1}/{(len(batch) + chunk_size - 1) // chunk_size})"
-            )
-        except Exception as e:
-            logger.error(f"Failed to upload chunk to {collection}: {e}")
-            raise
+        for attempt in range(max_retries):
+            try:
+                qdrant_client.upsert(
+                    collection_name=collection,
+                    points=chunk,
+                    wait=True,
+                )
+                logger.debug(
+                    f"Uploaded {len(chunk)} points to {collection} "
+                    f"(chunk {i // chunk_size + 1}/{(len(batch) + chunk_size - 1) // chunk_size})"
+                )
+                break
+            except Exception as e:
+                if attempt < max_retries - 1:
+                    delay = retry_delay * (2**attempt)
+                    logger.warning(
+                        f"Upload to {collection} failed (attempt {attempt + 1}/{max_retries}): {e}, "
+                        f"retrying in {delay}s"
+                    )
+                    time.sleep(delay)
+                else:
+                    logger.error(
+                        f"Failed to upload chunk to {collection} after {max_retries} attempts: {e}"
+                    )
+                    raise
 
 
 async def run_amendments_led_ingest(

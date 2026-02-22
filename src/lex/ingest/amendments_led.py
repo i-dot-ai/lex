@@ -99,19 +99,35 @@ def get_missing_legislation_ids(legislation_ids: set[str]) -> set[str]:
 
     Uses the efficient batch lookup pattern from state.py.
 
+    Note: Amendment IDs use the short form (e.g., "ukpga/2020/1") but
+    legislation in Qdrant uses full URIs (e.g., "http://www.legislation.gov.uk/id/ukpga/2020/1").
+    We convert to full URIs for the lookup, then map back to short IDs.
+
     Args:
-        legislation_ids: Set of legislation IDs to check
+        legislation_ids: Set of short-form legislation IDs to check
 
     Returns:
-        Set of legislation IDs that need to be scraped
+        Set of short-form legislation IDs that need to be scraped
     """
     if not legislation_ids:
         return set()
 
-    existing = get_existing_ids(LEGISLATION_COLLECTION, list(legislation_ids))
-    missing = legislation_ids - existing
+    # Convert short IDs to full URIs to match what's stored in Qdrant
+    base_uri = "http://www.legislation.gov.uk/id/"
+    short_to_full = {lid: f"{base_uri}{lid}" for lid in legislation_ids}
+    full_ids = list(short_to_full.values())
 
-    logger.info(f"Legislation status: {len(existing)} exist, {len(missing)} missing/stale")
+    existing_full = get_existing_ids(LEGISLATION_COLLECTION, full_ids)
+
+    # Map back to short IDs
+    existing_short = set()
+    for short_id, full_id in short_to_full.items():
+        if full_id in existing_full:
+            existing_short.add(short_id)
+
+    missing = legislation_ids - existing_short
+
+    logger.info(f"Legislation status: {len(existing_short)} exist, {len(missing)} missing/stale")
     return missing
 
 
