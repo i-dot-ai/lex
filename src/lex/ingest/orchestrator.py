@@ -34,7 +34,7 @@ from lex.explanatory_note.pipeline import pipe_explanatory_note
 from lex.explanatory_note.qdrant_schema import get_explanatory_note_schema
 from lex.ingest.amendments_led import (
     get_changed_legislation_ids,
-    get_missing_legislation_ids,
+    get_stale_or_missing_legislation_ids,
     parse_legislation_id,
 )
 from lex.legislation.models import LegislationType
@@ -558,6 +558,7 @@ async def run_amendments_led_ingest(
     limit: int | None = None,
     enable_pdf_fallback: bool = False,
     years_back: int = 2,
+    force: bool = False,
 ) -> dict:
     """Run amendment-led daily ingest.
 
@@ -567,36 +568,45 @@ async def run_amendments_led_ingest(
     Steps:
     1. Query amendments where affecting_year is within years_back
     2. Extract unique changed_legislation IDs
-    3. Filter to IDs missing from legislation collection
-    4. Rescrape only those specific legislation items
-    5. Also ingest new caselaw and amendments for those years
+    3. Filter to stale or missing IDs (or all if force=True)
+    4. Rescrape those specific legislation items
+    5. Also ingest new amendments for those years
 
     Args:
         limit: Maximum number of items per source (None for unlimited)
         enable_pdf_fallback: Enable PDF processing for legislation without XML
         years_back: Number of years to look back (default: 2)
+        force: Force rescrape of all amended legislation, skipping staleness check
 
     Returns:
         Statistics about the ingest run
     """
     current_year = date.today().year
     years = list(range(current_year - years_back + 1, current_year + 1))
-    logger.info(f"Starting amendments-led ingest for years {years}, limit={limit}")
+    logger.info(
+        f"Starting amendments-led ingest for years {years}, limit={limit}, force={force}"
+    )
 
     stats = {}
 
-    # Step 1-3: Get legislation IDs that were amended but may be stale
+    # Step 1-3: Get legislation IDs that were amended
     changed_ids = get_changed_legislation_ids(years)
-    missing_ids = get_missing_legislation_ids(changed_ids)
+
+    if force:
+        rescrape_ids = set(changed_ids.keys())
+        logger.info(f"Force mode: rescraping all {len(rescrape_ids)} amended legislation items")
+    else:
+        rescrape_ids = get_stale_or_missing_legislation_ids(changed_ids)
 
     stats["amendments_queried"] = {
         "changed_legislation_count": len(changed_ids),
-        "missing_count": len(missing_ids),
+        "rescrape_count": len(rescrape_ids),
+        "force": force,
     }
 
-    # Step 4: Rescrape missing/stale legislation by specific IDs
-    if missing_ids:
-        limited_ids = list(missing_ids)[:limit] if limit else list(missing_ids)
+    # Step 4: Rescrape stale/missing legislation by specific IDs
+    if rescrape_ids:
+        limited_ids = list(rescrape_ids)[:limit] if limit else list(rescrape_ids)
         stats["legislation_rescrape"] = await asyncio.to_thread(
             rescrape_legislation_by_ids, limited_ids, enable_pdf_fallback
         )

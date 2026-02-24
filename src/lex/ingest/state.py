@@ -51,6 +51,51 @@ def get_existing_ids(collection: str, doc_ids: list[str]) -> set[str]:
         return set()
 
 
+def get_existing_ids_with_metadata(
+    collection: str, doc_ids: list[str], fields: list[str] | None = None
+) -> dict[str, dict]:
+    """Check which documents exist in Qdrant and return their metadata.
+
+    Like get_existing_ids but also retrieves specified payload fields,
+    useful for staleness detection.
+
+    Args:
+        collection: Name of the Qdrant collection
+        doc_ids: List of document IDs (URIs) to check
+        fields: Payload fields to retrieve (default: ["id", "modified_date"])
+
+    Returns:
+        Dict mapping document ID to its payload metadata
+    """
+    if not doc_ids:
+        return {}
+
+    if fields is None:
+        fields = ["id", "modified_date"]
+
+    uuids = [uri_to_uuid(doc_id) for doc_id in doc_ids]
+
+    try:
+        results = qdrant_client.retrieve(
+            collection_name=collection,
+            ids=uuids,
+            with_payload=fields,
+            with_vectors=False,
+        )
+
+        existing = {}
+        for r in results:
+            if r.payload and "id" in r.payload:
+                existing[r.payload["id"]] = r.payload
+
+        logger.debug(f"Found {len(existing)}/{len(doc_ids)} existing in {collection}")
+        return existing
+
+    except Exception as e:
+        logger.warning(f"Failed to check existing IDs with metadata in {collection}: {e}")
+        return {}
+
+
 def filter_new_items(
     collection: str,
     items: list[Any],

@@ -82,6 +82,12 @@ def main() -> int:
         help="Enable AI summary generation (Stage 2)",
     )
 
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Force rescrape of all amended legislation (amendments-led mode only)",
+    )
+
     args = parser.parse_args()
 
     # Configure logging
@@ -113,6 +119,7 @@ def main() -> int:
                     limit=args.limit,
                     enable_pdf_fallback=args.pdf_fallback,
                     years_back=args.years_back,
+                    force=args.force,
                 )
             )
         else:  # full

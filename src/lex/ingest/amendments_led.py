@@ -14,7 +14,7 @@ import time
 from qdrant_client.models import FieldCondition, Filter, MatchAny
 
 from lex.core.qdrant_client import qdrant_client
-from lex.ingest.state import get_existing_ids
+from lex.ingest.state import get_existing_ids_with_metadata
 from lex.settings import AMENDMENT_COLLECTION, LEGISLATION_COLLECTION
 
 logger = logging.getLogger(__name__)
@@ -24,19 +24,21 @@ MAX_SCROLL_RETRIES = 3
 SCROLL_RETRY_DELAY = 5.0
 
 
-def get_changed_legislation_ids(years: list[int]) -> set[str]:
+def get_changed_legislation_ids(years: list[int]) -> dict[str, int]:
     """Get unique legislation IDs that were amended in the given years.
 
     Queries amendments by `affecting_year` (when the amendment was made)
-    and extracts unique `changed_legislation` values.
+    and extracts unique `changed_legislation` values with their latest
+    amendment year (for staleness comparison).
 
     Args:
         years: List of years to query (e.g., [2024, 2025])
 
     Returns:
-        Set of legislation IDs (e.g., {"ukpga/2020/1", "uksi/2023/456"})
+        Dict mapping legislation ID to max affecting year,
+        e.g., {"ukpga/2020/1": 2025, "uksi/2023/456": 2024}
     """
-    changed_ids: set[str] = set()
+    changed_ids: dict[str, int] = {}
     offset = None
     total_amendments = 0
 
@@ -59,7 +61,7 @@ def get_changed_legislation_ids(years: list[int]) -> set[str]:
                     ),
                     limit=1000,
                     offset=offset,
-                    with_payload=["changed_legislation"],
+                    with_payload=["changed_legislation", "affecting_year"],
                     with_vectors=False,
                 )
                 break  # Success
@@ -79,8 +81,9 @@ def get_changed_legislation_ids(years: list[int]) -> set[str]:
 
         for point in points:
             leg_id = point.payload.get("changed_legislation")
-            if leg_id:
-                changed_ids.add(leg_id)
+            affecting_year = point.payload.get("affecting_year")
+            if leg_id and affecting_year:
+                changed_ids[leg_id] = max(changed_ids.get(leg_id, 0), affecting_year)
 
         total_amendments += len(points)
 
@@ -94,41 +97,79 @@ def get_changed_legislation_ids(years: list[int]) -> set[str]:
     return changed_ids
 
 
-def get_missing_legislation_ids(legislation_ids: set[str]) -> set[str]:
-    """Return legislation IDs that don't exist in Qdrant.
+def get_stale_or_missing_legislation_ids(
+    changed_legislation: dict[str, int],
+) -> set[str]:
+    """Return legislation IDs that are missing or stale in Qdrant.
 
-    Uses the efficient batch lookup pattern from state.py.
+    Checks both existence and staleness. An item is stale if its
+    modified_date is older than the year it was last amended.
 
     Note: Amendment IDs use the short form (e.g., "ukpga/2020/1") but
     legislation in Qdrant uses full URIs (e.g., "http://www.legislation.gov.uk/id/ukpga/2020/1").
-    We convert to full URIs for the lookup, then map back to short IDs.
 
     Args:
-        legislation_ids: Set of short-form legislation IDs to check
+        changed_legislation: Dict mapping short-form legislation ID
+            to max affecting year (from amendments)
 
     Returns:
         Set of short-form legislation IDs that need to be scraped
     """
-    if not legislation_ids:
+    from datetime import date
+
+    if not changed_legislation:
         return set()
 
     # Convert short IDs to full URIs to match what's stored in Qdrant
     base_uri = "http://www.legislation.gov.uk/id/"
-    short_to_full = {lid: f"{base_uri}{lid}" for lid in legislation_ids}
+    short_to_full = {lid: f"{base_uri}{lid}" for lid in changed_legislation}
     full_ids = list(short_to_full.values())
 
-    existing_full = get_existing_ids(LEGISLATION_COLLECTION, full_ids)
+    # Retrieve existence + modified_date for staleness comparison
+    existing_metadata = get_existing_ids_with_metadata(LEGISLATION_COLLECTION, full_ids)
 
-    # Map back to short IDs
-    existing_short = set()
+    # Build reverse mapping: full URI -> short ID
+    full_to_short = {v: k for k, v in short_to_full.items()}
+
+    missing = set()
+    stale = set()
+    up_to_date = set()
+
     for short_id, full_id in short_to_full.items():
-        if full_id in existing_full:
-            existing_short.add(short_id)
+        if full_id not in existing_metadata:
+            missing.add(short_id)
+            continue
 
-    missing = legislation_ids - existing_short
+        metadata = existing_metadata[full_id]
+        modified_date_str = metadata.get("modified_date")
+        max_amendment_year = changed_legislation[short_id]
 
-    logger.info(f"Legislation status: {len(existing_short)} exist, {len(missing)} missing/stale")
-    return missing
+        # Parse modified_date (stored as ISO string in Qdrant payload)
+        if modified_date_str is None:
+            stale.add(short_id)
+            continue
+
+        try:
+            if isinstance(modified_date_str, str):
+                modified_year = date.fromisoformat(modified_date_str).year
+            else:
+                modified_year = modified_date_str.year
+        except (ValueError, AttributeError):
+            stale.add(short_id)
+            continue
+
+        if modified_year < max_amendment_year:
+            stale.add(short_id)
+        else:
+            up_to_date.add(short_id)
+
+    needs_rescrape = missing | stale
+
+    logger.info(
+        f"Legislation status: {len(up_to_date)} up-to-date, "
+        f"{len(stale)} stale, {len(missing)} missing"
+    )
+    return needs_rescrape
 
 
 def parse_legislation_id(leg_id: str) -> tuple[str, int, int] | None:
