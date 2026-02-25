@@ -9,13 +9,13 @@ authors = [
 ]
 requires-python = ">=3.11"
 dependencies = [
-    "aiohttp>=3.11.18",
+    "aiohttp==3.13.3",
     "azure-storage-blob>=12.24.0",
     "bs4>=0.0.2",
     "diskcache>=5.6.3",
     "fastembed>=0.4.2",
     "fastapi>=0.115.12",
-    "fastmcp>=2.13.0",
+    "fastmcp==2.14.0",
     "jinja2>=3.1.0",
     "langfuse>=2.58.4",
     "lxml>=5.4.0",
@@ -24,7 +24,7 @@ dependencies = [
     "pandas>=2.3.2",
     "pyarrow>=21.0.0",
     "pydantic>=2.11.3",
-    "pypdf>=5.1.0",
+    "pypdf==6.7.1",
     "python-dotenv>=1.1.0",
     "qdrant-client>=1.12.0",
     "redis>=5.0.0",
@@ -42,6 +42,7 @@ dependencies = [
     "tqdm>=4.67.1",
     "uvicorn>=0.34.2",
     "xmltodict>=0.14.2",
+    "protobuf==6.33.5",
 ]
 
 [build-system]
