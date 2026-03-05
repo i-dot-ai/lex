@@ -89,7 +89,7 @@ docker compose exec pipeline uv run src/lex/main.py \
 
 ### Legislation Types (28 types)
 
-The system supports 28 different legislation types, organized by jurisdiction:
+The system supports 28 different legislation types, organised by jurisdiction:
 
 **UK-wide:**
 - `ukpga` - UK Public General Acts
@@ -168,7 +168,7 @@ Documents are processed in configurable batches:
 - Batching prevents memory overflow
 - Typical usage: 500MB-1GB for pipeline
 
-### Network Optimization
+### Network Optimisation
 - HTTP responses cached (14-day TTL)
 - Connection pooling via requests session
 - Parallel processing not implemented (API friendly)

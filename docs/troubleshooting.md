@@ -58,3 +58,19 @@ docker stats
 # Increase Docker memory allocation in Docker Desktop settings
 # Recommended: 8GB+ RAM for full dataset ingestion
 ```
+
+## Amendments-led ingest finds no missing items
+
+The amendments collection stores short-form IDs (e.g., `ukpga/2020/1`) while the legislation collection uses full URIs (e.g., `http://www.legislation.gov.uk/id/ukpga/2020/1`). The staleness check in `amendments_led.py` converts between these formats. If you see 0 missing/stale items when there should be some, check that `get_stale_or_missing_legislation_ids` is correctly prepending the base URI.
+
+## Azure Container Apps Job env vars wiped after YAML update
+
+Using `az containerapp job update --yaml` to change the job command can silently wipe environment variables and secrets if they aren't included in the YAML file. Always include all environment variables when updating a job via YAML. Check with:
+
+```bash
+az containerapp job show --name lex-ingest-job --resource-group rg-lex -o yaml | grep -A 50 "env:"
+```
+
+## Qdrant upload fails with payload too large
+
+Qdrant has a 32MB payload limit per request. If uploading large batches, chunk the upsert into smaller batches (default: 100 points per chunk). The `_upload_batch` function in `orchestrator.py` handles this automatically with retry logic.
