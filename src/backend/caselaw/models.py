@@ -1,6 +1,4 @@
 from enum import Enum
-from typing import List, Optional
-
 from pydantic import BaseModel, Field
 
 from lex.caselaw.models import Caselaw, CaselawSummary, Court, CourtDivision
@@ -16,7 +14,7 @@ class ReferenceType(str, Enum):
 class CaselawSearch(BaseModel):
     "Search for caselaw that is relevant to a specific query. Useful for finding caselaw that is relevant to a specific question if this or related topics have been put before the courts."
 
-    query: Optional[str] = Field(
+    query: str | None = Field(
         default=None,
         description="The natural language query to search for caselaw. Often this will be the question on which the case hinges, but it could be more tangential. If not provided, will return results based on filters only.",
         examples=[
@@ -29,14 +27,14 @@ class CaselawSearch(BaseModel):
         default=True,
         description="Whether to use semantic search. Unless the user requests a non-semantic search, default to semantic search",
     )
-    court: Optional[List[Court]] = Field(default=None, description="Filter by court.")
-    division: Optional[List[CourtDivision]] = Field(
+    court: list[Court] | None = Field(default=None, description="Filter by court.")
+    division: list[CourtDivision] | None = Field(
         default=None, description="Filter by court division."
     )
-    year_from: Optional[int] = Field(
+    year_from: int | None = Field(
         default=None, description="Filter by cases from this year onwards."
     )
-    year_to: Optional[int] = Field(default=None, description="Filter by cases up to this year.")
+    year_to: int | None = Field(default=None, description="Filter by cases up to this year.")
     offset: int = Field(
         default=0,
         ge=0,
@@ -48,19 +46,19 @@ class CaselawSearch(BaseModel):
 class CaselawSectionSearch(BaseModel):
     "Search for caselaw sections that are relevant to a specific query."
 
-    query: Optional[str] = Field(
+    query: str | None = Field(
         default=None,
         description="The query to search for in case names, citations, etc. If not provided, will return results based on filters only.",
         examples=["negligence", "contract", "human rights"],
     )
-    court: Optional[List[Court]] = Field(default=None, description="Filter by court.")
-    division: Optional[List[CourtDivision]] = Field(
+    court: list[Court] | None = Field(default=None, description="Filter by court.")
+    division: list[CourtDivision] | None = Field(
         default=None, description="Filter by court division."
     )
-    year_from: Optional[int] = Field(
+    year_from: int | None = Field(
         default=None, description="Filter by cases from this year onwards."
     )
-    year_to: Optional[int] = Field(default=None, description="Filter by cases up to this year.")
+    year_to: int | None = Field(default=None, description="Filter by cases up to this year.")
     offset: int = Field(
         default=0,
         ge=0,
@@ -81,16 +79,16 @@ class CaselawReferenceSearch(BaseModel):
     reference_type: ReferenceType = Field(
         description="The type of reference to search for (caselaw or legislation)."
     )
-    court: Optional[List[Court]] = Field(
+    court: list[Court] | None = Field(
         default=None, description="Filter by court of the citing cases."
     )
-    division: Optional[List[CourtDivision]] = Field(
+    division: list[CourtDivision] | None = Field(
         default=None, description="Filter by court division of the citing cases."
     )
-    year_from: Optional[int] = Field(
+    year_from: int | None = Field(
         default=None, description="Filter by citing cases from this year onwards."
     )
-    year_to: Optional[int] = Field(
+    year_to: int | None = Field(
         default=None, description="Filter by citing cases up to this year."
     )
     size: int = Field(default=20, description="Maximum number of results to return.")

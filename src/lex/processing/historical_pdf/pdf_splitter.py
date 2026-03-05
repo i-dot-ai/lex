@@ -6,8 +6,6 @@ Uses pypdf to extract specific page ranges into separate PDF files.
 
 import logging
 from io import BytesIO
-from typing import List, Tuple
-
 from pypdf import PdfReader, PdfWriter
 
 logger = logging.getLogger(__name__)
@@ -15,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 def split_pdf_into_chunks(
     pdf_bytes: bytes, chunk_size_pages: int = 40
-) -> List[Tuple[bytes, int, int]]:
+) -> list[tuple[bytes, int, int]]:
     """
     Split PDF into chunks of specified page size.
 

@@ -3,7 +3,7 @@
 import logging
 import time
 from collections import deque
-from typing import Any, Callable, Dict, Optional, TypeVar
+from typing import Any, Callable, TypeVar
 
 T = TypeVar("T")
 
@@ -34,7 +34,7 @@ class AdaptiveRateLimiter:
             failure_increase_factor: Factor to increase delay after rate limit
         """
         self.successful_requests: deque[float] = deque(maxlen=10000)  # Track last 10k requests
-        self.rate_limit_events: deque[Dict[str, Any]] = deque(maxlen=100)  # Track 429/436 responses
+        self.rate_limit_events: deque[dict[str, Any]] = deque(maxlen=100)  # Track 429/436 responses
         self.current_delay = min_delay  # Start with minimum delay
         self.min_delay = min_delay
         self.max_delay = max_delay
@@ -50,7 +50,7 @@ class AdaptiveRateLimiter:
             self.current_delay *= self.success_reduction_factor
             self.current_delay = max(self.current_delay, self.min_delay)
 
-    def record_rate_limit(self, retry_after: Optional[int] = None) -> None:
+    def record_rate_limit(self, retry_after: int | None = None) -> None:
         """Record a rate limit event and increase delay."""
         event = {"time": time.time(), "retry_after": retry_after}
         self.rate_limit_events.append(event)
@@ -76,7 +76,7 @@ class AdaptiveRateLimiter:
         """Get the current delay to apply before next request."""
         return self.current_delay
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get current rate limiter statistics."""
         recent_success_count = sum(
             1 for t in self.successful_requests if time.time() - t < 3600
@@ -114,7 +114,7 @@ class CircuitBreaker:
         self.recovery_timeout = recovery_timeout
         self.expected_exception = expected_exception
         self.failure_count = 0
-        self.last_failure_time: Optional[float] = None
+        self.last_failure_time: float | None = None
         self.state = "closed"  # closed, open, half-open
 
     def call(self, func: Callable[..., T], *args: Any, **kwargs: Any) -> T:
@@ -165,7 +165,7 @@ class CircuitBreaker:
                 },
             )
 
-    def get_state(self) -> Dict[str, Any]:
+    def get_state(self) -> dict[str, Any]:
         """Get current circuit breaker state."""
         return {
             "state": self.state,

@@ -3,7 +3,7 @@ Data models for PDF digitization with provenance tracking.
 """
 
 from datetime import datetime
-from typing import Literal, Optional
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
@@ -30,12 +30,12 @@ class ExtractionResult(BaseModel):
     extracted_data: str = Field(..., description="Extracted JSON content")
     provenance: ExtractionProvenance = Field(..., description="Extraction provenance metadata")
     success: bool = Field(default=True, description="Whether extraction succeeded")
-    error: Optional[str] = Field(default=None, description="Error message if failed")
+    error: str | None = Field(default=None, description="Error message if failed")
     pdf_source: str = Field(default="", description="Source PDF URL or path")
-    legislation_type: Optional[str] = Field(
+    legislation_type: str | None = Field(
         default=None, description="Legislation type (e.g., ukpga)"
     )
-    identifier: Optional[str] = Field(
+    identifier: str | None = Field(
         default=None, description="Legislation identifier (e.g., Edw7/6/19)"
     )
 
@@ -43,20 +43,20 @@ class ExtractionResult(BaseModel):
 class PDFMetadata(BaseModel):
     """PDF file metadata."""
 
-    file_size_bytes: Optional[int] = None
-    page_count: Optional[int] = None
-    pdf_url: Optional[str] = None
+    file_size_bytes: int | None = None
+    page_count: int | None = None
+    pdf_url: str | None = None
 
 
 class LegislationMetadata(BaseModel):
     """Minimal metadata from legislation.gov.uk XML and PDF."""
 
-    title: Optional[str] = None
-    year: Optional[str] = None
-    number: Optional[str] = None
-    enactment_date: Optional[str] = None
-    type: Optional[str] = None
-    pdf: Optional[PDFMetadata] = None
+    title: str | None = None
+    year: str | None = None
+    number: str | None = None
+    enactment_date: str | None = None
+    type: str | None = None
+    pdf: PDFMetadata | None = None
 
     def to_prompt_context(self) -> str:
         """Convert to prompt context string."""

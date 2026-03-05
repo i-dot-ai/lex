@@ -4,7 +4,7 @@ import logging
 import re
 import time
 from functools import wraps
-from typing import Any, Callable, Dict, Iterator, Optional, Protocol, Type, TypeVar
+from typing import Any, Callable, Iterator, Protocol, Type, TypeVar
 
 from lex.core.document import generate_documents
 from lex.core.models import LexModel
@@ -16,7 +16,7 @@ class ContentLoader(Protocol):
     """Protocol for content loaders/scrapers."""
 
     def load_content(
-        self, years: list[int], types: list[Any], limit: Optional[int] = None
+        self, years: list[int], types: list[Any], limit: int | None = None
     ) -> Iterator[tuple[str, Any]]:
         """Load content yielding (url, soup) tuples."""
         ...
@@ -128,7 +128,7 @@ class PipelineMonitor:
 
         return wrapper
 
-    def _extract_params_info(self, args: tuple[Any, ...], kwargs: dict[str, Any]) -> Dict[str, Any]:
+    def _extract_params_info(self, args: tuple[Any, ...], kwargs: dict[str, Any]) -> dict[str, Any]:
         """Extract relevant parameters for logging."""
         info = {}
 
@@ -147,7 +147,7 @@ class PipelineMonitor:
 
         return info
 
-    def _extract_doc_metadata(self, doc: T) -> Dict[str, Any]:
+    def _extract_doc_metadata(self, doc: T) -> dict[str, Any]:
         """Extract metadata from a document for logging."""
         metadata = {}
 
@@ -174,10 +174,10 @@ def process_documents(
     loader_or_scraper: ContentLoader,
     parser: ContentParser,
     document_type: Type[LexModel],
-    limit: Optional[int],
+    limit: int | None,
     wrap_result: bool = False,
-    doc_type_name: Optional[str] = None,
-    run_id: Optional[str] = None,
+    doc_type_name: str | None = None,
+    run_id: str | None = None,
     clear_tracking: bool = False,
 ) -> Iterator[LexModel]:
     """Process documents with URL tracking, relying on Qdrant UUID5 idempotency.

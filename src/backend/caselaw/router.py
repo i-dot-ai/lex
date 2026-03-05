@@ -1,5 +1,3 @@
-from typing import List
-
 import httpx
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import Response
@@ -42,7 +40,7 @@ async def search_caselaw_endpoint(search: CaselawSearch):
 
 @router.post(
     "/section/search",
-    response_model=List[CaselawSection],
+    response_model=list[CaselawSection],
     operation_id="search_for_caselaw_section",
     summary="Search within specific case sections",
     description="Find text within judgments, headnotes, or specific parts of court cases.",
@@ -54,7 +52,7 @@ async def search_caselaw_section_endpoint(search: CaselawSectionSearch):
 
 @router.post(
     "/reference/search",
-    response_model=List[Caselaw],
+    response_model=list[Caselaw],
     operation_id="search_for_caselaw_by_reference",
     summary="Find cases that cite specific cases or legislation",
     description="Search for cases that reference a particular case or Act. Filter by court, division, and date range.",
@@ -66,7 +64,7 @@ async def search_caselaw_reference_endpoint(search: CaselawReferenceSearch):
 
 @router.post(
     "/reference",
-    response_model=List[Caselaw],
+    response_model=list[Caselaw],
     operation_id="search_caselaw_by_reference",
     summary="Find cases that cite specific cases or legislation (MCP alias)",
     description="Search for cases that reference a particular case or Act. Alias for /reference/search.",

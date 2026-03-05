@@ -1,5 +1,5 @@
 import logging
-from typing import Iterator, Optional, Tuple
+from typing import Iterator
 
 from bs4 import BeautifulSoup
 
@@ -26,7 +26,7 @@ class AmendmentScraper:
         years: list[int],
         limit: int = 200,
         types: list = None,  # Not used for amendments, but required for pipeline compatibility
-        year_made_by: Optional[int] = None,
+        year_made_by: int | None = None,
         page: int = 1,
         results_count: int = 100,
     ) -> Iterator[tuple[str, Amendment]]:
@@ -72,7 +72,7 @@ class AmendmentScraper:
             if limit is not None and count >= limit:
                 break
 
-    def _get_year_number(self, text: str) -> Tuple[Optional[str], Optional[str]]:
+    def _get_year_number(self, text: str) -> tuple[str | None, str | None]:
         """Extract year and number from text."""
         try:
             return text.split("\xa0")[0], text.split("\xa0")[1]
@@ -82,7 +82,7 @@ class AmendmentScraper:
     def _get_url_legislation_changes(
         self,
         year_affected: int,
-        year_made_by: Optional[int] = None,
+        year_made_by: int | None = None,
         results_count: int = 100,
         page: int = 1,
     ) -> str:

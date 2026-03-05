@@ -1,5 +1,3 @@
-from typing import List
-
 from fastapi import APIRouter
 
 from backend.amendment.models import AmendmentSearch, AmendmentSectionSearch
@@ -16,7 +14,7 @@ router = APIRouter(
 
 @router.post(
     "/search",
-    response_model=List[Amendment],
+    response_model=list[Amendment],
     operation_id="search_amendments",
     summary="Search legislative amendments",
     description="Find amendments to Acts and SIs by content, title, or affected legislation.",
@@ -28,7 +26,7 @@ async def search_amendments_endpoint(search: AmendmentSearch):
 
 @router.post(
     "/section/search",
-    response_model=List[Amendment],
+    response_model=list[Amendment],
     operation_id="search_amendment_sections",
     summary="Search within amendment sections",
     description="Find text within specific sections of legislative amendments.",

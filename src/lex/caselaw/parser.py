@@ -1,7 +1,5 @@
 import logging
 import re
-from typing import Tuple
-
 from bs4 import BeautifulSoup, Tag
 
 from lex.caselaw.models import Caselaw, CaselawSection
@@ -13,7 +11,7 @@ logger = logging.getLogger(__name__)
 class CaselawAndCaselawSectionsParser:
     """Parser for caselaw content from the National Archives."""
 
-    def parse_content(self, soup: BeautifulSoup) -> Tuple[Caselaw, list[CaselawSection]]:
+    def parse_content(self, soup: BeautifulSoup) -> tuple[Caselaw, list[CaselawSection]]:
         """Parse the content of a BeautifulSoup object into a Caselaw and list of CaselawSection."""
         metadata = self._soup_to_caselaw(soup)
         sections = self._soup_to_sections(soup)

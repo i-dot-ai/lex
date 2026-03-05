@@ -8,8 +8,6 @@ with the same directory structure for efficient reprocessing.
 import asyncio
 import logging
 from pathlib import Path
-from typing import List, Optional, Tuple
-
 import aiohttp
 from tqdm import tqdm
 
@@ -85,7 +83,7 @@ class LegislationPDFDownloader:
         legislation_type: str,
         identifier: str,
         force: bool = False,
-    ) -> Tuple[bool, str, Optional[str]]:
+    ) -> tuple[bool, str, str | None]:
         """
         Download a single PDF file.
 
@@ -170,12 +168,12 @@ class LegislationPDFDownloader:
 
     async def download_batch(
         self,
-        pdf_urls: List[str],
-        legislation_types: List[str],
-        identifiers: List[str],
+        pdf_urls: list[str],
+        legislation_types: list[str],
+        identifiers: list[str],
         force: bool = False,
         show_progress: bool = True,
-    ) -> List[Tuple[bool, str, Optional[str]]]:
+    ) -> list[tuple[bool, str, str | None]]:
         """
         Download multiple PDFs concurrently.
 
@@ -197,7 +195,7 @@ class LegislationPDFDownloader:
 
         async def download_with_semaphore(
             session: aiohttp.ClientSession, url: str, leg_type: str, ident: str
-        ) -> Tuple[bool, str, Optional[str]]:
+        ) -> tuple[bool, str, str | None]:
             async with semaphore:
                 return await self.download_pdf(session, url, leg_type, ident, force)
 
@@ -232,8 +230,8 @@ async def download_from_csv(
     csv_path: str,
     cache_dir: str = "data/pdfs",
     max_concurrent: int = 5,
-    limit: Optional[int] = None,
-) -> List[Tuple[bool, str, Optional[str]]]:
+    limit: int | None = None,
+) -> list[tuple[bool, str, str | None]]:
     """
     Download PDFs from CSV file containing pdf_url, legislation_type, identifier.
 

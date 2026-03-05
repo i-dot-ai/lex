@@ -6,8 +6,6 @@ Reuses existing XML parsing infrastructure.
 
 import io
 import logging
-from typing import Optional
-
 from bs4 import BeautifulSoup
 from pypdf import PdfReader
 
@@ -17,7 +15,7 @@ from lex.processing.historical_pdf.models import LegislationMetadata, PDFMetadat
 logger = logging.getLogger(__name__)
 
 
-def fetch_pdf_metadata(pdf_url: str) -> Optional[PDFMetadata]:
+def fetch_pdf_metadata(pdf_url: str) -> PDFMetadata | None:
     """
     Fetch PDF file metadata (size, page count).
 
@@ -59,7 +57,7 @@ def fetch_pdf_metadata(pdf_url: str) -> Optional[PDFMetadata]:
         return None
 
 
-def fetch_xml_metadata(legislation_type: str, identifier: str) -> Optional[LegislationMetadata]:
+def fetch_xml_metadata(legislation_type: str, identifier: str) -> LegislationMetadata | None:
     """
     Fetch minimal XML metadata for PDF OCR prompt enrichment.
 

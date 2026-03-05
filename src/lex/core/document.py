@@ -1,7 +1,7 @@
 import logging
 import time
 import uuid
-from typing import Any, Dict, Iterable, Iterator, List, Type, TypeVar, Union
+from typing import Any, Iterable, Iterator, Type, TypeVar
 
 from pydantic import BaseModel
 from qdrant_client.models import PointStruct
@@ -29,8 +29,8 @@ def uri_to_uuid(uri: str) -> str:
 
 
 def documents_to_batches(
-    documents: Iterable[Dict[str, Any]], batch_size: int
-) -> Iterator[List[Dict[str, Any]]]:
+    documents: Iterable[dict[str, Any]], batch_size: int
+) -> Iterator[list[dict[str, Any]]]:
     """Yield batches of documents."""
     batch = []
     for doc in documents:
@@ -43,7 +43,7 @@ def documents_to_batches(
 
 
 def generate_documents(
-    source_documents: Iterable[Union[Dict[str, Any], BaseModel, Any]], target_model: Type[T]
+    source_documents: Iterable[dict[str, Any] | BaseModel | Any], target_model: Type[T]
 ) -> Iterator[T]:
     """Generate pydantic documents from source documents.
 
@@ -101,7 +101,7 @@ def upload_documents(
         embedding_fields = ["text"]
 
     # Keep as list to maintain Pydantic models (for method access)
-    documents_list: List[BaseModel] = list(documents)
+    documents_list: list[BaseModel] = list(documents)
     batch_generator = documents_to_batches(documents_list, batch_size)
     docs_uploaded = 0
     connection_errors = 0

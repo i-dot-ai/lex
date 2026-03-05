@@ -1,8 +1,6 @@
 import asyncio
 import logging
 from datetime import datetime, timedelta
-from typing import List
-
 import httpx
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import Response
@@ -65,7 +63,7 @@ router = APIRouter(
 
 @router.post(
     "/section/search",
-    response_model=List[LegislationSection],
+    response_model=list[LegislationSection],
     operation_id="search_for_legislation_sections",
     summary="Search within specific sections of legislation",
     description="Find text within sections of Acts, SIs, or other legislation types. Use for detailed content searches.",
@@ -108,7 +106,7 @@ async def lookup_legislation_endpoint(lookup: LegislationLookup):
 
 @router.post(
     "/section/lookup",
-    response_model=List[LegislationSection],
+    response_model=list[LegislationSection],
     operation_id="get_legislation_sections",
     summary="Get all sections for specific legislation",
     description="Retrieve the complete structure and content of all sections within a piece of legislation.",

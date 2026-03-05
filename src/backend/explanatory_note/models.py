@@ -1,5 +1,3 @@
-from typing import List, Optional
-
 from pydantic import BaseModel, Field
 
 from lex.explanatory_note.models import ExplanatoryNoteSectionType, ExplanatoryNoteType
@@ -12,15 +10,15 @@ class ExplanatoryNoteSearch(BaseModel):
         default="",
         description="The natural language query to search for explanatory notes. If empty, will return all notes matching the filters.",
     )
-    legislation_id: Optional[str] = Field(
+    legislation_id: str | None = Field(
         default=None,
         description="Filter by legislation ID to search within a specific piece of legislation. If not provided, all legislation will be included.",
     )
-    note_type: Optional[List[ExplanatoryNoteType]] = Field(
+    note_type: list[ExplanatoryNoteType] | None = Field(
         default=None,
         description="Filter by note type (overview, policy_background, legal_background, extent, provisions, commencement, related_documents).",
     )
-    section_type: Optional[List[ExplanatoryNoteSectionType]] = Field(
+    section_type: list[ExplanatoryNoteSectionType] | None = Field(
         default=None,
         description="Filter by section type (section, schedule, part).",
     )

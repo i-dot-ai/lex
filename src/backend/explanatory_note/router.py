@@ -1,5 +1,3 @@
-from typing import List
-
 from fastapi import APIRouter, HTTPException
 
 from backend.core.error_handling import handle_errors
@@ -24,7 +22,7 @@ router = APIRouter(
 
 @router.post(
     "/section/search",
-    response_model=List[ExplanatoryNote],
+    response_model=list[ExplanatoryNote],
     operation_id="search_explanatory_note",
     summary="Search explanatory notes by content",
     description="Find explanatory notes by text content across all legislation types.",
@@ -36,7 +34,7 @@ async def search_explanatory_note_endpoint(search: ExplanatoryNoteSearch):
 
 @router.post(
     "/legislation/lookup",
-    response_model=List[ExplanatoryNote],
+    response_model=list[ExplanatoryNote],
     operation_id="get_explanatory_note_by_legislation",
     summary="Get explanatory notes for specific legislation",
     description="Retrieve all explanatory notes associated with a particular Act or SI.",

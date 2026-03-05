@@ -4,7 +4,6 @@ import logging
 import os
 from collections import namedtuple
 from concurrent.futures import ProcessPoolExecutor, as_completed
-from typing import Tuple
 
 from dotenv import load_dotenv
 
@@ -98,7 +97,7 @@ collection_mapping = {
 
 def process_single_checkpoint(
     year: int, court_type: str, limit: int = None, batch_size: int = 50
-) -> Tuple[int, int]:
+) -> tuple[int, int]:
     """
     Process a single year/court combination for caselaw unified pipeline.
     This function is designed to be run in parallel workers.

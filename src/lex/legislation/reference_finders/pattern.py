@@ -1,7 +1,5 @@
 import re
 from dataclasses import dataclass
-from typing import List, Tuple, Union
-
 from lex.legislation.models import FreeTextReference
 
 from .base import ReferenceFinder
@@ -77,7 +75,7 @@ class EUReferencePatterns:
 class PatternReferenceFinder(ReferenceFinder):
     """Implementation of pattern based ReferenceFinder for parsing legislative references."""
 
-    def __init__(self, patterns: Union[UKReferencePatterns, EUReferencePatterns]):
+    def __init__(self, patterns: UKReferencePatterns | EUReferencePatterns):
         self.patterns = patterns
 
     def _clean_section_number(self, section: str) -> str:
@@ -96,7 +94,7 @@ class PatternReferenceFinder(ReferenceFinder):
             return section.split("(")[0]
         return section
 
-    def find_references(self, source_id: str, text: str) -> List[FreeTextReference]:
+    def find_references(self, source_id: str, text: str) -> list[FreeTextReference]:
         """Find all references in the given text."""
 
         assert source_id, "source_id must be provided"
@@ -239,7 +237,7 @@ class PatternReferenceFinder(ReferenceFinder):
 
         return act_name.strip()
 
-    def _extract_sections(self, text: str) -> List[Union[int, List[int], str]]:
+    def _extract_sections(self, text: str) -> list[int | list[int] | str]:
         """Extract all section numbers from the text."""
         sections = []
 
@@ -273,7 +271,7 @@ class PatternReferenceFinder(ReferenceFinder):
 
         return sections
 
-    def _extract_acts(self, source_id: str, text: str) -> List[FreeTextReference]:
+    def _extract_acts(self, source_id: str, text: str) -> list[FreeTextReference]:
         """Extract standalone act references."""
         references = []
         for match in re.finditer(self.patterns.ACT_ONLY, text, re.IGNORECASE):
@@ -290,7 +288,7 @@ class PatternReferenceFinder(ReferenceFinder):
                 )
         return references
 
-    def _extract_acts_with_sections(self, text: str) -> List[Tuple[str, Union[str, List[int]]]]:
+    def _extract_acts_with_sections(self, text: str) -> list[tuple[str, str | list[int]]]:
         """Extract combined act and section references."""
         # Use a set to track unique (act, section) pairs
         result_set = set()

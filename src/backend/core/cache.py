@@ -5,7 +5,7 @@ import json
 import logging
 from datetime import datetime, timedelta
 from functools import wraps
-from typing import Any, Dict, Optional
+from typing import Any
 
 import redis
 
@@ -17,7 +17,7 @@ class SmartCache:
 
     def __init__(self):
         self.redis_client = None
-        self.memory_cache: Dict[str, Dict[str, Any]] = {}
+        self.memory_cache: dict[str, dict[str, Any]] = {}
         self.use_redis = False
 
         # Try to connect to Redis
@@ -40,7 +40,7 @@ class SmartCache:
         else:
             logging.info("No Redis URL configured, using in-memory cache")
 
-    def get(self, key: str) -> Optional[Any]:
+    def get(self, key: str) -> Any | None:
         """Get value from cache."""
         if self.use_redis:
             try:
@@ -156,7 +156,7 @@ class SmartCache:
 
         return decorator
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get cache statistics."""
         if self.use_redis:
             try:

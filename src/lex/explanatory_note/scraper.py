@@ -1,6 +1,6 @@
 import logging
 import re
-from typing import Any, Dict, Iterator, List, Optional, Tuple
+from typing import Any, Iterator
 from urllib.parse import urljoin
 
 import requests
@@ -55,7 +55,7 @@ class NoteProcessor:
 
     def _extract_section_info(
         self, title: str
-    ) -> Tuple[Optional[ExplanatoryNoteSectionType], Optional[int]]:
+    ) -> tuple[ExplanatoryNoteSectionType | None, int | None]:
         """
         Extract section type and number from a title.
 
@@ -95,7 +95,7 @@ class NoteProcessor:
 
     def _notes_soup_to_initial_dict(
         self, soup: BeautifulSoup, starting_order: int = 0
-    ) -> Tuple[List[Dict[str, Any]], int]:
+    ) -> tuple[list[dict[str, Any]], int]:
         """
         Convert BeautifulSoup object to initial dictionary format.
 
@@ -149,7 +149,7 @@ class NoteProcessor:
         append_section()
         return sections, order
 
-    def _update_initial_dict(self, notes_initial_dict: Dict[str, Any]) -> Dict[str, Any]:
+    def _update_initial_dict(self, notes_initial_dict: dict[str, Any]) -> dict[str, Any]:
         """Update the initial dictionary with additional information."""
         notes_initial_dict["legislation_id"] = self.legislation_id
         notes_initial_dict["id"] = f"{self.legislation_id}_{notes_initial_dict['order'] + 1}"
@@ -177,7 +177,7 @@ class NoteProcessor:
 class OldNoteProcessor(NoteProcessor):
     """Processor for old style explanatory notes."""
 
-    def process_sections(self, soup: BeautifulSoup) -> List[ExplanatoryNote]:
+    def process_sections(self, soup: BeautifulSoup) -> list[ExplanatoryNote]:
         """Process sections from old style notes."""
         notes_page_link = self.base_url + soup.find("a", title="Open Explanatory Notes")["href"]
         notes_page = http_client.get(notes_page_link)
@@ -192,7 +192,7 @@ class OldNoteProcessor(NoteProcessor):
 class NewNoteProcessor(NoteProcessor):
     """Processor for new style explanatory notes."""
 
-    def _get_next_page_url(self, soup: BeautifulSoup, current_url: str) -> Optional[str]:
+    def _get_next_page_url(self, soup: BeautifulSoup, current_url: str) -> str | None:
         """Get the URL of the next page."""
         elements = soup.find_all("a", class_="userFunctionalElement nav")
         for element in elements:
@@ -202,7 +202,7 @@ class NewNoteProcessor(NoteProcessor):
 
     def _get_all_pages(
         self, contents_page_soup: BeautifulSoup, current_url: str
-    ) -> List[BeautifulSoup]:
+    ) -> list[BeautifulSoup]:
         """Get all pages of the notes."""
         pages = [contents_page_soup]
         next_page_url = self._get_next_page_url(contents_page_soup, current_url)
@@ -216,7 +216,7 @@ class NewNoteProcessor(NoteProcessor):
 
         return pages
 
-    def process_sections(self, soup: BeautifulSoup) -> List[ExplanatoryNote]:
+    def process_sections(self, soup: BeautifulSoup) -> list[ExplanatoryNote]:
         """Process sections from new style notes."""
         current_url = f"{self.legislation_id}/notes/division/1/index.htm"
         pages = self._get_all_pages(soup, current_url)
@@ -242,7 +242,7 @@ class ExplanatoryNoteScraperAndParser:
         self.base_url = base_url
 
     def scrape_and_parse_content(
-        self, years: list[int], types: list[LegislationType], limit: Optional[int] = None
+        self, years: list[int], types: list[LegislationType], limit: int | None = None
     ) -> Iterator[tuple[str, ExplanatoryNote]]:
         legislation_scraper = LegislationScraper()
 
@@ -254,7 +254,7 @@ class ExplanatoryNoteScraperAndParser:
             except Exception as e:
                 logger.error(f"Error scraping and parsing explanatory note: {e}", exc_info=True)
 
-    def _get_explanatory_note_contents_soup(self, legislation_id: str) -> Optional[BeautifulSoup]:
+    def _get_explanatory_note_contents_soup(self, legislation_id: str) -> BeautifulSoup | None:
         """Get the BeautifulSoup object for the explanatory notes contents page."""
 
         contents_page_uri = legislation_id + "/contents"
@@ -275,7 +275,7 @@ class ExplanatoryNoteScraperAndParser:
             logger.info(f"No explanatory note found for {legislation_id}")
             return None
 
-    def _is_old_explanatory_note_page(self, notes_contents_soup: BeautifulSoup) -> Optional[bool]:
+    def _is_old_explanatory_note_page(self, notes_contents_soup: BeautifulSoup) -> bool | None:
         """Determine if the page is an old style explanatory notes page."""
         try:
             if (
