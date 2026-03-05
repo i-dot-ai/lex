@@ -1,6 +1,6 @@
 from datetime import date, datetime
 from enum import Enum
-from typing import Dict, List, Literal, Optional
+from typing import Literal
 
 from pydantic import BaseModel, Field, computed_field, field_validator, model_validator
 
@@ -121,7 +121,7 @@ class LegislationType(str, Enum):
         return display_names.get(self, self.value.upper())
 
     @staticmethod
-    def filter_by_year(types: List["LegislationType"], year: int) -> List["LegislationType"]:
+    def filter_by_year(types: list["LegislationType"], year: int) -> list["LegislationType"]:
         """
         Filter legislation types by their historical active years.
 
@@ -142,11 +142,11 @@ class LegislationType(str, Enum):
         - Other modern types (1999+)
 
         Args:
-            types: List of legislation types to filter
+            types: list of legislation types to filter
             year: Year to filter by
 
         Returns:
-            List of legislation types valid for the given year
+            list of legislation types valid for the given year
         """
         type_year_ranges = {
             LegislationType.AEP: (1267, 1707),
@@ -237,7 +237,7 @@ class IdReference(BaseModel):
     source_id: str
     target_id: str
     type: str
-    context: Optional[str] = None
+    context: str | None = None
 
 
 class CommentaryCitation(BaseModel):
@@ -246,10 +246,10 @@ class CommentaryCitation(BaseModel):
     id: str
     uri: str
     type: str
-    context: Optional[str] = None
-    section_ref: Optional[str] = None
-    citation_ref: Optional[str] = None
-    citation_type: Optional[str] = None  # primary or sub_reference
+    context: str | None = None
+    section_ref: str | None = None
+    citation_ref: str | None = None
+    citation_type: str | None = None  # primary or sub_reference
 
 
 class FreeTextReference(BaseModel):
@@ -257,9 +257,9 @@ class FreeTextReference(BaseModel):
 
     source_id: str
     context: str
-    act: Optional[str] = None
-    section: Optional[str] = None
-    type: Optional[str] = None
+    act: str | None = None
+    section: str | None = None
+    type: str | None = None
 
     @property
     def target_label(self) -> str:
@@ -303,8 +303,8 @@ class LegislativeText(EmbeddableModel):
 
     id: str
     uri: str
-    references: List[FreeTextReference] = Field(default_factory=list)
-    commentary_refs: List[str] = Field(default_factory=list)
+    references: list[FreeTextReference] = Field(default_factory=list)
+    commentary_refs: list[str] = Field(default_factory=list)
 
     def add_reference(self, reference: FreeTextReference) -> None:
         """Add a reference to the legislative text."""
@@ -326,7 +326,7 @@ class Paragraph(LegislativeText):
 
     number: str
     legislation_id: str
-    paragraph_id: Optional[str] = None
+    paragraph_id: str | None = None
 
 
 class Provision(LegislativeText):
@@ -334,9 +334,9 @@ class Provision(LegislativeText):
 
     number: str
     title: str = Field(default_factory=str)
-    extent: List[GeographicalExtent] = Field(default_factory=list)
+    extent: list[GeographicalExtent] = Field(default_factory=list)
     legislation_id: str
-    paragraphs: List[Paragraph] = Field(default_factory=list)
+    paragraphs: list[Paragraph] = Field(default_factory=list)
 
     def add_paragraph(self, paragraph: Paragraph) -> None:
         """Add a paragraph to the section."""
@@ -355,7 +355,7 @@ class Provision(LegislativeText):
         )
 
     @property
-    def all_references(self) -> List[FreeTextReference]:
+    def all_references(self) -> list[FreeTextReference]:
         """Return all references in the section and its child paragraphs."""
         references = []
         for paragraph in self.paragraphs:
@@ -363,7 +363,7 @@ class Provision(LegislativeText):
         return self.references + references
 
     @property
-    def all_commentary_refs(self) -> List[str]:
+    def all_commentary_refs(self) -> list[str]:
         """Return all commentary_refs in the section and its child paragraphs."""
         commentary_refs = []
         for paragraph in self.paragraphs:
@@ -399,7 +399,7 @@ class Commentary(BaseModel):
 
     id: str
     type: str
-    citations: List[CommentaryCitation] = Field(default_factory=list)
+    citations: list[CommentaryCitation] = Field(default_factory=list)
     text: str
 
 
@@ -413,9 +413,9 @@ class Legislation(EmbeddableModel):
     description: str
     text: str = Field(default="", description="Combined text content of the legislation.")
     # Dates
-    enactment_date: Optional[date] = None
-    valid_date: Optional[date] = None
-    modified_date: Optional[date] = None
+    enactment_date: date | None = None
+    valid_date: date | None = None
+    modified_date: date | None = None
     # Metadata
     publisher: str
     category: LegislationCategory
@@ -423,14 +423,14 @@ class Legislation(EmbeddableModel):
     year: int
     number: int
     status: str
-    extent: List[GeographicalExtent] = Field(default_factory=list)
+    extent: list[GeographicalExtent] = Field(default_factory=list)
     number_of_provisions: int
     # Provenance tracking (for LLM-extracted PDF content)
-    provenance_source: Optional[Literal["xml", "llm_ocr"]] = None
-    provenance_model: Optional[str] = None
-    provenance_prompt_version: Optional[str] = None
-    provenance_timestamp: Optional[datetime] = None
-    provenance_response_id: Optional[str] = None
+    provenance_source: Literal["xml", "llm_ocr"] | None = None
+    provenance_model: str | None = None
+    provenance_prompt_version: str | None = None
+    provenance_timestamp: datetime | None = None
+    provenance_response_id: str | None = None
 
     def get_embedding_text(self) -> str:
         """Return text for embedding generation with title and description context."""
@@ -439,11 +439,11 @@ class Legislation(EmbeddableModel):
 
 class LegislationWithContent(Legislation):
     # Content
-    sections: List[Section] = Field(default_factory=list)
-    schedules: List[Schedule] = Field(default_factory=list)
-    commentaries: Dict[str, Commentary] = Field(default_factory=list)
+    sections: list[Section] = Field(default_factory=list)
+    schedules: list[Schedule] = Field(default_factory=list)
+    commentaries: dict[str, Commentary] = Field(default_factory=dict)
 
-    def all_references(self) -> List[FreeTextReference]:
+    def all_references(self) -> list[FreeTextReference]:
         """Return all references in the legislation including child elements."""
         references = []
         for section in self.sections:
@@ -452,7 +452,7 @@ class LegislationWithContent(Legislation):
             references.extend(schedule.all_references)
         return references
 
-    def all_commentary_refs(self) -> List[str]:
+    def all_commentary_refs(self) -> list[str]:
         """Return all citations in the legislation including child elements."""
         commentary_refs = []
         for section in self.sections:
@@ -486,14 +486,14 @@ class LegislationSection(EmbeddableModel):
     legislation_id: str = Field(description="The ID of the legislation.")
     title: str = Field(default_factory=str, description="The title of the section.")
     text: str = Field(default="", description="The text of the section.")
-    extent: List[GeographicalExtent] = Field(default_factory=list)
+    extent: list[GeographicalExtent] = Field(default_factory=list)
     provision_type: ProvisionType = ProvisionType.SECTION
     # Provenance tracking (for LLM-extracted PDF content)
-    provenance_source: Optional[Literal["xml", "llm_ocr"]] = None
-    provenance_model: Optional[str] = None
-    provenance_prompt_version: Optional[str] = None
-    provenance_timestamp: Optional[datetime] = None
-    provenance_response_id: Optional[str] = None
+    provenance_source: Literal["xml", "llm_ocr"] | None = None
+    provenance_model: str | None = None
+    provenance_prompt_version: str | None = None
+    provenance_timestamp: datetime | None = None
+    provenance_response_id: str | None = None
 
     def get_embedding_text(self) -> str:
         """Return text for embedding generation with title context."""
@@ -509,7 +509,7 @@ class LegislationSection(EmbeddableModel):
 
     @computed_field
     @property
-    def legislation_type(self) -> LegislationType:
+    def legislation_type(self) -> LegislationType | None:
         """Return the type of the legislation."""
         try:
             return LegislationType(self.legislation_id.split("/")[4])
@@ -518,7 +518,7 @@ class LegislationSection(EmbeddableModel):
 
     @computed_field
     @property
-    def legislation_year(self) -> int:
+    def legislation_year(self) -> int | None:
         """Return the year of the legislation."""
         try:
             return int(self.legislation_id.split("/")[5])
@@ -527,7 +527,7 @@ class LegislationSection(EmbeddableModel):
 
     @computed_field
     @property
-    def legislation_number(self) -> int:
+    def legislation_number(self) -> int | None:
         """Return the number of the legislation."""
         try:
             return int(self.legislation_id.split("/")[6])
