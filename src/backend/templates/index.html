@@ -13,10 +13,6 @@
     <!-- Import Inter font -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     
-    <!-- Favicon -->
-    <link rel="icon" href="/i-dot-ai-logo.svg" type="image/svg+xml">
-    <link rel="apple-touch-icon" href="/i-dot-ai-logo.svg">
-    
     <!-- PostHog Analytics (anonymous, cookieless, EU region, GDPR compliant) -->
     {% if posthog_key %}
     <script>
@@ -355,13 +351,6 @@
             padding-left: 30px;
         }
         
-        .govuk-header__iai-logo img {
-            height: 40px;
-            width: auto;
-            margin: 15px 0;
-            display: block;
-        }
-
         .govuk-header__lab-tag {
             background: var(--iai-pink);
             color: #ffffff;
@@ -448,11 +437,6 @@
                 margin-left: 20px;
             }
             
-            .govuk-header__iai-logo img {
-                height: 45px;
-                margin: 20px 0;
-            }
-
             .govuk-header__lab-tag {
                 font-size: 16px;
             }
@@ -1347,9 +1331,6 @@
                     </div>
                 </div>
                 <div class="govuk-header__iai-logo">
-                    <a href="https://ai.gov.uk" aria-label="Incubator for AI" target="_blank" rel="noopener noreferrer">
-                        <img src="https://ai.gov.uk/logos/i-dot-ai-reverse.svg" alt="i.AI - Incubator for Artificial Intelligence" />
-                    </a>
                     <span class="govuk-header__lab-tag">LAB</span>
                     <button class="dark-mode-toggle" onclick="toggleDarkMode()" aria-label="Toggle dark mode">
                         <span id="dark-mode-icon">Dark</span>
