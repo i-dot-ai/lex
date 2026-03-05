@@ -4,9 +4,7 @@ import logging
 import os
 import xml.etree.ElementTree as ET
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import datetime
-from typing import Optional
-
+from datetime import datetime, timezone
 from openai import AzureOpenAI
 from requests.exceptions import HTTPError
 
@@ -16,8 +14,8 @@ from lex.core.http import HttpClient
 logger = logging.getLogger(__name__)
 
 # Initialize clients
-_http_client: Optional[HttpClient] = None
-_openai_client: Optional[AzureOpenAI] = None
+_http_client: HttpClient | None = None
+_openai_client: AzureOpenAI | None = None
 
 
 def get_http_client() -> HttpClient:
@@ -43,7 +41,7 @@ def get_http_client() -> HttpClient:
             timeout=30,
             retry_exceptions=retry_exceptions,
         )
-        logger.info("HTTP client initialized for amendment explanation generation")
+        logger.info("HTTP client initialised for amendment explanation generation")
     return _http_client
 
 
@@ -56,11 +54,11 @@ def get_openai_client() -> AzureOpenAI:
             api_version="2025-03-01-preview",  # GPT-5 Responses API
             azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
         )
-        logger.info("Azure OpenAI client initialized for amendment explanation generation")
+        logger.info("Azure OpenAI client initialised for amendment explanation generation")
     return _openai_client
 
 
-def fetch_provision_text(provision_url: str) -> Optional[str]:
+def fetch_provision_text(provision_url: str) -> str | None:
     """
     Fetch provision text from legislation.gov.uk XML.
 
@@ -172,7 +170,7 @@ Write densely and efficiently. Favor clarity over length. Keep each part to 1-2 
         )
 
         explanation = response.output_text.strip()
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(timezone.utc)
 
         logger.info(f"Successfully generated explanation for amendment {amendment.id}")
 
@@ -182,7 +180,7 @@ Write densely and efficiently. Favor clarity over length. Keep each part to 1-2 
         logger.error(f"Failed to generate explanation for amendment {amendment.id}: {e}")
         # Return error message as explanation
         error_msg = f"Error generating explanation: {str(e)[:200]}"
-        return error_msg, model, datetime.utcnow()
+        return error_msg, model, datetime.now(timezone.utc)
 
 
 def add_explanations_to_amendments(

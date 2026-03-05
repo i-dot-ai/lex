@@ -10,9 +10,7 @@ Supports automatic PDF chunking for large documents.
 import asyncio
 import logging
 import os
-from datetime import datetime, timedelta
-from typing import List, Optional, Tuple, Union
-
+from datetime import datetime, timedelta, timezone
 import aiohttp
 from azure.storage.blob import BlobSasPermissions, BlobServiceClient, generate_blob_sas
 from tqdm import tqdm
@@ -40,8 +38,8 @@ class LegislationBlobUploader:
 
     def __init__(
         self,
-        connection_string: Optional[str] = None,
-        container_name: Optional[str] = None,
+        connection_string: str | None = None,
+        container_name: str | None = None,
         max_concurrent: int = 10,
         timeout_seconds: int = 900,  # 15 minutes for large PDFs
         sas_expiry_hours: int = 720,  # 30 days
@@ -75,7 +73,7 @@ class LegislationBlobUploader:
         self.account_name = self.blob_service_client.account_name
         self.account_key = self._extract_account_key(self.connection_string)
 
-        logger.info(f"Azure Blob uploader initialized: {self.account_name}/{self.container_name}")
+        logger.info(f"Azure Blob uploader initialised: {self.account_name}/{self.container_name}")
 
     def _extract_account_key(self, connection_string: str) -> str:
         """Extract account key from connection string."""
@@ -85,7 +83,7 @@ class LegislationBlobUploader:
         raise ValueError("AccountKey not found in connection string")
 
     def get_blob_name(
-        self, legislation_type: str, identifier: str, chunk_num: Optional[int] = None
+        self, legislation_type: str, identifier: str, chunk_num: int | None = None
     ) -> str:
         """
         Get blob name for a PDF, preserving legislation.gov.uk structure.
@@ -130,7 +128,7 @@ class LegislationBlobUploader:
             blob_name=blob_name,
             account_key=self.account_key,
             permission=BlobSasPermissions(read=True),
-            expiry=datetime.utcnow() + timedelta(hours=self.sas_expiry_hours),
+            expiry=datetime.now(timezone.utc) + timedelta(hours=self.sas_expiry_hours),
         )
 
         sas_url = f"https://{self.account_name}.blob.core.windows.net/{self.container_name}/{blob_name}?{sas_token}"
@@ -138,7 +136,7 @@ class LegislationBlobUploader:
 
     async def process_pdf(
         self, session: aiohttp.ClientSession, pdf_url: str, legislation_type: str, identifier: str
-    ) -> Tuple[bool, str, Optional[str], Optional[str]]:
+    ) -> tuple[bool, str, str | None, str | None]:
         """
         Download PDF and upload to Azure Blob Storage (or reuse existing).
 
@@ -202,10 +200,10 @@ class LegislationBlobUploader:
         identifier: str,
         page_count: int,
         chunk_size_pages: int = 40,
-    ) -> Union[
-        Tuple[bool, str, Optional[str], Optional[str]],
-        List[Tuple[bool, str, Optional[str], Optional[str], int, int]],
-    ]:
+    ) -> (
+        tuple[bool, str, str | None, str | None]
+        | list[tuple[bool, str, str | None, str | None, int, int]]
+    ):
         """
         Download PDF and upload to Azure Blob Storage with automatic chunking for large PDFs.
 
@@ -290,11 +288,11 @@ class LegislationBlobUploader:
 
     async def process_batch(
         self,
-        pdf_urls: List[str],
-        legislation_types: List[str],
-        identifiers: List[str],
+        pdf_urls: list[str],
+        legislation_types: list[str],
+        identifiers: list[str],
         show_progress: bool = True,
-    ) -> List[Tuple[bool, str, Optional[str], Optional[str]]]:
+    ) -> list[tuple[bool, str, str | None, str | None]]:
         """
         Process multiple PDFs concurrently: download + upload + generate SAS URLs.
 
@@ -314,7 +312,7 @@ class LegislationBlobUploader:
 
         async def process_with_semaphore(
             session: aiohttp.ClientSession, url: str, leg_type: str, ident: str
-        ) -> Tuple[bool, str, Optional[str], Optional[str]]:
+        ) -> tuple[bool, str, str | None, str | None]:
             async with semaphore:
                 return await self.process_pdf(session, url, leg_type, ident)
 

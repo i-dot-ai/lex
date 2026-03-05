@@ -5,10 +5,8 @@ import logging
 import os
 import uuid
 from dataclasses import asdict, dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, Optional, Set
-
 logger = logging.getLogger(__name__)
 
 # Configurable via environment variable, defaults to data/tracking in project root
@@ -22,8 +20,8 @@ class SuccessRecord:
     run_id: str
     doc_type: str
     year: int
-    type_value: Optional[str]
-    doc_date: Optional[str]
+    type_value: str | None
+    doc_date: str | None
     timestamp: str
 
 
@@ -34,7 +32,7 @@ class FailureRecord:
     run_id: str
     doc_type: str
     year: int
-    type_value: Optional[str]
+    type_value: str | None
     timestamp: str
 
 
@@ -45,8 +43,8 @@ class URLTracker:
         self,
         doc_type: str,
         year: int,
-        type_value: Optional[str] = None,
-        run_id: Optional[str] = None,
+        type_value: str | None = None,
+        run_id: str | None = None,
     ):
         self.doc_type = doc_type
         self.year = year
@@ -64,14 +62,14 @@ class URLTracker:
         self._processed_urls = self._load_processed_urls()
 
         logger.info(
-            f"URLTracker initialized: run_id={self.run_id}, {len(self._processed_urls)} URLs already processed"
+            f"URLTracker initialised: run_id={self.run_id}, {len(self._processed_urls)} URLs already processed"
         )
 
     def is_processed(self, url: str) -> bool:
         """Check if URL has already been successfully processed."""
         return url in self._processed_urls
 
-    def record_success(self, url: str, doc_uuid: str, doc_date: Optional[str] = None) -> None:
+    def record_success(self, url: str, doc_uuid: str, doc_date: str | None = None) -> None:
         """Record successful processing.
 
         Args:
@@ -87,7 +85,7 @@ class URLTracker:
             year=self.year,
             type_value=self.type_value,
             doc_date=doc_date,
-            timestamp=datetime.utcnow().isoformat(),
+            timestamp=datetime.now(timezone.utc).isoformat(),
         )
 
         with open(self.success_file, "a") as f:
@@ -105,7 +103,7 @@ class URLTracker:
             doc_type=self.doc_type,
             year=self.year,
             type_value=self.type_value,
-            timestamp=datetime.utcnow().isoformat(),
+            timestamp=datetime.now(timezone.utc).isoformat(),
         )
 
         with open(self.failure_file, "a") as f:
@@ -113,7 +111,7 @@ class URLTracker:
 
         logger.debug(f"Recorded failure: {url} - {error[:100]}")
 
-    def _load_processed_urls(self) -> Set[str]:
+    def _load_processed_urls(self) -> set[str]:
         """Load all successfully processed URLs into memory."""
         processed = set()
 
@@ -126,7 +124,7 @@ class URLTracker:
 
         return processed
 
-    def get_stats(self) -> Dict[str, int]:
+    def get_stats(self) -> dict[str, int]:
         """Get success/failure counts."""
         success_count = len(self._processed_urls)
 

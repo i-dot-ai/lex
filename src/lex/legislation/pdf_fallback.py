@@ -8,9 +8,7 @@ import asyncio
 import json
 import logging
 import re
-from datetime import date, datetime
-from typing import Optional
-
+from datetime import date, datetime, timezone
 import httpx
 from bs4 import BeautifulSoup
 
@@ -27,7 +25,7 @@ logger = logging.getLogger(__name__)
 MIN_VALID_TEXT_LENGTH = 100
 
 
-def _extract_legislation_id_from_url(url: str) -> Optional[str]:
+def _extract_legislation_id_from_url(url: str) -> str | None:
     """
     Extract legislation ID from a legislation.gov.uk URL.
 
@@ -66,7 +64,7 @@ def _extract_type_year_number(legislation_id: str) -> tuple[str, int, int]:
 async def get_pdf_url_from_resources(
     legislation_id: str,
     timeout: float = 30.0,
-) -> Optional[str]:
+) -> str | None:
     """
     Get the PDF URL for a piece of legislation by checking the resources page.
 
@@ -203,7 +201,7 @@ def _parse_extraction_result_to_legislation(
         provenance_source=pdf_url,
         provenance_model="gpt-5-mini",
         provenance_prompt_version="pdf-extraction-1.0",
-        provenance_timestamp=datetime.utcnow(),
+        provenance_timestamp=datetime.now(timezone.utc),
         provenance_response_id="",
     )
 
@@ -242,7 +240,7 @@ def _parse_extraction_result_to_legislation(
 
 async def process_pdf_legislation(
     legislation_id: str,
-    pdf_url: Optional[str] = None,
+    pdf_url: str | None = None,
 ) -> tuple[Legislation, list[LegislationSection]] | None:
     """
     Process a PDF-only legislation item and return structured data.
@@ -322,7 +320,7 @@ def is_xml_content_valid(text: str | None) -> bool:
 # Sync wrappers for use in non-async contexts
 
 
-def get_pdf_url_sync(legislation_id: str) -> Optional[str]:
+def get_pdf_url_sync(legislation_id: str) -> str | None:
     """Synchronous wrapper for get_pdf_url_from_resources."""
     return asyncio.run(get_pdf_url_from_resources(legislation_id))
 
@@ -334,7 +332,7 @@ def check_pdf_available_sync(legislation_id: str) -> bool:
 
 def process_pdf_legislation_sync(
     legislation_id: str,
-    pdf_url: Optional[str] = None,
+    pdf_url: str | None = None,
 ) -> tuple[Legislation, list[LegislationSection]] | None:
     """Synchronous wrapper for process_pdf_legislation."""
     return asyncio.run(process_pdf_legislation(legislation_id, pdf_url))

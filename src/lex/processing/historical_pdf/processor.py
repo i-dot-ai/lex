@@ -9,9 +9,7 @@ import asyncio
 import logging
 import os
 import time
-from datetime import datetime
-from typing import Dict, List, Optional, Tuple
-
+from datetime import datetime, timezone
 from langfuse import Langfuse, observe
 from openai import AsyncAzureOpenAI, RateLimitError
 from tenacity import (
@@ -57,12 +55,12 @@ class LegislationPDFProcessor:
 
     def __init__(
         self,
-        azure_endpoint: Optional[str] = None,
-        api_key: Optional[str] = None,
+        azure_endpoint: str | None = None,
+        api_key: str | None = None,
         model: str = "gpt-5-mini",
-        langfuse_public_key: Optional[str] = None,
-        langfuse_secret_key: Optional[str] = None,
-        langfuse_host: Optional[str] = None,
+        langfuse_public_key: str | None = None,
+        langfuse_secret_key: str | None = None,
+        langfuse_host: str | None = None,
     ):
         """
         Initialize PDF processor with Azure OpenAI and Langfuse.
@@ -175,8 +173,8 @@ Handle document quality issues:
         before_sleep=before_sleep_log(logger, logging.WARNING),
     )
     async def _make_responses_request(
-        self, pdf_url: str, prompt: Optional[str] = None, previous_response_id: Optional[str] = None
-    ) -> Dict:
+        self, pdf_url: str, prompt: str | None = None, previous_response_id: str | None = None
+    ) -> dict:
         """
         Make a request to Azure OpenAI Responses API with retry logic.
 
@@ -250,10 +248,10 @@ Handle document quality issues:
     async def process_pdf(
         self,
         pdf_url: str,
-        legislation_type: Optional[str] = None,
-        identifier: Optional[str] = None,
-        metadata: Optional[LegislationMetadata] = None,
-        trace_name: Optional[str] = None,
+        legislation_type: str | None = None,
+        identifier: str | None = None,
+        metadata: LegislationMetadata | None = None,
+        trace_name: str | None = None,
         max_pages_single_shot: int = 45,
     ) -> ExtractionResult:
         """
@@ -330,7 +328,7 @@ Handle document quality issues:
                 provenance=ExtractionProvenance(
                     model=self.model,
                     prompt_version=PROMPT_VERSION,
-                    timestamp=datetime.utcnow(),
+                    timestamp=datetime.now(timezone.utc),
                     processing_time_seconds=processing_time,
                     input_tokens=response["usage"]["input_tokens"],
                     output_tokens=response["usage"]["output_tokens"],
@@ -380,7 +378,7 @@ Handle document quality issues:
                 provenance=ExtractionProvenance(
                     model=self.model,
                     prompt_version=PROMPT_VERSION,
-                    timestamp=datetime.utcnow(),
+                    timestamp=datetime.now(timezone.utc),
                     processing_time_seconds=processing_time,
                     input_tokens=0,
                     output_tokens=0,
@@ -396,12 +394,12 @@ Handle document quality issues:
 
     async def process_pdf_batch(
         self,
-        pdf_urls: List[str],
-        legislation_types: Optional[List[str]] = None,
-        identifiers: Optional[List[str]] = None,
+        pdf_urls: list[str],
+        legislation_types: list[str] | None = None,
+        identifiers: list[str] | None = None,
         max_concurrent: int = 10,
-        progress_callback: Optional[callable] = None,
-    ) -> List[ExtractionResult]:
+        progress_callback: callable | None = None,
+    ) -> list[ExtractionResult]:
         """
         Process multiple PDFs concurrently.
 
@@ -454,10 +452,10 @@ Handle document quality issues:
 
     async def process_large_pdf_chunked(
         self,
-        chunk_urls: List[Tuple[str, int, int]],
-        legislation_type: Optional[str] = None,
-        identifier: Optional[str] = None,
-        metadata: Optional[LegislationMetadata] = None,
+        chunk_urls: list[tuple[str, int, int]],
+        legislation_type: str | None = None,
+        identifier: str | None = None,
+        metadata: LegislationMetadata | None = None,
     ) -> ExtractionResult:
         """
         Process large PDF using pre-split chunks from blob storage.
@@ -569,10 +567,10 @@ Handle document quality issues:
 
     def _merge_chunk_results(
         self,
-        chunks: List[Dict],
+        chunks: list[dict],
         pdf_url: str,
-        legislation_type: Optional[str],
-        identifier: Optional[str],
+        legislation_type: str | None,
+        identifier: str | None,
         page_count: int,
         total_time: float,
     ) -> ExtractionResult:
@@ -653,7 +651,7 @@ Handle document quality issues:
         provenance = ExtractionProvenance(
             model=self.model,
             prompt_version=f"{PROMPT_VERSION}_chunked_{len(chunks)}",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             processing_time_seconds=total_time,
             input_tokens=total_input_tokens,
             output_tokens=total_output_tokens,
@@ -706,7 +704,7 @@ Handle document quality issues:
 
 # Convenience async functions for single-use
 async def process_single_pdf_url(
-    pdf_url: str, legislation_type: Optional[str] = None, identifier: Optional[str] = None
+    pdf_url: str, legislation_type: str | None = None, identifier: str | None = None
 ) -> ExtractionResult:
     """
     Process a single PDF from URL (convenience function).
@@ -727,11 +725,11 @@ async def process_single_pdf_url(
 
 
 async def process_pdf_batch_from_urls(
-    pdf_urls: List[str],
-    legislation_types: Optional[List[str]] = None,
-    identifiers: Optional[List[str]] = None,
+    pdf_urls: list[str],
+    legislation_types: list[str] | None = None,
+    identifiers: list[str] | None = None,
     max_concurrent: int = 10,
-) -> List[ExtractionResult]:
+) -> list[ExtractionResult]:
     """
     Process multiple PDFs from URLs (convenience function).
 
