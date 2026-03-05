@@ -8,8 +8,6 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from backend.amendment.router import router as amendment_router
-
-# from backend.caselaw.router import router as caselaw_router  # disabled
 from backend.core.middleware import monitoring_and_rate_limit_middleware
 from backend.core.telemetry import instrument_fastapi_app
 from backend.explanatory_note.router import router as explanatory_note_router
@@ -47,7 +45,6 @@ def create_base_app():
     # Include routers
     base_app.include_router(template_router)  # Include template router first for root path
     base_app.include_router(legislation_router)
-    # base_app.include_router(caselaw_router)  # disabled
     base_app.include_router(explanatory_note_router)
     base_app.include_router(amendment_router)
     base_app.include_router(stats_router)

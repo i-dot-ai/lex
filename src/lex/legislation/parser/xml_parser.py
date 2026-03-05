@@ -1,8 +1,6 @@
 import logging
 from abc import ABC, abstractmethod
 from datetime import date, datetime
-from typing import Dict, List, Optional, Tuple
-
 from bs4 import BeautifulSoup, Tag
 from pydantic import ValidationError
 
@@ -53,11 +51,11 @@ class XMLParser(ABC):
     @abstractmethod
     def parse_content(
         self, xml_soup: BeautifulSoup
-    ) -> Tuple[Dict[str, Section], Dict[str, Schedule], Dict[str, Commentary]]:
+    ) -> tuple[dict[str, Section], dict[str, Schedule], dict[str, Commentary]]:
         """Parse XML content into sections."""
         pass
 
-    def _extract_text(self, element: Optional[Tag]) -> str:
+    def _extract_text(self, element: Tag | None) -> str:
         """Extract text from an element, handling None cases and cleaning text."""
         if element is None:
             return ""
@@ -81,7 +79,7 @@ class XMLParser(ABC):
 
         return content_str
 
-    def _extract_date(self, element: Tag) -> Optional[date]:
+    def _extract_date(self, element: Tag) -> date | None:
         """Extract date from XML element."""
         text = self._extract_text(element)
 
@@ -97,10 +95,10 @@ class XMLParser(ABC):
         return element.get("Value", "")
 
     def _clean_text(self, text: str) -> str:
-        """Clean and normalize text content."""
+        """Clean and normalise text content."""
         if not text:
             return ""
-        # Remove extra whitespace and normalize spaces
+        # Remove extra whitespace and normalise spaces
         text = " ".join(text.split())
         # Remove common XML artifacts
         text = text.replace("&amp;", "&")
@@ -138,7 +136,7 @@ class XMLParser(ABC):
         else:
             return ", ".join([mapping[extent] for extent in extent.split("+")])
 
-    def map_extent(self, extent: str) -> List[GeographicalExtent]:
+    def map_extent(self, extent: str) -> list[GeographicalExtent]:
         """Convert the extent content field to a unoform string.
 
         Args:
@@ -233,7 +231,7 @@ class EUXMLParser(XMLParser):
 
     def parse_content(
         self, xml_soup: BeautifulSoup
-    ) -> Tuple[Dict[str, Section], Dict[str, Schedule], Dict[str, Commentary]]:
+    ) -> tuple[dict[str, Section], dict[str, Schedule], dict[str, Commentary]]:
         sections = {}
         schedules = {}
         commentaries = {}
@@ -438,7 +436,7 @@ class EUXMLParser(XMLParser):
 
         return commentary
 
-    def _parse_commentary_refs(self, element: Tag) -> List[str]:
+    def _parse_commentary_refs(self, element: Tag) -> list[str]:
         """Extract citations from the element."""
 
         commentary_refs = []
@@ -457,7 +455,7 @@ class UKXMLParser(XMLParser):
 
     def parse_content(
         self, xml_soup: BeautifulSoup
-    ) -> Tuple[Dict[str, Section], Dict[str, Schedule], Dict[str, Commentary]]:
+    ) -> tuple[dict[str, Section], dict[str, Schedule], dict[str, Commentary]]:
         sections = {}
         schedules = {}
         commentaries = {}
@@ -563,7 +561,7 @@ class UKXMLParser(XMLParser):
 
         return section
 
-    def _parse_nested_commentaries(self, element: Tag, paragraph: Paragraph) -> List[Commentary]:
+    def _parse_nested_commentaries(self, element: Tag, paragraph: Paragraph) -> list[Commentary]:
         """Find nested P3 paragraphs and extract their commentary."""
 
         nested_p3_paragraphs = element.find_all("P3", recursive=True, attrs={"IdURI": True})
@@ -696,7 +694,7 @@ class UKXMLParser(XMLParser):
 
         return commentary
 
-    def _parse_commentary_refs(self, element: Tag) -> List[str]:
+    def _parse_commentary_refs(self, element: Tag) -> list[str]:
         """Extract citations from the element."""
 
         commentary_refs = []

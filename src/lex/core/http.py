@@ -1,7 +1,7 @@
 import logging
-import os
 import time
-from typing import Any, Dict, Optional, Union
+from pathlib import Path
+from typing import Any
 
 import requests
 from diskcache import FanoutCache
@@ -27,11 +27,11 @@ class HttpClient:
         max_retries: int = 30,
         initial_delay: float = 1.0,
         max_delay: float = 600.0,
-        timeout: Optional[Union[float, tuple[float, float]]] = 30,
-        session: Optional[requests.Session] = None,
-        retry_exceptions: Optional[tuple[type[Exception], ...]] = None,
+        timeout: float | tuple[float, float] | None = 30,
+        session: requests.Session | None = None,
+        retry_exceptions: tuple[type[Exception], ...] | None = None,
         enable_cache: bool = True,
-        cache_dir: Optional[str] = None,
+        cache_dir: str | None = None,
         cache_size_limit: int = 1_000_000_000,  # 1GB default
         cache_ttl: int = 28800,  # 8 hours in seconds
     ):
@@ -84,14 +84,16 @@ class HttpClient:
         if self.enable_cache:
             if cache_dir is None:
                 # Check if running in container with mounted volume
-                if os.path.exists("/app/data"):
-                    cache_dir = "/app/data/cache/http"
+                app_data = Path("/app/data")
+                if app_data.exists():
+                    cache_path = app_data / "cache" / "http"
                 else:
                     # Local development - use project data directory
-                    cache_dir = os.path.join(os.getcwd(), "data", "cache", "http")
+                    cache_path = Path.cwd() / "data" / "cache" / "http"
+                cache_dir = str(cache_path)
 
             # Ensure cache directory exists
-            os.makedirs(cache_dir, exist_ok=True)
+            Path(cache_dir).mkdir(parents=True, exist_ok=True)
 
             # Use FanoutCache for better concurrency (shards across multiple SQLite files)
             # timeout=60 prevents immediate failures on lock contention
@@ -101,7 +103,7 @@ class HttpClient:
                 timeout=60,  # Wait up to 60s for locks instead of failing immediately
                 shards=8,  # Distribute across 8 SQLite files for better concurrency
             )
-            logger.debug(f"FanoutCache initialized at {cache_dir} with 8 shards")
+            logger.debug(f"FanoutCache initialised at {cache_dir} with 8 shards")
 
         # Initialize rate limiter and circuit breaker
         self.rate_limiter = AdaptiveRateLimiter()
@@ -116,7 +118,7 @@ class HttpClient:
         # Check for rate limiting (429 standard, 436 used by legislation.gov.uk)
         if response.status_code in [429, 436]:
             retry_after_header = response.headers.get("Retry-After")
-            retry_after: Optional[int] = None
+            retry_after: int | None = None
             if retry_after_header:
                 try:
                     retry_after = int(retry_after_header)
@@ -209,7 +211,7 @@ class HttpClient:
 
         # Check cache
         try:
-            cached_response: Optional[requests.Response] = self._cache.get(cache_key)
+            cached_response: requests.Response | None = self._cache.get(cache_key)
             if cached_response is not None:
                 logger.debug(f"Cache hit for {url}")
                 return cached_response
@@ -277,7 +279,7 @@ class HttpClient:
                 logger.error(f"Failed to remove cache directory: {e}")
 
             # Recreate cache
-            os.makedirs(cache_dir, exist_ok=True)
+            Path(cache_dir).mkdir(parents=True, exist_ok=True)
             self._cache = FanoutCache(
                 directory=cache_dir,
                 size_limit=self.cache_size_limit,
@@ -286,7 +288,7 @@ class HttpClient:
             )
             logger.info("FanoutCache recreated successfully")
 
-    def get_cache_info(self) -> Dict[str, Any]:
+    def get_cache_info(self) -> dict[str, Any]:
         """
         Get information about the current cache state.
 

@@ -104,7 +104,7 @@ class CourtDivision(str, Enum):
     GRC = "grc"
     TC = "tc"
 
-    # Family Court divions
+    # Family Court divisions
     B = "b"
 
     # Tier 2 divisions

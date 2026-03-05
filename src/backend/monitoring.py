@@ -17,7 +17,7 @@ import logging
 import os
 import time
 from contextvars import ContextVar
-from typing import Any, Dict, Optional, Protocol, runtime_checkable
+from typing import Any, Protocol, runtime_checkable
 
 from fastapi import Request
 from opentelemetry import context, metrics, trace
@@ -29,8 +29,8 @@ from opentelemetry.propagate import propagator
 from opentelemetry.trace import Status, StatusCode
 
 # Context variables for request tracking
-request_id_var: ContextVar[Optional[str]] = ContextVar("request_id", default=None)
-user_ip_var: ContextVar[Optional[str]] = ContextVar("user_ip", default=None)
+request_id_var: ContextVar[str | None] = ContextVar("request_id", default=None)
+user_ip_var: ContextVar[str | None] = ContextVar("user_ip", default=None)
 
 
 @runtime_checkable
@@ -87,7 +87,7 @@ class ApplicationInsightsBackend:
 class LexMonitoring:
     """Generic OpenTelemetry monitoring for Lex API with pluggable backends."""
 
-    def __init__(self, backend: Optional[ObservabilityBackend] = None):
+    def __init__(self, backend: ObservabilityBackend | None = None):
         self.enabled = False
         self.tracer = None
         self.meter = None
@@ -227,7 +227,7 @@ class LexMonitoring:
         endpoint: str,
         duration: float,
         status_code: int,
-        query_params: Dict[str, Any] = None,
+        query_params: dict[str, Any] = None,
     ):
         """Track API endpoint usage with performance and query analytics."""
         if not self.enabled:
@@ -290,8 +290,8 @@ class LexMonitoring:
     def track_mcp_event(
         self,
         event_type: str,
-        client_info: Dict[str, Any] = None,
-        session_data: Dict[str, Any] = None,
+        client_info: dict[str, Any] = None,
+        session_data: dict[str, Any] = None,
     ):
         """Track MCP protocol events and AI agent connections."""
         if not self.enabled:
@@ -356,9 +356,9 @@ class LexMonitoring:
         tool_name: str,
         duration: float,
         success: bool,
-        client_info: Dict[str, Any] = None,
+        client_info: dict[str, Any] = None,
         error_type: str = None,
-        meta: Dict[str, Any] = None,
+        meta: dict[str, Any] = None,
     ):
         """Track MCP tool execution with comprehensive metrics and context propagation."""
         if not self.enabled:
@@ -401,8 +401,8 @@ class LexMonitoring:
             duration * 1000, {"tool_name": tool_name, "success": str(success)}
         )
 
-    def track_mcp_session_lifecycle(self, event: str, session_id: str, client_info: Dict[str, Any]):
-        """Track MCP session lifecycle events (initialize, shutdown, etc.)."""
+    def track_mcp_session_lifecycle(self, event: str, session_id: str, client_info: dict[str, Any]):
+        """Track MCP session lifecycle events (initialise, shutdown, etc.)."""
         if not self.enabled:
             return
 
@@ -434,7 +434,7 @@ class LexMonitoring:
             },
         )
 
-    def _extract_context_from_meta(self, meta: Dict[str, Any]) -> Any:
+    def _extract_context_from_meta(self, meta: dict[str, Any]) -> Any:
         """Extract OpenTelemetry context from MCP _meta field."""
         if not meta:
             return context.get_current()
@@ -456,7 +456,7 @@ class LexMonitoring:
 
         return context.get_current()
 
-    def inject_context_to_meta(self) -> Dict[str, Any]:
+    def inject_context_to_meta(self) -> dict[str, Any]:
         """Inject current OpenTelemetry context into MCP _meta field format."""
         if not self.enabled:
             return {}
@@ -661,7 +661,7 @@ class LexMonitoring:
         else:
             return "low"
 
-    def parse_mcp_request(self, body: bytes) -> Dict[str, Any]:
+    def parse_mcp_request(self, body: bytes) -> dict[str, Any]:
         """Parse MCP JSON-RPC request body safely."""
         try:
             return json.loads(body.decode("utf-8"))

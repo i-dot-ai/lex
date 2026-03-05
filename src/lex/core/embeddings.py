@@ -4,8 +4,6 @@ import random
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import List, Optional, Tuple
-
 from fastembed import SparseTextEmbedding
 from openai import APIConnectionError, APITimeoutError, AzureOpenAI, RateLimitError
 from qdrant_client.models import SparseVector
@@ -46,7 +44,7 @@ def get_openai_client() -> AzureOpenAI:
                     max_retries=0,  # We handle retries manually
                     timeout=60.0,  # 60 second timeout for embedding generation
                 )
-                logger.info("Azure OpenAI client initialized")
+                logger.info("Azure OpenAI client initialised")
     return _openai_client
 
 
@@ -63,7 +61,7 @@ def get_sparse_model() -> SparseTextEmbedding:
     return _sparse_model
 
 
-def generate_dense_embedding_with_retry(text: str, max_retries: int = MAX_RETRIES) -> List[float]:
+def generate_dense_embedding_with_retry(text: str, max_retries: int = MAX_RETRIES) -> list[float]:
     """
     Generate dense embedding using Azure OpenAI with retry logic for rate limits.
 
@@ -116,7 +114,7 @@ def generate_dense_embedding_with_retry(text: str, max_retries: int = MAX_RETRIE
     raise Exception(f"Failed to generate embedding after {max_retries} retries")
 
 
-def generate_dense_embedding(text: str) -> List[float]:
+def generate_dense_embedding(text: str) -> list[float]:
     """Generate dense embedding (use generate_dense_embeddings_batch for parallel processing).
 
     Args:
@@ -129,8 +127,8 @@ def generate_dense_embedding(text: str) -> List[float]:
 
 
 def generate_dense_embeddings_batch(
-    texts: List[str], max_workers: int | None = None, progress_callback=None
-) -> List[List[float]]:
+    texts: list[str], max_workers: int | None = None, progress_callback=None
+) -> list[list[float]]:
     """Generate dense embeddings for multiple texts in parallel with rate limit handling.
 
     Args:
@@ -147,7 +145,7 @@ def generate_dense_embeddings_batch(
     if max_workers is None:
         max_workers = DEFAULT_MAX_WORKERS
 
-    results: List[Optional[List[float]]] = [None] * len(texts)
+    results: list[list[float] | None] = [None] * len(texts)
     completed = 0
 
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
@@ -208,7 +206,7 @@ def generate_sparse_embedding(text: str) -> SparseVector:
         return SparseVector(indices=[], values=[])
 
 
-def generate_sparse_embeddings_batch(texts: List[str]) -> List[SparseVector]:
+def generate_sparse_embeddings_batch(texts: list[str]) -> list[SparseVector]:
     """
     Generate sparse BM25 embeddings for multiple texts efficiently.
 
@@ -236,7 +234,7 @@ def generate_sparse_embeddings_batch(texts: List[str]) -> List[SparseVector]:
         return [SparseVector(indices=[], values=[]) for _ in texts]
 
 
-def generate_hybrid_embeddings(text: str) -> Tuple[List[float], SparseVector]:
+def generate_hybrid_embeddings(text: str) -> tuple[list[float], SparseVector]:
     """Generate both dense and sparse embeddings for hybrid search.
 
     Args:
@@ -254,8 +252,8 @@ def generate_hybrid_embeddings(text: str) -> Tuple[List[float], SparseVector]:
 
 
 def generate_hybrid_embeddings_batch(
-    texts: List[str], max_workers: int | None = None, progress_callback=None
-) -> List[Tuple[List[float], SparseVector]]:
+    texts: list[str], max_workers: int | None = None, progress_callback=None
+) -> list[tuple[list[float], SparseVector]]:
     """
     Generate hybrid embeddings for multiple texts in parallel.
 

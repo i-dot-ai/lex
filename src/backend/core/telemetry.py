@@ -4,6 +4,8 @@ import logging
 
 from backend.core.config import APPLICATIONINSIGHTS_CONNECTION_STRING
 
+logger = logging.getLogger(__name__)
+
 
 def configure_telemetry():
     """Configure Azure Monitor OpenTelemetry and logging."""
@@ -12,7 +14,7 @@ def configure_telemetry():
         from azure.monitor.opentelemetry import configure_azure_monitor
 
         configure_azure_monitor()
-        print("✅ Azure Monitor OpenTelemetry configured")
+        logger.info("Azure Monitor OpenTelemetry configured")
 
     # Configure logging to show all INFO level logs
     logging.basicConfig(
@@ -29,6 +31,6 @@ def instrument_fastapi_app(app):
             from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
             FastAPIInstrumentor.instrument_app(app)
-            print("✅ FastAPI app instrumented for Azure Monitor")
+            logger.info("FastAPI app instrumented for Azure Monitor")
         except Exception as e:
-            print(f"⚠️ FastAPI instrumentation failed: {e}")
+            logger.warning(f"FastAPI instrumentation failed: {e}")

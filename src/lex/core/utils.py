@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 from bs4 import BeautifulSoup
 
@@ -10,8 +10,8 @@ logger = logging.getLogger(__name__)
 
 def set_logging_level(
     level: int,
-    service_name: Optional[str] = None,
-    environment: Optional[str] = None,
+    service_name: str | None = None,
+    environment: str | None = None,
 ) -> None:
     """Set logging level for all lex loggers.
 
@@ -32,7 +32,7 @@ def set_logging_level(
 
 def create_collection_if_none(
     collection_name: str,
-    schema: Optional[Dict[str, Any]] = None,
+    schema: dict[str, Any] | None = None,
     non_interactive: bool = False,
 ) -> None:
     """Creates a collection in Qdrant if it does not already exist.
@@ -77,8 +77,8 @@ def create_collection_if_none(
         logger.info(f"Collection {collection_name} already exists")
         user_input = input("Do you want to continue? [y/N] ")
         if user_input.lower() != "y":
-            logger.info("Exiting")
-            exit(0)
+            logger.info("User cancelled operation")
+            raise KeyboardInterrupt("User chose not to continue with existing collection")
     else:
         logger.info(f"Collection {collection_name} already exists. Continuing")
 
@@ -89,7 +89,7 @@ def load_xml_file_to_soup(filepath: str) -> BeautifulSoup:
         return BeautifulSoup(f.read(), "xml")
 
 
-def parse_years(years_input: Optional[List[Union[str, int]]]) -> Optional[List[int]]:
+def parse_years(years_input: list[str | int] | None) -> list[int] | None:
     """
     Parse years input that can contain individual years or ranges.
 

@@ -1,5 +1,6 @@
 """Rate limiting and monitoring middleware."""
 
+import logging
 import time
 
 from fastapi import Request, Response
@@ -7,6 +8,8 @@ from fastapi import Request, Response
 from backend.core.cache import cache
 from backend.core.config import RATE_LIMIT_PER_HOUR, RATE_LIMIT_PER_MINUTE
 from backend.monitoring import monitoring
+
+logger = logging.getLogger(__name__)
 
 
 def get_client_ip(request: Request) -> str:
@@ -74,7 +77,7 @@ def track_request_safely(
             )
     except Exception as e:
         # If monitoring fails, don't break the request - just log
-        print(f"Monitoring error (non-critical): {e}")
+        logger.warning(f"Monitoring error (non-critical): {e}")
 
 
 async def monitoring_and_rate_limit_middleware(request: Request, call_next):
