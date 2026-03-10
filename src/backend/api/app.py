@@ -30,14 +30,9 @@ def create_base_app():
     # Add monitoring and rate limiting middleware
     base_app.middleware("http")(monitoring_and_rate_limit_middleware)
 
-    # Configure CORS
-    base_app.add_middleware(
-        CORSMiddleware,
-        allow_origins=["*"],  # Allow all origins for public API
-        allow_credentials=False,
-        allow_methods=["GET", "POST", "OPTIONS"],
-        allow_headers=["*", "MCP-Protocol-Version", "mcp-session-id"],
-    )
+    # Note: CORS is configured on the outer app in create_app() only.
+    # Adding CORSMiddleware here AND on the outer app causes layering
+    # conflicts with OPTIONS preflight requests and MCP .well-known routes.
 
     # Instrument FastAPI with OpenTelemetry
     monitoring.instrument_fastapi(base_app)
@@ -90,7 +85,8 @@ def create_app():
     mcp = create_mcp_server(base_app)
     mcp_app = mcp.http_app(path="/mcp")
 
-    # Combined routes pattern with MCP lifespan for session management
+    # Combined routes pattern: MCP routes first so /mcp is matched before
+    # any catch-all. Lifespan from mcp_app is required for session management.
     app = FastAPI(
         title="Lex API",
         description="UK Legal API for AI agents with MCP support",
@@ -103,21 +99,34 @@ def create_app():
             *base_app.routes,
         ],
         lifespan=mcp_app.lifespan,
+        redirect_slashes=False,
     )
 
-    # CORS on the outer app (covers both API and MCP routes)
+    # Single CORS middleware on the outer app only.
+    # FastMCP docs warn: "layering CORS middleware can cause conflicts
+    # (such as 404 errors on .well-known routes or OPTIONS requests)."
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],
         allow_credentials=False,
         allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
-        allow_headers=["*", "MCP-Protocol-Version", "mcp-session-id"],
+        allow_headers=[
+            "Content-Type",
+            "Authorization",
+            "MCP-Protocol-Version",
+            "mcp-session-id",
+        ],
+        # Required: without this, browsers receive mcp-session-id but
+        # JavaScript cannot access it, breaking session management.
+        expose_headers=["mcp-session-id"],
     )
 
-    # Serve static files at root (this should be last)
+    # Serve static files at /static, NOT at root "/".
+    # StaticFiles mounted at "/" acts as a catch-all and returns 405 Method
+    # Not Allowed for any non-GET request, which breaks POST /mcp.
     try:
-        app.mount("/", StaticFiles(directory="./src/backend/static", html=True), name="static")
-        logging.info("Serving static files from src/backend/static at root path")
+        app.mount("/static", StaticFiles(directory="./src/backend/static", html=True), name="static")
+        logging.info("Serving static files from src/backend/static at /static")
     except Exception as e:
         logging.warning(f"Could not mount static files: {e}")
 
