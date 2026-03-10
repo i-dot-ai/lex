@@ -88,10 +88,9 @@ def create_app():
     """Create the complete application with MCP support and static files."""
     base_app = create_base_app()
     mcp = create_mcp_server(base_app)
-    # path="/" since we mount at "/mcp" below — avoids double-pathing
-    mcp_app = mcp.http_app(path="/")
+    mcp_app = mcp.http_app(path="/mcp")
 
-    # Create outer app with MCP lifespan for session management
+    # Combined routes pattern with MCP lifespan for session management
     app = FastAPI(
         title="Lex API",
         description="UK Legal API for AI agents with MCP support",
@@ -99,6 +98,10 @@ def create_app():
         docs_url="/api/docs",
         redoc_url="/api/redoc",
         openapi_url="/api/openapi.json",
+        routes=[
+            *mcp_app.routes,
+            *base_app.routes,
+        ],
         lifespan=mcp_app.lifespan,
     )
 
@@ -110,13 +113,6 @@ def create_app():
         allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
         allow_headers=["*", "MCP-Protocol-Version", "mcp-session-id"],
     )
-
-    # Include base app routes
-    for route in base_app.routes:
-        app.routes.append(route)
-
-    # Mount MCP as sub-application (preserves session management)
-    app.mount("/mcp", mcp_app)
 
     # Serve static files at root (this should be last)
     try:
