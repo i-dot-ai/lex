@@ -88,7 +88,8 @@ def create_app():
     """Create the complete application with MCP support and static files."""
     base_app = create_base_app()
     mcp = create_mcp_server(base_app)
-    mcp_app = mcp.http_app(path="/mcp")
+    # path="/" since we mount at "/mcp" below — avoids double-pathing
+    mcp_app = mcp.http_app(path="/")
 
     # Create outer app with MCP lifespan for session management
     app = FastAPI(
