@@ -42,6 +42,7 @@ dependencies = [
     "tqdm>=4.67.1",
     "uvicorn>=0.34.2",
     "xmltodict>=0.14.2",
+    "pyjwt==2.12.0",
 ]
 
 [build-system]
