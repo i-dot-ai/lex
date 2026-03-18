@@ -7,6 +7,7 @@ import requests
 from bs4 import BeautifulSoup
 
 from lex.core.http import HttpClient
+from lex.core.uri import normalise_legislation_uri
 from lex.explanatory_note.models import (
     ExplanatoryNote,
     ExplanatoryNoteSectionType,
@@ -322,16 +323,11 @@ class ExplanatoryNoteScraperAndParser:
         )
         sections = processor.process_sections(explanatory_note_contents_soup)
 
-        # Update the section legislation_ids to make them match the legislation endpoints
-
-        updated_legislation_id = legislation_id.replace(
-            "https://www.legislation.gov.uk/", "http://www.legislation.gov.uk/id/"
-        )
+        # Normalise legislation_ids to canonical http://.../id/... format
+        updated_legislation_id = normalise_legislation_uri(legislation_id)
         for section in sections:
             section.legislation_id = updated_legislation_id
-            section.id = section.id.replace(
-                "https://www.legislation.gov.uk/", "http://www.legislation.gov.uk/id/"
-            )
+            section.id = normalise_legislation_uri(section.id)
 
         logger.info(
             f"Scraped and parsed {len(sections)} sections for {legislation_id}",

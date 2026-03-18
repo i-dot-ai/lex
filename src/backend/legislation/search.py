@@ -24,6 +24,7 @@ from backend.legislation.models import (
 )
 from lex.core.embeddings import generate_hybrid_embeddings
 from lex.core.qdrant_client import qdrant_client
+from lex.core.uri import normalise_legislation_uri
 from lex.legislation.models import (
     Legislation,
     LegislationCategory,
@@ -236,23 +237,8 @@ def get_legislation_types(
 
 
 def normalise_legislation_id(legislation_id: str) -> str:
-    """
-    Normalise legislation_id to the full URL format.
-
-    Converts formats like:
-    - "ukpga/1994/13" -> "http://www.legislation.gov.uk/id/ukpga/1994/13"
-    - "http://www.legislation.gov.uk/id/ukpga/1994/13" -> "http://www.legislation.gov.uk/id/ukpga/1994/13" (unchanged)
-    """
-    if not legislation_id:
-        return legislation_id
-
-    # If it's already a full URL, return as-is
-    if legislation_id.startswith("http://www.legislation.gov.uk/id/"):
-        return legislation_id
-
-    # If it's a short format, convert to full URL
-    # Expected format: "type/year/number" (e.g., "ukpga/1994/13")
-    return f"http://www.legislation.gov.uk/id/{legislation_id}"
+    """Normalise legislation_id to canonical format. Alias for shared normaliser."""
+    return normalise_legislation_uri(legislation_id)
 
 
 def build_year_filters(

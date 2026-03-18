@@ -22,6 +22,7 @@ from lex.core.embeddings import (
 )
 from lex.core.http import HttpClient
 from lex.core.qdrant_client import get_qdrant_client
+from lex.core.uri import normalise_legislation_uri
 from lex.legislation.models import (
     Legislation,
     LegislationCategory,
@@ -185,8 +186,15 @@ def fetch_xml_metadata(legislation_id: str) -> dict[str, Any]:
         number = primary_meta.find("ukm:Number") if primary_meta else None
         enactment_date = primary_meta.find("ukm:EnactmentDate") if primary_meta else None
 
+        # Prefer IdURI (canonical http://.../id/... format) over dc:identifier
+        legislation_tag = soup.find("Legislation")
+        id_uri = legislation_tag.get("IdURI") if legislation_tag else None
+        # Fallback to dc:identifier if IdURI not available, then normalise
+        raw_id = id_uri or (dc_identifier.text if dc_identifier else None)
+        canonical_id = normalise_legislation_uri(raw_id) if raw_id else None
+
         return {
-            "id": dc_identifier.text if dc_identifier else None,
+            "id": canonical_id,
             "title": dc_title.text if dc_title else None,
             "description": dc_description.text if dc_description else None,
             "publisher": dc_publisher.text if dc_publisher else None,
@@ -279,9 +287,9 @@ def merge_xml_and_pdf(xml_meta: dict[str, Any], pdf_result: dict[str, Any]) -> L
     if enact_date and isinstance(enact_date, str):
         enact_date = date.fromisoformat(enact_date)
 
-    # Get URI (remove /enacted suffix if present)
+    # URI is already normalised by fetch_xml_metadata (canonical /id/ format, no /enacted)
     legislation_id = xml_meta.get("id", "")
-    uri = legislation_id.replace("/enacted", "")
+    uri = legislation_id
 
     # Count provisions from PDF
     sections = extracted.get("sections", [])
@@ -366,7 +374,7 @@ def create_section_records(
     for section in sections:
         section_num = section.get("number", "")
         section_id = f"{legislation.id}/section/{section_num}"
-        section_uri = section_id.replace("/enacted", "")
+        section_uri = normalise_legislation_uri(section_id)
 
         section_records.append(
             LegislationSection(
@@ -390,7 +398,7 @@ def create_section_records(
     for schedule in schedules:
         schedule_num = schedule.get("number", "")
         schedule_id = f"{legislation.id}/schedule/{schedule_num}"
-        schedule_uri = schedule_id.replace("/enacted", "")
+        schedule_uri = normalise_legislation_uri(schedule_id)
 
         section_records.append(
             LegislationSection(

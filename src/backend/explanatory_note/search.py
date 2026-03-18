@@ -13,6 +13,7 @@ from qdrant_client.models import (
 from backend.explanatory_note.models import ExplanatoryNoteSearch
 from lex.core.embeddings import generate_hybrid_embeddings
 from lex.core.qdrant_client import qdrant_client
+from lex.core.uri import normalise_legislation_uri
 from lex.explanatory_note.models import (
     ExplanatoryNote,
     ExplanatoryNoteSectionType,
@@ -32,8 +33,9 @@ def get_filters(
     conditions = []
 
     if legislation_id:
+        normalised_id = normalise_legislation_uri(legislation_id)
         conditions.append(
-            FieldCondition(key="legislation_id", match=MatchValue(value=legislation_id))
+            FieldCondition(key="legislation_id", match=MatchValue(value=normalised_id))
         )
 
     if note_type_filter and len(note_type_filter) > 0:
@@ -97,8 +99,9 @@ async def get_explanatory_note_by_legislation_id(
 
     Uses scroll to get all notes for a legislation, ordered by the order field.
     """
+    normalised_id = normalise_legislation_uri(legislation_id)
     query_filter = Filter(
-        must=[FieldCondition(key="legislation_id", match=MatchValue(value=legislation_id))]
+        must=[FieldCondition(key="legislation_id", match=MatchValue(value=normalised_id))]
     )
 
     # Use scroll to get all matching documents
@@ -124,9 +127,10 @@ async def get_explanatory_note_by_section(
     section_number: int,
 ) -> ExplanatoryNote | None:
     """Retrieve a specific explanatory note section by legislation ID and section number."""
+    normalised_id = normalise_legislation_uri(legislation_id)
     query_filter = Filter(
         must=[
-            FieldCondition(key="legislation_id", match=MatchValue(value=legislation_id)),
+            FieldCondition(key="legislation_id", match=MatchValue(value=normalised_id)),
             FieldCondition(key="section_number", match=MatchValue(value=section_number)),
         ]
     )
