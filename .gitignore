@@ -219,8 +219,8 @@ data/pdf_only_legislation*.txt
 data/pdf_from_logs*.csv
 data/extract_pdfs.sh
 data/*_results*.jsonl
-test_*.py
-verify_*.py
+/test_*.py
+/verify_*.py
 
 # Runtime data
 data/tracking/

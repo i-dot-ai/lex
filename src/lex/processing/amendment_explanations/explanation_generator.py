@@ -10,6 +10,7 @@ from requests.exceptions import HTTPError
 
 from lex.amendment.models import Amendment
 from lex.core.http import HttpClient
+from lex.core.uri import normalise_legislation_uri
 
 logger = logging.getLogger(__name__)
 
@@ -68,8 +69,7 @@ def fetch_provision_text(provision_url: str) -> str | None:
     Returns:
         Text content of the provision, or None if not found
     """
-    # Ensure http:// (legislation.gov.uk uses http in IDs)
-    provision_url = provision_url.replace("https://", "http://")
+    provision_url = normalise_legislation_uri(provision_url)
 
     # Build XML URL
     xml_url = f"{provision_url}/data.xml"
