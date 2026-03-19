@@ -43,6 +43,8 @@ import logging
 import os
 import sys
 import tempfile
+import time
+import traceback
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -120,6 +122,32 @@ COLLECTIONS = {
 # Retention period for archive
 RETENTION_WEEKS = 4
 
+# Retry configuration for Qdrant Cloud timeouts
+MAX_RETRIES = 5
+BASE_BACKOFF = 2.0
+
+
+def _is_retryable(error: Exception) -> bool:
+    """Check if an error is a retryable timeout/connection issue."""
+    error_str = str(error).lower()
+    return any(term in error_str for term in ["timed out", "timeout", "connection", "disconnected"])
+
+
+def _retry_with_backoff(operation_name: str, operation, max_retries=MAX_RETRIES):
+    """Execute an operation with exponential backoff retry for timeout errors."""
+    for attempt in range(max_retries):
+        try:
+            return operation()
+        except Exception as e:
+            if attempt == max_retries - 1 or not _is_retryable(e):
+                raise
+            backoff = BASE_BACKOFF * (2**attempt)
+            logger.warning(
+                f"{operation_name} timeout (attempt {attempt + 1}/{max_retries}), "
+                f"retrying in {backoff:.0f}s..."
+            )
+            time.sleep(backoff)
+
 
 def get_blob_service_client() -> BlobServiceClient:
     """Get Azure Blob Storage client."""
@@ -150,13 +178,16 @@ def scroll_collection_batched(
 
     while True:
         batch_num += 1
-        results, next_offset = qdrant_client.scroll(
-            collection_name=collection_name,
-            limit=batch_size,
-            offset=offset,
-            with_payload=True,
-            with_vectors=False,
-            scroll_filter=scroll_filter,
+        results, next_offset = _retry_with_backoff(
+            f"scroll {collection_name} batch {batch_num}",
+            lambda: qdrant_client.scroll(
+                collection_name=collection_name,
+                limit=batch_size,
+                offset=offset,
+                with_payload=True,
+                with_vectors=False,
+                scroll_filter=scroll_filter,
+            ),
         )
 
         if not results:
@@ -189,12 +220,15 @@ def infer_schema_from_sample(
             must=[FieldCondition(key=year_field, match=MatchValue(value=year_filter))]
         )
 
-    results, _ = qdrant_client.scroll(
-        collection_name=collection_name,
-        limit=sample_size,
-        with_payload=True,
-        with_vectors=False,
-        scroll_filter=scroll_filter,
+    results, _ = _retry_with_backoff(
+        f"schema inference {collection_name}",
+        lambda: qdrant_client.scroll(
+            collection_name=collection_name,
+            limit=sample_size,
+            with_payload=True,
+            with_vectors=False,
+            scroll_filter=scroll_filter,
+        ),
     )
 
     if not results:
@@ -249,7 +283,13 @@ def payloads_to_parquet_streaming(
                 continue
 
             # Convert batch to Arrow table with consistent schema
-            batch_table = pa.Table.from_pylist(batch_payloads, schema=schema)
+            try:
+                batch_table = pa.Table.from_pylist(batch_payloads, schema=schema)
+            except (pa.ArrowInvalid, pa.ArrowTypeError):
+                # Schema mismatch — field absent from sample, re-infer and unify
+                batch_table = pa.Table.from_pylist(batch_payloads)
+                schema = pa.unify_schemas([schema, batch_table.schema])
+                batch_table = batch_table.cast(schema)
 
             # Initialise writer on first batch
             if writer is None:
@@ -291,37 +331,46 @@ def upload_to_blob(
     container_client = blob_service_client.get_container_client(container_name)
     blob_client = container_client.get_blob_client(blob_name)
 
-    with open(local_path, "rb") as data:
-        blob_client.upload_blob(
-            data,
-            overwrite=True,
-            content_settings=ContentSettings(content_type="application/octet-stream"),
-        )
+    def _upload():
+        with open(local_path, "rb") as data:
+            blob_client.upload_blob(
+                data,
+                overwrite=True,
+                content_settings=ContentSettings(content_type="application/vnd.apache.parquet"),
+            )
+
+    _retry_with_backoff(f"upload {blob_name}", _upload)
 
     return blob_client.url
 
 
 def get_years_in_collection(qdrant_client, collection_name: str, year_field: str) -> list[int]:
-    """Get distinct years present in a collection by sampling."""
-    results, _ = qdrant_client.scroll(
-        collection_name=collection_name,
-        limit=2000,
-        with_payload=True,
-        with_vectors=False,
-    )
-
+    """Get all distinct years by scrolling with minimal payload."""
     years = set()
-    for point in results:
-        year = point.payload.get(year_field)
-        if year is not None:
-            years.add(int(year))
+    offset = None
 
-    if years:
-        min_year = min(years)
-        max_year = max(years)
-        return list(range(min_year, max_year + 1))
+    while True:
+        results, next_offset = _retry_with_backoff(
+            f"year discovery {collection_name}",
+            lambda: qdrant_client.scroll(
+                collection_name=collection_name,
+                limit=2000,
+                offset=offset,
+                with_payload=[year_field],
+                with_vectors=False,
+            ),
+        )
 
-    return []
+        for point in results:
+            year = point.payload.get(year_field)
+            if year is not None:
+                years.add(int(year))
+
+        offset = next_offset
+        if not results or offset is None:
+            break
+
+    return sorted(years)
 
 
 def export_collection(
@@ -550,7 +599,8 @@ def generate_manifest(
         logger.info(f"\n  Uploaded manifest: {latest_blob}")
 
 
-def main():
+def main() -> bool:
+    """Run bulk export. Returns True if at least one collection exported successfully."""
     parser = argparse.ArgumentParser(description="Export Qdrant collections to Parquet")
     parser.add_argument(
         "--dry-run",
@@ -619,8 +669,6 @@ def main():
 
         except Exception as e:
             logger.error(f"Failed to export {collection_name}: {e}")
-            import traceback
-
             traceback.print_exc()
             all_stats.append(
                 {
@@ -632,18 +680,24 @@ def main():
                 }
             )
 
-    # Generate manifest
-    generate_manifest(
-        blob_service_client,
-        container_name,
-        all_stats,
-        date_str,
-        base_url,
-        dry_run=args.dry_run,
-    )
+    # Update manifest only for full exports that succeeded
+    total_exported = sum(s["total_records"] for s in all_stats)
+    if args.collection:
+        logger.info("Single-collection export — skipping manifest update")
+    elif total_exported > 0:
+        generate_manifest(
+            blob_service_client,
+            container_name,
+            all_stats,
+            date_str,
+            base_url,
+            dry_run=args.dry_run,
+        )
+    else:
+        logger.warning("All collections failed to export — manifest NOT updated")
 
-    # Cleanup old exports
-    if blob_service_client and not args.no_cleanup and not args.dry_run:
+    # Cleanup old exports (only when at least one collection succeeded)
+    if total_exported > 0 and blob_service_client and not args.no_cleanup and not args.dry_run:
         cleanup_old_exports(
             blob_service_client,
             container_name,
@@ -670,6 +724,9 @@ def main():
             status = "FAILED"
         logger.info(f"  - {stats['collection']}: {stats['total_records']:,} records [{status}]")
 
+    return total_records > 0
+
 
 if __name__ == "__main__":
-    main()
+    success = main()
+    sys.exit(0 if success else 1)
