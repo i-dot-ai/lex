@@ -30,9 +30,7 @@ class TestNormaliseLegislationUri:
         assert result == "http://www.legislation.gov.uk/id/ukpga/2023/52"
 
     def test_enacted_suffix_stripped(self):
-        result = normalise_legislation_uri(
-            "http://www.legislation.gov.uk/ukpga/2023/52/enacted"
-        )
+        result = normalise_legislation_uri("http://www.legislation.gov.uk/ukpga/2023/52/enacted")
         assert result == "http://www.legislation.gov.uk/id/ukpga/2023/52"
 
     def test_made_suffix_stripped(self):
@@ -40,9 +38,7 @@ class TestNormaliseLegislationUri:
         assert result == "http://www.legislation.gov.uk/id/uksi/2023/100"
 
     def test_created_suffix_stripped(self):
-        result = normalise_legislation_uri(
-            "http://www.legislation.gov.uk/id/wsi/2023/50/created"
-        )
+        result = normalise_legislation_uri("http://www.legislation.gov.uk/id/wsi/2023/50/created")
         assert result == "http://www.legislation.gov.uk/id/wsi/2023/50"
 
     def test_enacted_with_trailing_path(self):
@@ -54,9 +50,7 @@ class TestNormaliseLegislationUri:
 
     def test_https_missing_id_and_enacted(self):
         """Combined: https + missing /id/ + /enacted suffix."""
-        result = normalise_legislation_uri(
-            "https://www.legislation.gov.uk/ukpga/2023/52/enacted"
-        )
+        result = normalise_legislation_uri("https://www.legislation.gov.uk/ukpga/2023/52/enacted")
         assert result == "http://www.legislation.gov.uk/id/ukpga/2023/52"
 
     def test_already_canonical_unchanged(self):

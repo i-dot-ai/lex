@@ -89,7 +89,7 @@ def _retry_with_backoff(operation_name: str, operation, max_retries=MAX_RETRIES)
         except Exception as e:
             if attempt == max_retries - 1 or not _is_retryable(e):
                 raise
-            backoff = BASE_BACKOFF * (2 ** attempt)
+            backoff = BASE_BACKOFF * (2**attempt)
             logger.warning(
                 f"{operation_name} timeout (attempt {attempt + 1}/{max_retries}), "
                 f"retrying in {backoff:.0f}s..."
