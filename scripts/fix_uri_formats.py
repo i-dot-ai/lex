@@ -69,8 +69,32 @@ COLLECTION_URI_FIELDS = {
     EXPLANATORY_NOTE_COLLECTION: ["legislation_id"],
 }
 
-OPERATIONS_BATCH_SIZE = 1000
-DEFAULT_SCROLL_BATCH_SIZE = 1000
+OPERATIONS_BATCH_SIZE = 200
+DEFAULT_SCROLL_BATCH_SIZE = 500
+MAX_RETRIES = 5
+BASE_BACKOFF = 2.0
+
+
+def _is_retryable(error: Exception) -> bool:
+    """Check if an error is a retryable timeout/connection issue."""
+    error_str = str(error).lower()
+    return any(term in error_str for term in ["timed out", "timeout", "connection"])
+
+
+def _retry_with_backoff(operation_name: str, operation, max_retries=MAX_RETRIES):
+    """Execute an operation with exponential backoff retry for timeout errors."""
+    for attempt in range(max_retries):
+        try:
+            return operation()
+        except Exception as e:
+            if attempt == max_retries - 1 or not _is_retryable(e):
+                raise
+            backoff = BASE_BACKOFF * (2 ** attempt)
+            logger.warning(
+                f"{operation_name} timeout (attempt {attempt + 1}/{max_retries}), "
+                f"retrying in {backoff:.0f}s..."
+            )
+            time.sleep(backoff)
 
 
 def needs_normalisation(value: str | None) -> bool:
@@ -120,12 +144,15 @@ def fix_collection(
     while True:
         batch_num += 1
 
-        results, next_offset = client.scroll(
-            collection_name=collection_name,
-            limit=scroll_batch_size,
-            offset=offset,
-            with_payload=True,
-            with_vectors=False,
+        results, next_offset = _retry_with_backoff(
+            "Scroll",
+            lambda: client.scroll(
+                collection_name=collection_name,
+                limit=scroll_batch_size,
+                offset=offset,
+                with_payload=uri_fields,
+                with_vectors=False,
+            ),
         )
 
         if not results:
@@ -155,10 +182,14 @@ def fix_collection(
 
                     if len(pending_operations) >= OPERATIONS_BATCH_SIZE:
                         try:
-                            client.batch_update_points(
-                                collection_name=collection_name,
-                                update_operations=pending_operations,
-                                wait=False,
+                            ops = pending_operations
+                            _retry_with_backoff(
+                                "Batch update",
+                                lambda: client.batch_update_points(
+                                    collection_name=collection_name,
+                                    update_operations=ops,
+                                    wait=False,
+                                ),
                             )
                             stats["records_fixed"] += len(pending_operations)
                             stats["batches_sent"] += 1
@@ -189,10 +220,14 @@ def fix_collection(
     # Send remaining operations
     if pending_operations and apply:
         try:
-            client.batch_update_points(
-                collection_name=collection_name,
-                update_operations=pending_operations,
-                wait=True,
+            ops = pending_operations
+            _retry_with_backoff(
+                "Final batch update",
+                lambda: client.batch_update_points(
+                    collection_name=collection_name,
+                    update_operations=ops,
+                    wait=True,
+                ),
             )
             stats["records_fixed"] += len(pending_operations)
             stats["batches_sent"] += 1
