@@ -1,112 +1,45 @@
 """Qdrant collection schemas for legislation."""
 
-from qdrant_client.models import (
-    Distance,
-    PayloadSchemaType,
-    ScalarQuantization,
-    ScalarQuantizationConfig,
-    ScalarType,
-    SparseIndexParams,
-    SparseVectorParams,
-    VectorParams,
-)
+from qdrant_client.models import PayloadSchemaType
 
-from lex.settings import (
-    EMBEDDING_DIMENSIONS,
-    LEGISLATION_COLLECTION,
-    LEGISLATION_SECTION_COLLECTION,
-)
+from lex.core.qdrant_schema import build_collection_schema
+from lex.settings import LEGISLATION_COLLECTION, LEGISLATION_SECTION_COLLECTION
 
 
 def get_legislation_schema():
     """
     Schema for legislation (Acts) collection.
 
-    Vectors:
-    - dense: 1024D OpenAI embeddings (COSINE distance) from title + type + description
-    - sparse: BM25 term weights (DOT product for BM25 scoring)
-
-    Payload:
-    - All Legislation fields from Pydantic model
-    - Indexed fields: id, type, year, number (for fast exact lookups)
-
-    Purpose:
-    - Enable top-level Act discovery (e.g., "Copyright Act" returns the Act itself)
-    - Complement section-level search for better hybrid search quality
-    - Address ranking experiment finding: need better Act-level relevance
+    Payload indexed fields: id, type, year, number, provenance_source.
+    Enables top-level Act discovery and hybrid search quality.
     """
-    return {
-        "collection_name": LEGISLATION_COLLECTION,
-        "vectors_config": {
-            "dense": VectorParams(
-                size=EMBEDDING_DIMENSIONS,
-                distance=Distance.COSINE,
-            )
+    return build_collection_schema(
+        collection_name=LEGISLATION_COLLECTION,
+        payload_schema={
+            "id": PayloadSchemaType.KEYWORD,
+            "type": PayloadSchemaType.KEYWORD,
+            "year": PayloadSchemaType.INTEGER,
+            "number": PayloadSchemaType.INTEGER,
+            "provenance_source": PayloadSchemaType.KEYWORD,
         },
-        "sparse_vectors_config": {
-            "sparse": SparseVectorParams(
-                index=SparseIndexParams(
-                    on_disk=False,  # Keep in memory for speed
-                )
-            )
-        },
-        "payload_schema": {
-            "id": PayloadSchemaType.KEYWORD,  # Exact match lookups
-            "type": PayloadSchemaType.KEYWORD,  # Exact match lookups
-            "year": PayloadSchemaType.INTEGER,  # Range queries
-            "number": PayloadSchemaType.INTEGER,  # Exact match lookups
-            "provenance_source": PayloadSchemaType.KEYWORD,  # Filter by source (xml/llm_ocr)
-        },
-        "quantization_config": ScalarQuantization(
-            scalar=ScalarQuantizationConfig(
-                type=ScalarType.INT8,
-                quantile=0.99,
-                always_ram=True,
-            )
-        ),
-    }
+    )
 
 
 def get_legislation_section_schema():
     """
     Schema for legislation_section collection.
 
-    Vectors:
-    - dense: 1024D OpenAI embeddings (COSINE distance)
-    - sparse: BM25 term weights (DOT product for BM25 scoring)
-
-    Payload:
-    - All LegislationSection fields from Pydantic model
-    - Indexed fields: id, legislation_id, legislation_type, legislation_year (for fast filtering)
+    Payload indexed fields: id, legislation_id, legislation_type, legislation_year,
+    provision_type, provenance_source.
     """
-    return {
-        "collection_name": LEGISLATION_SECTION_COLLECTION,
-        "vectors_config": {
-            "dense": VectorParams(
-                size=EMBEDDING_DIMENSIONS,
-                distance=Distance.COSINE,
-            )
+    return build_collection_schema(
+        collection_name=LEGISLATION_SECTION_COLLECTION,
+        payload_schema={
+            "id": PayloadSchemaType.KEYWORD,
+            "legislation_id": PayloadSchemaType.KEYWORD,
+            "legislation_type": PayloadSchemaType.KEYWORD,
+            "legislation_year": PayloadSchemaType.INTEGER,
+            "provision_type": PayloadSchemaType.KEYWORD,
+            "provenance_source": PayloadSchemaType.KEYWORD,
         },
-        "sparse_vectors_config": {
-            "sparse": SparseVectorParams(
-                index=SparseIndexParams(
-                    on_disk=False,  # Keep in memory for speed
-                )
-            )
-        },
-        "payload_schema": {
-            "id": PayloadSchemaType.KEYWORD,  # Exact match for provision lookups
-            "legislation_id": PayloadSchemaType.KEYWORD,  # Filter by parent legislation
-            "legislation_type": PayloadSchemaType.KEYWORD,  # Filter by legislation type
-            "legislation_year": PayloadSchemaType.INTEGER,  # Range queries (year_from/year_to)
-            "provision_type": PayloadSchemaType.KEYWORD,  # Filter by section/schedule type
-            "provenance_source": PayloadSchemaType.KEYWORD,  # Filter by source (xml/llm_ocr)
-        },
-        "quantization_config": ScalarQuantization(
-            scalar=ScalarQuantizationConfig(
-                type=ScalarType.INT8,
-                quantile=0.99,
-                always_ram=True,
-            )
-        ),
-    }
+    )
