@@ -1,14 +1,14 @@
 import { createAzure } from '@ai-sdk/azure';
+import { createMCPClient } from '@ai-sdk/mcp';
 import { streamText, tool, convertToModelMessages, stepCountIs } from 'ai';
 import { z } from 'zod';
 import { after } from 'next/server';
 import { langfuseSpanProcessor } from '../../../../../instrumentation';
 
-// Initialize Azure OpenAI provider
+// Initialise Azure OpenAI provider
 const azure = createAzure({
   resourceName: process.env.AZURE_OPENAI_ENDPOINT!.match(/https:\/\/(.+?)\.openai\.azure\.com/)?.[1] || '',
   apiKey: process.env.AZURE_OPENAI_API_KEY!,
-  // v1 API doesn't require version parameter (defaults to 'v1')
   apiVersion: process.env.AZURE_OPENAI_API_VERSION,
 });
 
@@ -54,13 +54,13 @@ Use tools strategically and sparingly (aim for 3-5 tool calls total):
 
 ### LEGISLATION TOOLS
 
-**search_legislation_acts** - Find relevant Acts/SIs by topic
+**search_for_legislation_acts** - Find relevant Acts/SIs by topic
 - Use when: You need to identify which legislation covers a topic
 - Returns: Legislation metadata (title, type, year, status, extent)
 - Filters: year_from, year_to, legislation_type
 - Searches: Titles, descriptions, and best matching sections (hybrid search)
 
-**search_legislation_sections** - Get specific provision text
+**search_for_legislation_sections** - Get specific provision text
 - Use when: You need actual legal text or specific sections
 - Returns: Section text, section numbers, provision types
 - Filters: legislation_id, year_from, year_to, legislation_type, legislation_category
@@ -158,262 +158,123 @@ Structure your answer clearly:
 
 CRITICAL: Always provide a final answer after searches complete. Cite specifically. Format clearly. Be concise but complete.`;
 
-// Use server-side API_URL (full URL, no CORS issues) instead of client-side proxy
+// Server-side API URL (no CORS issues)
 const API_URL = process.env.API_URL || 'http://localhost:8000';
 
+// MCP tool names exposed by the Lex backend that we want for research
+const LEGISLATION_MCP_TOOLS = [
+  'search_for_legislation_sections',
+  'search_for_legislation_acts',
+  'search_amendments',
+];
+
+// Factory for tools that call the Lex API directly (used for endpoints not yet in MCP)
+function createSearchTool<T extends z.ZodObject<z.ZodRawShape>>(
+  description: string,
+  inputSchema: T,
+  endpoint: string,
+  buildBody?: (params: z.infer<T>) => Record<string, unknown>,
+) {
+  return tool({
+    description,
+    inputSchema,
+    execute: async (params: z.infer<T>) => {
+      try {
+        const body = buildBody ? buildBody(params) : params;
+        const response = await fetch(`${API_URL}${endpoint}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+          signal: AbortSignal.timeout(60000),
+        });
+        if (!response.ok) {
+          return { error: `Search failed with status ${response.status}`, results: [] };
+        }
+        return await response.json();
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        if (message.includes('aborted') || message.includes('timeout')) {
+          return { error: 'Search timed out after 60 seconds. Try a more specific query.', results: [] };
+        }
+        return { error: `Search failed: ${message}`, results: [] };
+      }
+    },
+  });
+}
+
 export async function POST(req: Request) {
+  let mcpClient: Awaited<ReturnType<typeof createMCPClient>> | null = null;
+
   try {
     const { messages, includeLegislation = true, includeCaselaw = true, maxSteps = 10 } = await req.json();
 
-    // Define tools as direct API calls
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const tools: Record<string, any> = {};
 
+    // Legislation tools via MCP — auto-synced with backend schemas
     if (includeLegislation) {
-      tools.search_legislation_sections = tool({
-        description: 'Search within UK legislation text using semantic search',
-        inputSchema: z.object({
-          query: z.string().describe('The search query'),
-          size: z.number().optional().describe('Number of results (default 10)'),
-          year_from: z.number().optional().describe('Filter by year from'),
-          year_to: z.number().optional().describe('Filter by year to'),
-        }),
-        execute: async ({ query, size = 10, year_from, year_to }) => {
-          const startTime = Date.now();
-          try {
-            console.log(`[TOOL] Legislation section search starting: "${query}"`);
-            console.log(`[TOOL] Fetching: ${API_URL}/legislation/section/search`);
-            const fetchStart = Date.now();
-            const response = await fetch(`${API_URL}/legislation/section/search`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ query, size, year_from, year_to }),
-              signal: AbortSignal.timeout(60000), // 60 second timeout
-            });
-            const fetchElapsed = Date.now() - fetchStart;
-            console.log(`[TOOL] Fetch completed in ${fetchElapsed}ms, status: ${response.status}`);
-            const elapsed = Date.now() - startTime;
-            console.log(`[TOOL] Legislation section search completed in ${elapsed}ms`);
-
-            if (!response.ok) {
-              return { error: `Search failed with status ${response.status}`, results: [] };
-            }
-
-            return await response.json();
-          } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            console.error('Legislation section search error:', errorMessage);
-
-            if (errorMessage.includes('aborted') || errorMessage.includes('timeout')) {
-              return { error: 'Search timed out after 60 seconds. Try a more specific query.', results: [] };
-            }
-
-            return { error: `Search failed: ${errorMessage}`, results: [] };
-          }
-        },
+      mcpClient = await createMCPClient({
+        transport: { type: 'http', url: `${API_URL}/mcp` },
       });
 
-      tools.search_legislation_acts = tool({
-        description: 'Search UK legislation titles and metadata',
-        inputSchema: z.object({
-          query: z.string().describe('The search query'),
-          limit: z.number().optional().describe('Number of results (default 10)'),
-          year_from: z.number().optional().describe('Filter by year from'),
-          year_to: z.number().optional().describe('Filter by year to'),
-        }),
-        execute: async ({ query, limit = 10, year_from, year_to }) => {
-          const startTime = Date.now();
-          try {
-            console.log(`[TOOL] Legislation acts search starting: "${query}"`);
-            console.log(`[TOOL] Fetching: ${API_URL}/legislation/search`);
-            const fetchStart = Date.now();
-            const response = await fetch(`${API_URL}/legislation/search`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ query, limit, use_semantic_search: true, year_from, year_to }),
-              signal: AbortSignal.timeout(60000), // 60 second timeout
-            });
-            const fetchElapsed = Date.now() - fetchStart;
-            console.log(`[TOOL] Fetch completed in ${fetchElapsed}ms, status: ${response.status}`);
-
-            if (!response.ok) {
-              return { error: `Search failed with status ${response.status}`, results: [], total: 0 };
-            }
-
-            const result = await response.json();
-            const elapsed = Date.now() - startTime;
-            console.log(`[TOOL] Legislation acts search completed in ${elapsed}ms`);
-            return result;
-          } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            console.error('Legislation act search error:', errorMessage);
-
-            if (errorMessage.includes('aborted') || errorMessage.includes('timeout')) {
-              return { error: 'Search timed out after 60 seconds. Try a more specific query.', results: [], total: 0 };
-            }
-
-            return { error: `Search failed: ${errorMessage}`, results: [], total: 0 };
-          }
-        },
-      });
-
-      // Amendments search
-      tools.search_amendments = tool({
-        description: 'Find amendments to a specific piece of legislation. Shows what provisions have been added, removed, or modified.',
-        inputSchema: z.object({
-          legislation_id: z.string().describe('The legislation ID (e.g., "ukpga/2018/12" for Data Protection Act 2018)'),
-          search_amended: z.boolean().optional().describe('If true (default), find amendments TO this legislation. If false, find amendments made BY this legislation.'),
-          size: z.number().optional().describe('Number of results (default 100)'),
-        }),
-        execute: async ({ legislation_id, search_amended = true, size = 100 }) => {
-          const startTime = Date.now();
-          try {
-            console.log(`[TOOL] Amendments search starting for: "${legislation_id}"`);
-            console.log(`[TOOL] Fetching: ${API_URL}/amendment/search`);
-            const fetchStart = Date.now();
-            const response = await fetch(`${API_URL}/amendment/search`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ legislation_id, search_amended, size }),
-              signal: AbortSignal.timeout(60000),
-            });
-            const fetchElapsed = Date.now() - fetchStart;
-            console.log(`[TOOL] Fetch completed in ${fetchElapsed}ms, status: ${response.status}`);
-
-            if (!response.ok) {
-              return { error: `Search failed with status ${response.status}`, results: [] };
-            }
-
-            const result = await response.json();
-            const elapsed = Date.now() - startTime;
-            console.log(`[TOOL] Amendments search completed in ${elapsed}ms`);
-            return result;
-          } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            console.error('Amendments search error:', errorMessage);
-
-            if (errorMessage.includes('aborted') || errorMessage.includes('timeout')) {
-              return { error: 'Search timed out after 60 seconds.', results: [] };
-            }
-
-            return { error: `Search failed: ${errorMessage}`, results: [] };
-          }
-        },
-      });
+      const allMcpTools = await mcpClient.tools();
+      for (const name of LEGISLATION_MCP_TOOLS) {
+        if (allMcpTools[name]) {
+          tools[name] = allMcpTools[name];
+        }
+      }
     }
 
+    // Caselaw tools via direct API (not yet available in MCP)
     if (includeCaselaw) {
-      // PREFERRED: Caselaw summaries with structured legal analysis
-      tools.search_caselaw_summaries = tool({
-        description: 'Search AI-generated case summaries with structured legal analysis (material facts, legal issues, ratio decidendi, reasoning, obiter dicta). PREFERRED for caselaw research.',
-        inputSchema: z.object({
-          query: z.string().describe('The search query - searches across summaries including material facts, legal issues, ratio decidendi, reasoning, and obiter dicta'),
-          size: z.number().optional().describe('Number of results (default 10)'),
+      tools.search_caselaw_summaries = createSearchTool(
+        'Search AI-generated case summaries with structured legal analysis (material facts, legal issues, ratio decidendi, reasoning, obiter dicta). PREFERRED for caselaw research.',
+        z.object({
+          query: z.string().describe('The search query'),
+          size: z.number().optional().default(10).describe('Number of results'),
           year_from: z.number().optional().describe('Filter by cases from this year onwards'),
           year_to: z.number().optional().describe('Filter by cases up to this year'),
         }),
-        execute: async ({ query, size = 10, year_from, year_to }) => {
-          const startTime = Date.now();
-          try {
-            console.log(`[TOOL] Caselaw summary search starting: "${query}"`);
-            console.log(`[TOOL] Fetching: ${API_URL}/caselaw/summary/search`);
-            const fetchStart = Date.now();
-            const response = await fetch(`${API_URL}/caselaw/summary/search`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ query, size, is_semantic_search: true, year_from, year_to }),
-              signal: AbortSignal.timeout(60000),
-            });
-            const fetchElapsed = Date.now() - fetchStart;
-            console.log(`[TOOL] Fetch completed in ${fetchElapsed}ms, status: ${response.status}`);
+        '/caselaw/summary/search',
+        ({ query, size, year_from, year_to }) => ({ query, size, is_semantic_search: true, year_from, year_to }),
+      );
 
-            if (!response.ok) {
-              return { error: `Search failed with status ${response.status}`, results: [], total: 0 };
-            }
-
-            const result = await response.json();
-            const elapsed = Date.now() - startTime;
-            console.log(`[TOOL] Caselaw summary search completed in ${elapsed}ms`);
-            return result;
-          } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            console.error('Caselaw summary search error:', errorMessage);
-
-            if (errorMessage.includes('aborted') || errorMessage.includes('timeout')) {
-              return { error: 'Search timed out after 60 seconds. Try a more specific query.', results: [], total: 0 };
-            }
-
-            return { error: `Search failed: ${errorMessage}`, results: [], total: 0 };
-          }
-        },
-      });
-
-      // Full text caselaw search (fallback)
-      tools.search_caselaw = tool({
-        description: 'Search UK court cases using full text semantic search. Use search_caselaw_summaries first for structured analysis.',
-        inputSchema: z.object({
+      tools.search_caselaw = createSearchTool(
+        'Search UK court cases using full text semantic search. Use search_caselaw_summaries first for structured analysis.',
+        z.object({
           query: z.string().describe('The search query'),
-          size: z.number().optional().describe('Number of results (default 10)'),
+          size: z.number().optional().default(10).describe('Number of results'),
           year_from: z.number().optional().describe('Filter by year from'),
           year_to: z.number().optional().describe('Filter by year to'),
         }),
-        execute: async ({ query, size = 10, year_from, year_to }) => {
-          const startTime = Date.now();
-          try {
-            console.log(`[TOOL] Caselaw search starting: "${query}"`);
-            console.log(`[TOOL] Fetching: ${API_URL}/caselaw/search`);
-            const fetchStart = Date.now();
-            const response = await fetch(`${API_URL}/caselaw/search`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ query, size, is_semantic_search: true, year_from, year_to }),
-              signal: AbortSignal.timeout(60000), // 60 second timeout
-            });
-            const fetchElapsed = Date.now() - fetchStart;
-            console.log(`[TOOL] Fetch completed in ${fetchElapsed}ms, status: ${response.status}`);
-
-            if (!response.ok) {
-              return { error: `Search failed with status ${response.status}`, results: [], total: 0 };
-            }
-
-            const result = await response.json();
-            const elapsed = Date.now() - startTime;
-            console.log(`[TOOL] Caselaw search completed in ${elapsed}ms`);
-            return result;
-          } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            console.error('Caselaw search error:', errorMessage);
-
-            if (errorMessage.includes('aborted') || errorMessage.includes('timeout')) {
-              return { error: 'Search timed out after 60 seconds. Try a more specific query.', results: [], total: 0 };
-            }
-
-            return { error: `Search failed: ${errorMessage}`, results: [], total: 0 };
-          }
-        },
-      });
+        '/caselaw/search',
+        ({ query, size, year_from, year_to }) => ({ query, size, is_semantic_search: true, year_from, year_to }),
+      );
     }
 
-    // Stream the response using GPT-5-mini with reasoning
-    // Add 1 to maxSteps to ensure there's always room for a final synthesis after tool calls
+    // Stream response with GPT-5-mini reasoning
     const result = streamText({
       model: azure.responses(process.env.AZURE_OPENAI_CHAT_DEPLOYMENT || 'gpt-5-mini'),
       system: SYSTEM_PROMPT,
       messages: await convertToModelMessages(messages),
       tools,
-      stopWhen: stepCountIs(maxSteps + 1), // +1 to allow final synthesis after research steps
+      stopWhen: stepCountIs(maxSteps + 1),
       experimental_telemetry: {
         isEnabled: true,
         functionId: 'research-chat',
       },
       providerOptions: {
         openai: {
-          reasoning_effort: 'low', // Balanced reasoning for legal research (was 'minimal')
-          reasoningSummary: 'detailed', // 'auto' or 'detailed' for GPT-5
-        }
+          reasoning_effort: 'low',
+          reasoningSummary: 'detailed',
+        },
+      },
+      async onFinish() {
+        await mcpClient?.close();
       },
       onError({ error }) {
         console.error('streamText error:', error);
+        mcpClient?.close();
       },
     });
 
@@ -423,9 +284,10 @@ export async function POST(req: Request) {
     });
 
     return result.toUIMessageStreamResponse({
-      sendReasoning: true, // Enable reasoning traces in UI stream
+      sendReasoning: true,
     });
   } catch (error) {
+    await mcpClient?.close();
     console.error('Deep research error:', error);
     return new Response(
       JSON.stringify({
@@ -435,7 +297,7 @@ export async function POST(req: Request) {
       {
         status: 500,
         headers: { 'Content-Type': 'application/json' },
-      }
+      },
     );
   }
 }
