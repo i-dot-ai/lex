@@ -1,5 +1,5 @@
 """
-Check progress of PDF digitization batch processing.
+Check progress of PDF digitisation batch processing.
 
 Usage:
     uv run python scripts/check_pdf_progress.py data/historical_legislation_results.jsonl
@@ -9,12 +9,17 @@ import json
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).parent.parent))  # scripts/ directory
+
+from _console import console, print_header, print_summary, setup_logging
+from rich.table import Table
+
 
 def check_progress(jsonl_path: Path):
     """Check progress statistics from JSONL output file."""
 
     if not jsonl_path.exists():
-        print(f"❌ File not found: {jsonl_path}")
+        console.print(f"[red]File not found:[/red] {jsonl_path}")
         sys.exit(1)
 
     total = 0
@@ -60,24 +65,36 @@ def check_progress(jsonl_path: Path):
             except json.JSONDecodeError:
                 continue
 
-    # Print summary
-    print(f"\n{'=' * 80}")
-    print("PDF DIGITIZATION PROGRESS")
-    print(f"{'=' * 80}")
-    print(f"File: {jsonl_path}")
-    print(f"\nTotal Processed: {total:,}")
-    print(f"✅ Successful: {successful:,} ({successful / total * 100:.1f}%)")
-    print(f"❌ Failed: {failed:,} ({failed / total * 100:.1f}%)")
+    print_header("PDF Processing Progress", details={"File": str(jsonl_path)})
+
+    # Overall progress summary
+    print_summary(
+        "Overall Progress",
+        {
+            "Total processed": f"{total:,}",
+            "Successful": f"{successful:,} ({successful / total * 100:.1f}%)" if total else "0",
+            "Failed": f"{failed:,} ({failed / total * 100:.1f}%)" if total else "0",
+        },
+        success=failed == 0,
+    )
 
     if successful > 0:
-        print(f"\n{'=' * 80}")
-        print("TOKEN USAGE (Successful Only)")
-        print(f"{'=' * 80}")
-        print(f"Input Tokens: {total_input_tokens:,}")
-        print(f"Output Tokens: {total_output_tokens:,}")
-        print(f"Cached Tokens: {total_cached_tokens:,}")
-        print(f"\nTotal Processing Time: {total_time / 3600:.2f} hours")
-        print(f"Average Time per PDF: {total_time / successful:.1f}s")
+        # Token usage table
+        token_table = Table(
+            title="Token Usage (Successful Only)",
+            border_style="cyan",
+            show_header=False,
+            expand=False,
+            padding=(0, 1),
+        )
+        token_table.add_column("Metric", style="dim")
+        token_table.add_column("Value", justify="right")
+        token_table.add_row("Input tokens", f"{total_input_tokens:,}")
+        token_table.add_row("Output tokens", f"{total_output_tokens:,}")
+        token_table.add_row("Cached tokens", f"{total_cached_tokens:,}")
+        token_table.add_row("Total processing time", f"{total_time / 3600:.2f} hours")
+        token_table.add_row("Average time per PDF", f"{total_time / successful:.1f}s")
+        console.print(token_table)
 
         # Cost estimate
         input_cost = total_input_tokens / 1_000_000 * 0.15
@@ -85,31 +102,50 @@ def check_progress(jsonl_path: Path):
         cached_cost = total_cached_tokens / 1_000_000 * 0.075
         total_cost = input_cost + output_cost + cached_cost
 
-        print(f"\n{'=' * 80}")
-        print("COST ESTIMATE (GPT-5-mini)")
-        print(f"{'=' * 80}")
-        print(f"Input Cost: ${input_cost:.2f}")
-        print(f"Output Cost: ${output_cost:.2f}")
-        print(f"Cached Cost: ${cached_cost:.2f}")
-        print(f"Total Cost: ${total_cost:.2f}")
+        print_summary(
+            "Cost Estimate (GPT-5-mini)",
+            {
+                "Input cost": f"${input_cost:.2f}",
+                "Output cost": f"${output_cost:.2f}",
+                "Cached cost": f"${cached_cost:.2f}",
+                "Total cost": f"${total_cost:.2f}",
+            },
+        )
 
     if by_type:
-        print(f"\n{'=' * 80}")
-        print("BREAKDOWN BY LEGISLATION TYPE")
-        print(f"{'=' * 80}")
+        # Breakdown by legislation type
+        type_table = Table(
+            title="Breakdown by Legislation Type",
+            border_style="blue",
+            expand=False,
+            padding=(0, 1),
+        )
+        type_table.add_column("Type", style="bold")
+        type_table.add_column("Total", justify="right")
+        type_table.add_column("Successful", justify="right", style="green")
+        type_table.add_column("Success Rate", justify="right")
+        type_table.add_column("Failed", justify="right", style="red")
+
         for leg_type in sorted(by_type.keys()):
             stats = by_type[leg_type]
             success_rate = stats["successful"] / stats["total"] * 100
-            print(
-                f"{leg_type.upper():8s}: {stats['total']:6,} total, {stats['successful']:6,} success ({success_rate:.1f}%), {stats['failed']:6,} failed"
+            type_table.add_row(
+                leg_type.upper(),
+                f"{stats['total']:,}",
+                f"{stats['successful']:,}",
+                f"{success_rate:.1f}%",
+                f"{stats['failed']:,}",
             )
 
-    print(f"{'=' * 80}\n")
+        console.print()
+        console.print(type_table)
+        console.print()
 
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        print("Usage: uv run python scripts/check_pdf_progress.py <jsonl_file>")
+        console.print("Usage: uv run python scripts/check_pdf_progress.py <jsonl_file>")
         sys.exit(1)
 
+    setup_logging()
     check_progress(Path(sys.argv[1]))

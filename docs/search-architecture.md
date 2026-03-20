@@ -1,6 +1,6 @@
 # Search Architecture
 
-Why Lex uses hybrid search and how it works.
+Why Lex uses hybrid search and how it works. For the system overview, see [system-architecture.md](system-architecture.md). For how documents are ingested and embedded, see [ingestion-process.md](ingestion-process.md).
 
 ## The Problem
 
@@ -31,10 +31,10 @@ Single-method approaches fail:
 
 ### DBSF for Legislation
 
-**Distribution-Based Score Fusion** uses statistical normalization:
-1. Normalizes scores using mean ± 3σ
+**Distribution-Based Score Fusion** uses statistical normalisation:
+1. Normalises scores using mean ± 3σ
 2. Maps to [0, 1] range
-3. Sums normalized scores
+3. Sums normalised scores
 
 **Why**: Better for legislation where semantic understanding matters alongside exact matching.
 
@@ -53,10 +53,10 @@ Single-method approaches fail:
 
 **Code**: `src/backend/caselaw/search.py:82`
 
-## Performance Optimizations
+## Performance Optimisations
 
-### 1. Scalar Quantization (INT8)
-All collections use INT8 scalar quantization:
+### 1. Scalar Quantisation (INT8)
+All collections use INT8 scalar quantisation:
 - **4x memory reduction** (float32 → int8)
 - **20-50% faster searches** (fewer memory transfers)
 - **<1% accuracy loss** (Qdrant rescores with original vectors)
@@ -69,7 +69,7 @@ Config: `quantile=0.99, always_ram=True`
 - Sparse + HNSW overhead: ~3-5GB
 - **Minimum RAM**: 16GB recommended
 
-**Script**: `scripts/enable_quantization.py`
+**Script**: `scripts/maintenance/enable_quantization.py`
 
 ### 2. Reduced Section Limit
 ```python

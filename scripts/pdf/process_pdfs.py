@@ -18,16 +18,18 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+sys.path.insert(0, str(Path(__file__).parent.parent))  # scripts/ directory
+sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
+
+from _console import console, print_header, print_summary, setup_logging
+
 from lex.processing.historical_pdf.batch import process_pdf_batch_from_csv, process_single_pdf
 
 # Load environment variables
 load_dotenv(override=True)
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
-
+setup_logging()
 logger = logging.getLogger(__name__)
 
 
@@ -73,13 +75,14 @@ async def main():
     try:
         if args.csv:
             # Batch processing from CSV
-            print(f"\n{'=' * 80}")
-            print("BATCH PDF PROCESSING")
-            print(f"{'=' * 80}")
-            print(f"CSV: {args.csv}")
-            print(f"Max Concurrent: {args.max_concurrent}")
-            print(f"Output: {args.output or '(none - results logged only)'}")
-            print(f"{'=' * 80}\n")
+            print_header(
+                "Batch PDF Processing",
+                details={
+                    "CSV": str(args.csv),
+                    "Max concurrent": str(args.max_concurrent),
+                    "Output": str(args.output) if args.output else "(none - results logged only)",
+                },
+            )
 
             # Open output file if specified (append mode for resume capability)
             output_file = None
@@ -114,55 +117,60 @@ async def main():
             if output_file:
                 output_file.close()
 
-            print(f"\n{'=' * 80}")
-            print("BATCH COMPLETE")
-            print(f"{'=' * 80}")
-            print(f"Processed: {processed}")
-            print(f"Successful: {successful}")
-            print(f"Failed: {failed}")
-            print(f"{'=' * 80}\n")
+            print_summary(
+                "Batch Complete",
+                {
+                    "Processed": processed,
+                    "Successful": successful,
+                    "Failed": failed,
+                },
+                success=failed == 0,
+            )
 
         else:
             # Single PDF processing
-            print(f"\n{'=' * 80}")
-            print("SINGLE PDF PROCESSING")
-            print(f"{'=' * 80}")
-            print(f"Type: {args.legislation_type}")
-            print(f"Identifier: {args.identifier}")
-            print(f"URL: {args.url}")
-            print(f"{'=' * 80}\n")
+            print_header(
+                "Single PDF Processing",
+                details={
+                    "Type": args.legislation_type,
+                    "Identifier": args.identifier,
+                    "URL": args.url,
+                },
+            )
 
             result = await process_single_pdf(args.url, args.legislation_type, args.identifier)
 
-            print(f"\n{'=' * 80}")
-            print("RESULTS")
-            print(f"{'=' * 80}")
-            print(f"Success: {result.success}")
-            print(f"Model: {result.provenance.model}")
-            print(f"Input Tokens: {result.provenance.input_tokens:,}")
-            print(f"Output Tokens: {result.provenance.output_tokens:,}")
-            print(f"Cached Tokens: {result.provenance.cached_tokens:,}")
-            print(f"Processing Time: {result.provenance.processing_time_seconds:.1f}s")
-            print(f"Extracted Length: {len(result.extracted_data):,} chars")
+            print_summary(
+                "Results",
+                {
+                    "Success": str(result.success),
+                    "Model": result.provenance.model,
+                    "Input tokens": f"{result.provenance.input_tokens:,}",
+                    "Output tokens": f"{result.provenance.output_tokens:,}",
+                    "Cached tokens": f"{result.provenance.cached_tokens:,}",
+                    "Processing time": f"{result.provenance.processing_time_seconds:.1f}s",
+                    "Extracted length": f"{len(result.extracted_data):,} chars",
+                },
+                success=result.success,
+            )
 
             if result.success:
-                print("\nExtracted Data (first 500 chars):")
-                print("-" * 80)
-                print(
+                console.print("\n[bold]Extracted Data (first 500 chars):[/bold]")
+                console.print("-" * 80)
+                preview = (
                     result.extracted_data[:500] + "..."
                     if len(result.extracted_data) > 500
                     else result.extracted_data
                 )
+                console.print(preview)
             else:
-                print(f"\nError: {result.error}")
-
-            print(f"{'=' * 80}\n")
+                console.print(f"\n[red]Error:[/red] {result.error}")
 
             # Write to output if specified
             if args.output:
                 with open(args.output, "w") as f:
                     json.dump(result.model_dump(), f, default=str, indent=2)
-                print(f"Results written to: {args.output}\n")
+                console.print(f"\nResults written to: {args.output}")
 
     except KeyboardInterrupt:
         logger.info("Processing interrupted by user")

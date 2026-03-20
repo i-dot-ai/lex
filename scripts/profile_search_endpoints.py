@@ -1,10 +1,17 @@
 """Profile search endpoint performance with varied queries."""
 
 import asyncio
+import sys
 import time
+from pathlib import Path
 from statistics import mean, median, stdev
 
 import httpx
+from rich.table import Table
+
+sys.path.insert(0, str(Path(__file__).parent))
+
+from _console import console, print_header, print_summary
 
 API_URL = "http://localhost:8000"
 
@@ -32,30 +39,29 @@ async def time_request(client: httpx.AsyncClient, url: str, payload: dict) -> fl
         elapsed = time.perf_counter() - start
         return elapsed
     except Exception as e:
-        print(f"  ❌ Error: {e}")
+        console.print(f"  [red]Error: {e}[/red]")
         return -1.0
 
 
 async def profile_endpoint(endpoint: str, endpoint_name: str, payload_builder) -> dict:
     """Profile a single endpoint with all test queries."""
-    print(f"\n{'=' * 60}")
-    print(f"🔍 Profiling: {endpoint_name}")
-    print(f"{'=' * 60}")
+    console.print(f"\n[bold]Profiling: {endpoint_name}[/bold]")
+    console.rule()
 
     times = []
 
     async with httpx.AsyncClient() as client:
         for i, query in enumerate(TEST_QUERIES, 1):
             payload = payload_builder(query)
-            print(f"\n{i}. Query: '{query}'")
+            console.print(f"\n{i}. Query: '{query}'")
 
             elapsed = await time_request(client, f"{API_URL}{endpoint}", payload)
 
             if elapsed > 0:
                 times.append(elapsed)
-                print(f"   ✓ {elapsed:.3f}s")
+                console.print(f"   [green]{elapsed:.3f}s[/green]")
             else:
-                print("   ✗ Failed")
+                console.print("   [red]Failed[/red]")
 
     if not times:
         return {"endpoint": endpoint_name, "error": "All requests failed"}
@@ -76,11 +82,13 @@ async def profile_endpoint(endpoint: str, endpoint_name: str, payload_builder) -
 
 async def main():
     """Run profiling on all endpoints."""
-    print("\n" + "=" * 60)
-    print("🚀 Search Endpoint Performance Profiling")
-    print("=" * 60)
-    print(f"Testing {len(TEST_QUERIES)} queries per endpoint")
-    print(f"API: {API_URL}")
+    print_header(
+        "Search Endpoint Profiler",
+        details={
+            "Queries per endpoint": str(len(TEST_QUERIES)),
+            "API": API_URL,
+        },
+    )
 
     # Profile legislation sections search
     sections_result = await profile_endpoint(
@@ -104,37 +112,55 @@ async def main():
     )
 
     # Summary report
-    print("\n" + "=" * 60)
-    print("📊 PERFORMANCE SUMMARY")
-    print("=" * 60)
-
     results = [sections_result, acts_result, caselaw_result]
+
+    table = Table(title="Performance Summary", border_style="blue", expand=False)
+    table.add_column("Endpoint", style="bold")
+    table.add_column("OK", justify="right")
+    table.add_column("Mean", justify="right")
+    table.add_column("Median", justify="right")
+    table.add_column("Min", justify="right")
+    table.add_column("Max", justify="right")
+    table.add_column("StdDev", justify="right")
 
     for result in results:
         if "error" in result:
-            print(f"\n❌ {result['endpoint']}: {result['error']}")
+            table.add_row(
+                result["endpoint"],
+                "[red]FAILED[/red]",
+                "-",
+                "-",
+                "-",
+                "-",
+                "-",
+            )
             continue
+        table.add_row(
+            result["endpoint"],
+            f"{result['successful']}/{result['queries_tested']}",
+            f"{result['mean']:.3f}s",
+            f"{result['median']:.3f}s",
+            f"{result['min']:.3f}s",
+            f"{result['max']:.3f}s",
+            f"{result['stdev']:.3f}s",
+        )
 
-        print(f"\n{result['endpoint']}")
-        print(f"  Successful: {result['successful']}/{result['queries_tested']}")
-        print(f"  Mean:   {result['mean']:.3f}s")
-        print(f"  Median: {result['median']:.3f}s")
-        print(f"  Min:    {result['min']:.3f}s")
-        print(f"  Max:    {result['max']:.3f}s")
-        print(f"  StdDev: {result['stdev']:.3f}s")
+    console.print()
+    console.print(table)
 
     # Ranking
-    print("\n" + "=" * 60)
-    print("🏆 RANKING (by median response time)")
-    print("=" * 60)
-
     valid_results = [r for r in results if "error" not in r]
     ranked = sorted(valid_results, key=lambda x: x["median"])
 
+    ranking_stats = {}
     for i, result in enumerate(ranked, 1):
-        print(f"{i}. {result['endpoint']}: {result['median']:.3f}s median")
+        ranking_stats[f"{i}. {result['endpoint']}"] = f"{result['median']:.3f}s median"
 
-    print("\n✅ Profiling complete!\n")
+    print_summary(
+        "Ranking (by median response time)",
+        ranking_stats,
+        success=len(valid_results) > 0,
+    )
 
 
 if __name__ == "__main__":

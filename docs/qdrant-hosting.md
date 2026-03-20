@@ -1,5 +1,7 @@
 # Qdrant Cloud Hosting Cost Estimate
 
+Cost analysis for Qdrant Cloud deployment. For the system overview, see [system-architecture.md](system-architecture.md). For search performance characteristics, see [search-architecture.md](search-architecture.md).
+
 **Last Updated:** November 2025
 
 ## Dataset Overview
@@ -31,7 +33,7 @@
 
 **Note:** Quantization optimisation requires extra RAM headroom. 4GB causes OOM during index rebuilds.
 
-**Quantization:** Scalar (INT8)
+**Quantisation:** Scalar (INT8)
 - Reduces vector storage by ~60%
 - Minimal accuracy impact (<2%)
 - Essential for cost-effective hosting
@@ -56,9 +58,9 @@
 - Payload data: ~12 GB
 - **Total: ~31 GB**
 
-## Cost Optimization Notes
+## Cost Optimisation Notes
 
-1. **Scalar Quantization is Critical**
+1. **Scalar Quantisation is Critical**
    - Saves ~$20-25/month by reducing required disk/RAM
    - Enable per-collection after initial migration
    - Negligible quality impact for legal search
@@ -74,19 +76,19 @@
    - UK South chosen for data residency (UK legal documents)
    - Other regions may have different pricing
 
-## Enabling Quantization
+## Enabling Quantisation
 
-Quantization is enabled by default in schema files (`src/lex/*/qdrant_schema.py`).
+Quantisation is enabled by default in schema files (`src/lex/*/qdrant_schema.py`).
 
 To enable on existing collections, run:
 
 ```bash
-uv run python scripts/enable_quantization.py
+uv run python scripts/maintenance/enable_quantization.py
 ```
 
 Collections transition: grey → yellow (optimising) → green (complete).
 
-**Warning:** Optimisation temporarily increases memory usage. With 5M points, 4GB RAM causes OOM. Use 16GB+ during index rebuilds.
+**Warning**: Optimisation temporarily increases memory usage. With 5M points, 4GB RAM causes OOM. Use 16GB+ during index rebuilds.
 
 ## Troubleshooting
 

@@ -392,7 +392,7 @@ resource exportJob 'Microsoft.App/jobs@2024-03-01' = {
         {
           name: 'export-job'
           image: containerImage
-          command: ['uv', 'run', 'python', 'scripts/bulk_export_parquet.py']
+          command: ['uv', 'run', 'python', 'scripts/bulk_export_parquet.py', '--apply']
           resources: {
             cpu: json('2.0')
             memory: '4Gi'  // Max for 2 CPU in consumption plan; streaming approach is memory-efficient

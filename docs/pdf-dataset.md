@@ -1,4 +1,4 @@
-# PDF Digitization for Historical UK Legislation
+# PDF Digitisation for Historical UK Legislation
 
 **Status**: ✅ Production Ready
 **Date**: 2025-10-14
@@ -29,7 +29,7 @@ Historical UK legislation (1267-1962) exists only as scanned PDFs without struct
 
 **Key Finding**: Systematic static scanned PDFs only exist from **1797 onwards** (George III, regnal year 38). Pre-1797 legislation falls into two categories:
 
-1. **Significant Acts (~500 documents)**: Full XML digitization with dynamic PDF generation via `/data.pdf`
+1. **Significant Acts (~500 documents)**: Full XML digitisation with dynamic PDF generation via `/data.pdf`
    - Examples: Magna Carta (1297), Statute of Westminster (1275), Calendar Act (1751)
    - No OCR needed - full searchable XML text available
 
@@ -37,7 +37,7 @@ Historical UK legislation (1267-1962) exists only as scanned PDFs without struct
    - Example: Sea Sand Act (1609) - `aep/1609/18/pdfs/aep_16090018_en.pdf`
    - Uses calendar year paths instead of regnal year paths
 
-**Conclusion**: The 1797 cutoff represents The National Archives' digitization approach. Earlier legislation was either fully digitized as XML or left as metadata-only records without systematic PDF scanning.
+**Conclusion**: The 1797 cutoff represents The National Archives' digitisation approach. Earlier legislation was either fully digitised as XML or left as metadata-only records without systematic PDF scanning.
 
 ### Historical Breakdown by Monarch (1837-1952)
 
@@ -109,12 +109,12 @@ Historical UK legislation (1267-1962) exists only as scanned PDFs without struct
 
 ### Key Insights
 
-1. **PDF coverage begins in 1837** — Victorian era is the earliest digitized period
+1. **PDF coverage begins in 1837** — Victorian era is the earliest digitised period
 2. **Victorian dominance**: 12,786 PDFs (13.6% of total)
 3. **Industrial Revolution visible**: 64% Local Acts in 1860s-1880s for railway/infrastructure
 4. **Secondary legislation dominates modern era**: 76% are SIs/rules/orders
 5. **Devolution evident**: 2,104 Welsh SIs + 2,595 Scottish SIs post-1999
-6. **1990s-2000s decline**: Sharp drop in PDF availability (digitization gap)
+6. **1990s-2000s decline**: Sharp drop in PDF availability (digitisation gap)
 
 ## Architecture
 
@@ -135,20 +135,20 @@ PDF URLs (10,267) → Azure Blob Storage → GPT-5-mini Vision → Structured JS
    - Stores all PDFs for batch processing
    - Enables parallel processing across machines
 
-3. **PDF Processor** (`src/lex/pdf_digitization/processor.py`)
+3. **PDF Processor** (`src/lex/pdf_digitisation/processor.py`)
    - Azure OpenAI GPT-5-mini with vision
    - Prompt version: v1.1
    - ISO 8601 date formatting
    - Extracts: metadata, preamble, sections, schedules
    - Success rate: 85-95% expected
 
-4. **Batch Processing** (`scripts/process_pdfs.py`)
+4. **Batch Processing** (`scripts/pdf/process_pdfs.py`)
    - Parallel processing (default: 5 concurrent)
    - Progress tracking with JSONL output
    - Automatic retry on failures
    - Resume capability
 
-5. **Qdrant Uploader** (`src/lex/pdf_digitization/qdrant_uploader.py`)
+5. **Qdrant Uploader** (`src/lex/pdf_digitisation/qdrant_uploader.py`)
    - Fetches authoritative XML metadata
    - Merges XML + PDF extracted data
    - Adds provenance tracking (5 fields)
@@ -288,13 +288,13 @@ uv run python scripts/setup_azure_storage.py
 
 ```bash
 # Process all PDFs with GPT-5-mini
-uv run python scripts/process_pdfs.py \
+uv run python scripts/pdf/process_pdfs.py \
   --csv data/pdf_only_legislation_complete.csv \
   --max-concurrent 5 \
   --output data/historical_legislation_results.jsonl
 
 # Resume from checkpoint
-uv run python scripts/process_pdfs.py \
+uv run python scripts/pdf/process_pdfs.py \
   --csv data/pdf_only_legislation_complete.csv \
   --output data/historical_legislation_results.jsonl \
   --resume
@@ -304,7 +304,7 @@ uv run python scripts/process_pdfs.py \
 
 ```python
 from pathlib import Path
-from lex.pdf_digitization.qdrant_uploader import process_jsonl_file, upload_to_qdrant
+from lex.pdf_digitisation.qdrant_uploader import process_jsonl_file, upload_to_qdrant
 
 # Process JSONL and merge XML + PDF
 # Optional: Save JSON backups using URL path structure
@@ -383,7 +383,7 @@ The batch processor automatically resumes from existing JSONL output by checking
 
 ```bash
 # Resume from existing output file (skips completed PDFs)
-uv run python scripts/process_pdfs.py \
+uv run python scripts/pdf/process_pdfs.py \
   --csv data/pdf_only_legislation_complete.csv \
   --output data/historical_legislation_results.jsonl
 
@@ -400,7 +400,7 @@ Use the progress checker script to see statistics:
 
 ```bash
 # View detailed progress statistics
-uv run python scripts/check_pdf_progress.py data/historical_legislation_results.jsonl
+uv run python scripts/pdf/check_pdf_progress.py data/historical_legislation_results.jsonl
 
 # Output includes:
 # - Total processed, successful, failed (with percentages)
@@ -432,7 +432,7 @@ uv run python scripts/check_pdf_progress.py data/historical_legislation_results.
 
 ```bash
 uv run python -c "
-from lex.pdf_digitization.processor import process_pdf_from_url
+from lex.pdf_digitisation.processor import process_pdf_from_url
 
 result = process_pdf_from_url(
     'https://www.legislation.gov.uk/ukla/Vict/14-15/51/pdfs/ukla_18510051_en.pdf',
@@ -546,12 +546,12 @@ All PDF extractions are traced in Langfuse:
 
 | Path | Purpose |
 |------|---------|
-| `src/lex/pdf_digitization/processor.py` | GPT-5-mini PDF extraction (509 lines) |
-| `src/lex/pdf_digitization/qdrant_uploader.py` | XML + PDF merging, Qdrant upload (378 lines) |
-| `src/lex/pdf_digitization/batch.py` | Batch processing with resume capability |
-| `src/lex/pdf_digitization/models.py` | Pydantic models for extraction results |
-| `scripts/process_pdfs.py` | CLI for batch processing with concurrency |
-| `scripts/check_pdf_progress.py` | Progress checker with statistics and cost estimates |
+| `src/lex/pdf_digitisation/processor.py` | GPT-5-mini PDF extraction (509 lines) |
+| `src/lex/pdf_digitisation/qdrant_uploader.py` | XML + PDF merging, Qdrant upload (378 lines) |
+| `src/lex/pdf_digitisation/batch.py` | Batch processing with resume capability |
+| `src/lex/pdf_digitisation/models.py` | Pydantic models for extraction results |
+| `scripts/pdf/process_pdfs.py` | CLI for batch processing with concurrency |
+| `scripts/pdf/check_pdf_progress.py` | Progress checker with statistics and cost estimates |
 | `scripts/setup_azure_storage.py` | Azure Blob Storage setup and upload |
 | `data/pdf_only_legislation_complete.csv` | All 10,267 PDF URLs |
 | `src/lex/legislation/models.py` | Updated with 5 provenance fields |

@@ -26,14 +26,15 @@ Collections:
 - amendment (~892K docs) - Single file
 
 Usage:
-    # Run in Azure Container Apps Job
+    # Run in Azure Container Apps Job (default: dry run)
     python scripts/bulk_export_parquet.py
 
-    # Local testing
-    USE_CLOUD_QDRANT=true uv run python scripts/bulk_export_parquet.py --dry-run
+    # Actually upload to blob storage
+    USE_CLOUD_QDRANT=true uv run python scripts/bulk_export_parquet.py --apply
 
     # Export specific collection
-    USE_CLOUD_QDRANT=true uv run python scripts/bulk_export_parquet.py --collection legislation
+    USE_CLOUD_QDRANT=true uv run python scripts/bulk_export_parquet.py \
+        --apply --collection legislation
 """
 
 import argparse
@@ -48,8 +49,9 @@ import traceback
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-# Add src to path for local development
+# Add src and scripts to path for local development
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+sys.path.insert(0, str(Path(__file__).parent))
 
 from dotenv import load_dotenv
 
@@ -57,6 +59,7 @@ load_dotenv(dotenv_path=Path(__file__).parent.parent / ".env", override=True)
 
 import pyarrow as pa  # noqa: E402
 import pyarrow.parquet as pq  # noqa: E402
+from _console import console, print_header, print_summary, setup_logging  # noqa: E402
 from azure.storage.blob import BlobServiceClient, ContentSettings  # noqa: E402
 from qdrant_client.models import FieldCondition, Filter, MatchValue  # noqa: E402
 
@@ -71,11 +74,6 @@ from lex.settings import (  # noqa: E402
     LEGISLATION_SECTION_COLLECTION,
 )
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
-)
 logger = logging.getLogger(__name__)
 
 # Collection configurations
@@ -387,9 +385,7 @@ def export_collection(
     dry_run: bool = False,
 ) -> dict:
     """Export a single collection to Parquet files."""
-    logger.info(f"\n{'=' * 60}")
-    logger.info(f"Exporting: {collection_name}")
-    logger.info("=" * 60)
+    console.rule(f"Exporting: {collection_name}")
 
     batch_size = config.get("batch_size", 500)
     logger.info(f"  Batch size: {batch_size}")
@@ -522,9 +518,7 @@ def cleanup_old_exports(
     dry_run: bool = False,
 ) -> int:
     """Delete archive exports older than retention period."""
-    logger.info(f"\n{'=' * 60}")
-    logger.info(f"Cleaning up archives older than {retention_weeks} weeks")
-    logger.info("=" * 60)
+    console.rule(f"Cleaning up archives older than {retention_weeks} weeks")
 
     cutoff_date = datetime.now(timezone.utc) - timedelta(weeks=retention_weeks)
     deleted_count = 0
@@ -607,9 +601,9 @@ def main() -> bool:
     """Run bulk export. Returns True if at least one collection exported successfully."""
     parser = argparse.ArgumentParser(description="Export Qdrant collections to Parquet")
     parser.add_argument(
-        "--dry-run",
+        "--apply",
         action="store_true",
-        help="Preview without uploading to blob storage",
+        help="Apply changes (default: dry run)",
     )
     parser.add_argument(
         "--collection",
@@ -624,23 +618,25 @@ def main() -> bool:
     )
     args = parser.parse_args()
 
-    logger.info("=" * 60)
-    logger.info("BULK EXPORT TO PARQUET")
-    logger.info("=" * 60)
-    logger.info(f"Dry run: {args.dry_run}")
-    logger.info(f"Collection filter: {args.collection or 'all'}")
+    setup_logging()
+
+    print_header(
+        "Bulk Export to Parquet",
+        mode="APPLY" if args.apply else "DRY RUN",
+        details={"Collection": args.collection or "all"},
+    )
 
     # Initialise clients
     qdrant_client = get_qdrant_client()
 
     blob_service_client = None
-    if not args.dry_run:
+    if args.apply:
         try:
             blob_service_client = get_blob_service_client()
         except ValueError as e:
             logger.error(f"Cannot connect to blob storage: {e}")
             logger.info("Running in dry-run mode")
-            args.dry_run = True
+            args.apply = False
 
     container_name = os.environ.get("BULK_DOWNLOAD_CONTAINER", "downloads")
     base_url = os.environ.get(
@@ -664,7 +660,7 @@ def main() -> bool:
                 config,
                 container_name,
                 date_str,
-                dry_run=args.dry_run,
+                dry_run=not args.apply,
             )
             all_stats.append(stats)
 
@@ -695,38 +691,38 @@ def main() -> bool:
             all_stats,
             date_str,
             base_url,
-            dry_run=args.dry_run,
+            dry_run=not args.apply,
         )
     else:
         logger.warning("All collections failed to export — manifest NOT updated")
 
     # Cleanup old exports (only when at least one collection succeeded)
-    if total_exported > 0 and blob_service_client and not args.no_cleanup and not args.dry_run:
+    if total_exported > 0 and blob_service_client and not args.no_cleanup and args.apply:
         cleanup_old_exports(
             blob_service_client,
             container_name,
             retention_weeks=RETENTION_WEEKS,
-            dry_run=args.dry_run,
+            dry_run=not args.apply,
         )
 
     # Summary
-    logger.info("\n" + "=" * 60)
-    logger.info("EXPORT COMPLETE")
-    logger.info("=" * 60)
     total_records = sum(s["total_records"] for s in all_stats)
     total_bytes = sum(s["total_bytes"] for s in all_stats)
     total_files = sum(len(s["files"]) for s in all_stats)
 
-    logger.info(f"  Collections: {len(all_stats)}")
-    logger.info(f"  Files: {total_files}")
-    logger.info(f"  Records: {total_records:,}")
-    logger.info(f"  Size: {total_bytes / 1024 / 1024:.1f} MB")
-
+    summary_stats = {
+        "Collections": str(len(all_stats)),
+        "Files": str(total_files),
+        "Records": f"{total_records:,}",
+        "Size": f"{total_bytes / 1024 / 1024:.1f} MB",
+    }
     for stats in all_stats:
         status = "OK" if stats["total_records"] > 0 else "EMPTY"
         if "error" in stats:
             status = "FAILED"
-        logger.info(f"  - {stats['collection']}: {stats['total_records']:,} records [{status}]")
+        summary_stats[stats["collection"]] = f"{stats['total_records']:,} records [{status}]"
+
+    print_summary("Export Complete", summary_stats, success=total_records > 0)
 
     return total_records > 0
 

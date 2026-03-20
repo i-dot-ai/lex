@@ -9,39 +9,42 @@ This script:
 4. Uploads summaries to Qdrant with hybrid embeddings
 
 Usage:
-    # Full regeneration (wipes and rebuilds)
+    # Preview without making changes (default: dry run)
     USE_CLOUD_QDRANT=true uv run python scripts/regenerate_all_summaries.py
 
     # Test run with 100 cases
-    USE_CLOUD_QDRANT=true uv run python scripts/regenerate_all_summaries.py --limit 100
+    USE_CLOUD_QDRANT=true uv run python scripts/regenerate_all_summaries.py --apply --limit 100
 
-    # Dry run (no writes)
-    USE_CLOUD_QDRANT=true uv run python scripts/regenerate_all_summaries.py --dry-run
+    # Full regeneration (wipes and rebuilds)
+    USE_CLOUD_QDRANT=true uv run python scripts/regenerate_all_summaries.py --apply
 """
 
 import argparse
 import logging
+import sys
 import time
+from pathlib import Path
 
 from dotenv import load_dotenv
 from qdrant_client.models import PointStruct
 
 load_dotenv()
 
+sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+sys.path.insert(0, str(Path(__file__).parent))
+
+from _console import console, print_header, print_summary, setup_logging
+
 from lex.caselaw.models import Caselaw
 from lex.caselaw.qdrant_schema import get_caselaw_summary_schema
 from lex.core.document import uri_to_uuid
 from lex.core.embeddings import generate_hybrid_embeddings
-from lex.core.qdrant_client import qdrant_client
+from lex.core.qdrant_client import get_qdrant_client
 from lex.processing.caselaw_summaries.summary_generator import add_summaries_to_caselaw
 from lex.settings import CASELAW_COLLECTION, CASELAW_SUMMARY_COLLECTION
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-)
 logger = logging.getLogger(__name__)
+qdrant_client = get_qdrant_client()
 
 
 def fetch_all_caselaw(batch_size: int = 1000, limit: int | None = None) -> list[Caselaw]:
@@ -176,9 +179,9 @@ def main():
         help="Batch size for uploads (default: 100)",
     )
     parser.add_argument(
-        "--dry-run",
+        "--apply",
         action="store_true",
-        help="Preview without making changes",
+        help="Apply changes (default: dry run)",
     )
     parser.add_argument(
         "--no-reset",
@@ -188,20 +191,23 @@ def main():
 
     args = parser.parse_args()
 
+    setup_logging()
+
     start_time = time.time()
-    logger.info("=" * 70)
-    logger.info("CASELAW SUMMARY REGENERATION")
-    logger.info("=" * 70)
-    logger.info(f"Limit: {args.limit or 'ALL'}")
-    logger.info(f"Workers: {args.workers}")
-    logger.info(f"Batch size: {args.batch_size}")
-    logger.info(f"Dry run: {args.dry_run}")
-    logger.info(f"Reset collection: {not args.no_reset}")
-    logger.info("=" * 70)
+    print_header(
+        "Caselaw Summary Regeneration",
+        mode="APPLY" if args.apply else "DRY RUN",
+        details={
+            "Limit": str(args.limit or "ALL"),
+            "Workers": str(args.workers),
+            "Batch size": str(args.batch_size),
+            "Reset collection": str(not args.no_reset),
+        },
+    )
 
     # Step 1: Reset collection (unless --no-reset)
     if not args.no_reset:
-        reset_summary_collection(dry_run=args.dry_run)
+        reset_summary_collection(dry_run=not args.apply)
 
     # Step 2: Fetch all caselaw
     fetch_start = time.time()
@@ -220,13 +226,11 @@ def main():
     logger.info(f"  Avg: {sum(text_lengths) // len(text_lengths):,} chars")
 
     # Step 3: Generate summaries
-    logger.info("\n" + "=" * 70)
-    logger.info("GENERATING SUMMARIES")
-    logger.info("=" * 70)
+    console.rule("Generating Summaries")
 
     gen_start = time.time()
 
-    if args.dry_run:
+    if not args.apply:
         logger.info(f"[DRY RUN] Would generate summaries for {len(caselaw_items)} cases")
         summaries = []
     else:
@@ -244,35 +248,33 @@ def main():
 
     # Step 4: Upload to Qdrant
     if summaries:
-        logger.info("\n" + "=" * 70)
-        logger.info("UPLOADING TO QDRANT")
-        logger.info("=" * 70)
+        console.rule("Uploading to Qdrant")
 
         upload_start = time.time()
         uploaded = upload_summaries_batch(
-            summaries, batch_size=args.batch_size, dry_run=args.dry_run
+            summaries, batch_size=args.batch_size, dry_run=not args.apply
         )
         upload_time = time.time() - upload_start
 
         logger.info(f"\nUpload complete in {upload_time:.1f}s")
 
     # Step 5: Verify
-    if not args.dry_run:
+    if args.apply:
         collection_info = qdrant_client.get_collection(CASELAW_SUMMARY_COLLECTION)
         logger.info(f"\nCollection status: {collection_info.status}")
         logger.info(f"Points indexed: {collection_info.points_count}")
 
     # Final stats
     total_time = time.time() - start_time
-    logger.info("\n" + "=" * 70)
-    logger.info("COMPLETE")
-    logger.info("=" * 70)
-    logger.info(f"Total time: {total_time:.1f}s ({total_time / 60:.1f} minutes)")
+    summary_stats = {
+        "Total time": f"{total_time:.1f}s ({total_time / 60:.1f} minutes)",
+    }
+    if summaries and args.apply:
+        summary_stats["Rate"] = (
+            f"{len(summaries) / total_time:.1f}/s ({len(summaries) / total_time * 60:.0f}/min)"
+        )
 
-    if summaries and not args.dry_run:
-        time_per_summary = total_time / len(summaries)
-        logger.info(f"Rate: {len(summaries) / total_time:.1f} summaries/second")
-        logger.info(f"Rate: {len(summaries) / total_time * 60:.0f} summaries/minute")
+    print_summary("Complete", summary_stats, success=bool(summaries))
 
 
 if __name__ == "__main__":

@@ -15,9 +15,14 @@ Usage:
 import argparse
 import json
 import logging
+import sys
 from datetime import datetime
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).parent.parent))  # scripts/ directory
+sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
+
+from _console import print_header, print_summary, setup_logging
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 
@@ -25,7 +30,7 @@ from lex.core.http import HttpClient
 
 load_dotenv(override=True)
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+setup_logging()
 logger = logging.getLogger(__name__)
 
 http_client = HttpClient()
@@ -151,8 +156,14 @@ def main():
 
     args = parser.parse_args()
 
-    logger.info(f"Discovering PDF-only legislation from {args.start_year} to {args.end_year}")
-    logger.info(f"Output: {args.output}")
+    print_header(
+        "Discover PDF Legislation",
+        details={
+            "Start year": str(args.start_year),
+            "End year": str(args.end_year),
+            "Output": str(args.output),
+        },
+    )
 
     total_pdfs = 0
 
@@ -165,7 +176,7 @@ def main():
                 f.flush()
                 total_pdfs += 1
 
-    logger.info(f"✅ Discovery complete: {total_pdfs} PDF-only documents found")
+    logger.info(f"Discovery complete: {total_pdfs} PDF-only documents found")
     logger.info(f"Output written to: {args.output}")
 
     # Also create CSV for convenience
@@ -184,7 +195,15 @@ def main():
                     f'{doc["pdf_url"]},{doc["legislation_type"]},{doc["identifier"]},"{title}"\n'
                 )
 
-    logger.info(f"✅ CSV written to: {csv_path}")
+    print_summary(
+        "Discovery Complete",
+        {
+            "PDF-only documents": total_pdfs,
+            "Year range": f"{args.start_year}-{args.end_year}",
+            "Output": str(args.output),
+            "CSV": str(csv_path),
+        },
+    )
 
 
 if __name__ == "__main__":

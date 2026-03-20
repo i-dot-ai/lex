@@ -150,19 +150,19 @@ downloads/
 
 ### URI normalisation
 
-The codebase has inconsistent URI formats across collections (https vs http, missing `/id/` segment). The `fix_uri_formats.py` script normalises these to canonical format: `http://www.legislation.gov.uk/id/{type}/{year}/{number}`.
+The codebase has inconsistent URI formats across collections (https vs http, missing `/id/` segment). The `maintenance/fix_uri_formats.py` script normalises these to canonical format: `http://www.legislation.gov.uk/id/{type}/{year}/{number}`.
 
 **Current status** (as of 2026-03-20): amendments ~70% done; legislation and legislation_section not started.
 
 ```bash
 # Dry run — report non-canonical URIs per collection
-USE_CLOUD_QDRANT=true uv run python scripts/fix_uri_formats.py
+USE_CLOUD_QDRANT=true uv run python scripts/maintenance/fix_uri_formats.py
 
 # Apply fixes to a specific collection
-USE_CLOUD_QDRANT=true uv run python scripts/fix_uri_formats.py --apply --collection amendments
+USE_CLOUD_QDRANT=true uv run python scripts/maintenance/fix_uri_formats.py --apply --collection amendments
 
 # Apply all
-USE_CLOUD_QDRANT=true uv run python scripts/fix_uri_formats.py --apply
+USE_CLOUD_QDRANT=true uv run python scripts/maintenance/fix_uri_formats.py --apply
 ```
 
 **After migration is complete**: remove the `MatchAny` dual http/https fallback in `src/backend/amendment/search.py` (lines 25, 57). This is tech debt from the incomplete migration.
@@ -181,22 +181,100 @@ Creates 29 payload indexes across all 7 collections for query filter performance
 
 ## Scripts reference
 
-All scripts are in `scripts/`. Run with `uv run python scripts/<name>`.
+Scripts are organised into `scripts/` (actively used), `scripts/maintenance/` (one-off repairs), and `scripts/pdf/` (PDF digitisation pipeline). Run with `uv run python scripts/<path>`.
 
-| Script | Purpose | Key flags |
-|--------|---------|-----------|
-| `bulk_export_parquet.py` | Export collections to Parquet in blob storage | `--dry-run`, `--collection`, `--no-cleanup` |
-| `fix_uri_formats.py` | Normalise URI formats to canonical form | `--apply`, `--collection`, `--batch-size` |
-| `create_payload_indexes.py` | Create Qdrant payload indexes (29 total) | — |
-| `enable_quantization.py` | Enable INT8 scalar quantisation (75% memory saving) | — |
-| `bulk_search_qdrant.py` | Hybrid search with CSV/Excel/JSON export | `--query`, `--collection`, `--limit`, `--year-from`, `--year-to`, `--types`, `--formats` |
-| `regenerate_all_summaries.py` | Regenerate caselaw AI summaries | `--limit`, `--workers`, `--batch-size`, `--dry-run`, `--no-reset` |
-| `fix_nested_text_schema.py` | Fix nested text field schema drift | `--apply`, `--collection`, `--batch-size` |
-| `discover_pdf_legislation.py` | Discover PDF-only historical legislation | `--start-year`, `--end-year`, `--output` |
-| `process_pdfs.py` | OCR process historical PDFs via Azure OpenAI | `--csv`, `--url`, `--type`, `--id`, `--max-concurrent` |
-| `check_pdf_progress.py` | Check PDF batch processing progress | positional: JSONL path |
-| `profile_search_endpoints.py` | Performance profiling of search endpoints | — |
-| `api_usage_stats.py` | API usage statistics from Azure Log Analytics | `--days` (default: 30) |
+All destructive scripts default to **dry-run** mode. Pass `--apply` to make changes.
+
+### Scheduled / operational
+
+| Script | Purpose | When to run | Env needed | Key flags |
+|--------|---------|-------------|------------|-----------|
+| `bulk_export_parquet.py` | Export collections to Parquet in blob storage | Scheduled: Sundays 03:00 UTC | `AZURE_STORAGE_CONNECTION_STRING`, Qdrant creds | `--apply`, `--collection`, `--no-cleanup` |
+| `create_payload_indexes.py` | Create Qdrant payload indexes (29 total) | After schema changes or new collections | `.env` with Qdrant creds | — |
+| `regenerate_all_summaries.py` | Regenerate caselaw AI summaries from scratch | When summary generation logic changes | Qdrant + Azure OpenAI creds | `--apply`, `--limit`, `--workers`, `--batch-size`, `--no-reset` |
+
+> **Warning**: `regenerate_all_summaries.py --apply` wipes the `caselaw_summary` collection before rebuilding unless `--no-reset` is passed.
+
+**Example invocations:**
+
+```bash
+# Preview export without uploading
+uv run python scripts/bulk_export_parquet.py
+
+# Actually export to blob storage
+uv run python scripts/bulk_export_parquet.py --apply
+
+# Export single collection
+uv run python scripts/bulk_export_parquet.py --apply --collection legislation
+
+# Apply payload indexes after schema change
+uv run python scripts/create_payload_indexes.py
+
+# Test summary regeneration on 100 cases
+USE_CLOUD_QDRANT=true uv run python scripts/regenerate_all_summaries.py --limit 100
+
+# Full summary rebuild
+USE_CLOUD_QDRANT=true uv run python scripts/regenerate_all_summaries.py --apply
+```
+
+### Debugging / analysis
+
+| Script | Purpose | When to run | Env needed | Key flags |
+|--------|---------|-------------|------------|-----------|
+| `bulk_search_qdrant.py` | Hybrid semantic search with CSV/Excel/JSON export | On-demand research and validation | Azure OpenAI + Qdrant creds | `--query`, `--collection`, `--limit`, `--year-from`, `--year-to`, `--types`, `--formats` |
+| `profile_search_endpoints.py` | Benchmark search endpoint response times | After search changes, performance regression testing | Local API running on :8000 | — |
+
+**Example invocations:**
+
+```bash
+# Search legislation sections
+uv run python scripts/bulk_search_qdrant.py --query "environmental reporting" --limit 50 --year-from 2010
+
+# Benchmark all search endpoints
+uv run python scripts/profile_search_endpoints.py
+```
+
+### Maintenance (one-off repairs)
+
+| Script | Purpose | When to run | Env needed | Key flags |
+|--------|---------|-------------|------------|-----------|
+| `maintenance/fix_uri_formats.py` | Normalise URIs to canonical `http://www.legislation.gov.uk/id/...` | When URI inconsistencies detected | `USE_CLOUD_QDRANT=true`, Qdrant creds | `--apply`, `--collection`, `--batch-size` |
+| `maintenance/fix_nested_text_schema.py` | Unwrap nested text fields from Elasticsearch migration | After Elasticsearch data import | `USE_CLOUD_QDRANT=true`, Qdrant creds | `--apply`, `--collection`, `--batch-size` |
+| `maintenance/enable_quantization.py` | Enable INT8 scalar quantisation (75% memory saving) | After major collection ingestion | Qdrant creds | — |
+
+**Example invocations:**
+
+```bash
+# Preview URI fixes
+USE_CLOUD_QDRANT=true uv run python scripts/maintenance/fix_uri_formats.py
+
+# Apply URI fixes to amendments
+USE_CLOUD_QDRANT=true uv run python scripts/maintenance/fix_uri_formats.py --apply --collection amendments
+
+# Enable quantisation on all collections (background, 10-30 min)
+USE_CLOUD_QDRANT=true uv run python scripts/maintenance/enable_quantization.py
+```
+
+### PDF digitisation pipeline
+
+| Script | Purpose | When to run | Env needed | Key flags |
+|--------|---------|-------------|------------|-----------|
+| `pdf/discover_pdf_legislation.py` | Discover PDF-only historical legislation from Atom feeds | Initial discovery of documents needing OCR | Network access only | `--start-year`, `--end-year`, `--output` |
+| `pdf/process_pdfs.py` | OCR process historical PDFs via Azure OpenAI vision | Batch processing discovered PDFs | Azure OpenAI creds | `--csv`, `--url`, `--type`, `--id`, `--max-concurrent` |
+| `pdf/check_pdf_progress.py` | Analyse PDF batch processing results and costs | After or during PDF batch processing | None | positional: JSONL results path |
+
+**Example invocations:**
+
+```bash
+# Discover historical PDFs (1267-1962)
+uv run python scripts/pdf/discover_pdf_legislation.py
+
+# Process PDFs from CSV
+uv run python scripts/pdf/process_pdfs.py --csv data/pdf_only_legislation.csv --max-concurrent 5
+
+# Check batch progress
+uv run python scripts/pdf/check_pdf_progress.py data/results.jsonl
+```
 
 ---
 

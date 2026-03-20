@@ -7,19 +7,19 @@ Uses hybrid search (dense semantic + sparse BM25) for best results.
 
 Example usage:
     # Semantic search for environmental reporting
-    python lex_bulk_query.py --query "environmental reporting requirements" --limit 100
+    python bulk_search_qdrant.py --query "environmental reporting requirements" --limit 100
 
     # Filter by year range
-    python lex_bulk_query.py --query "data protection" --year-from 2010 --year-to 2024 --limit 200
+    python bulk_search_qdrant.py --query "data protection" --year-from 2010 --year-to 2024 --limit 200
 
     # Search legislation sections (default)
-    python lex_bulk_query.py --query "waste regulations" --collection legislation_section --limit 500
+    python bulk_search_qdrant.py --query "waste regulations" --collection legislation_section --limit 500
 
     # Search full legislation documents
-    python lex_bulk_query.py --query "climate change" --collection legislation --limit 50
+    python bulk_search_qdrant.py --query "climate change" --collection legislation --limit 50
 
 Requirements:
-    pip install qdrant-client pandas openpyxl rich fastembed
+    uv pip install qdrant-client pandas openpyxl rich fastembed
 
     # Azure OpenAI credentials required (for embeddings):
     export AZURE_OPENAI_API_KEY=your_key
@@ -33,14 +33,27 @@ import os
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 import pandas as pd
 from dotenv import load_dotenv
-from qdrant_client import QdrantClient
 
-# Load environment variables
 load_dotenv()
+
+# Add src to path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+sys.path.insert(0, str(Path(__file__).parent))
+
+from _console import console, print_header, print_summary, setup_logging
+
+try:
+    from lex.core.embeddings import generate_hybrid_embeddings
+    from lex.core.qdrant_client import get_qdrant_client
+except ImportError:
+    print("ERROR: Could not import from lex.core")
+    print("Ensure you are running from the project root with the correct environment.")
+    sys.exit(1)
+
 from qdrant_client.models import (
     FieldCondition,
     Filter,
@@ -49,34 +62,12 @@ from qdrant_client.models import (
     Prefetch,
     Range,
 )
-from rich.console import Console
 from rich.progress import BarColumn, Progress, SpinnerColumn, TextColumn
 from rich.table import Table
 
-# Add src to path for imports
-script_dir = Path(__file__).parent
-project_root = script_dir.parent / "Code" / "lex"
-if project_root.exists():
-    sys.path.insert(0, str(project_root / "src"))
-
-try:
-    from lex.core.embeddings import generate_hybrid_embeddings
-except ImportError:
-    print("ERROR: Could not import lex.core.embeddings")
-    print("Make sure you're running from a location where /Users/liam/Code/lex/src is accessible")
-    print("Or set PYTHONPATH=/Users/liam/Code/lex/src")
-    sys.exit(1)
-
-console = Console()
-
-
-def create_qdrant_client(cloud_url: str, api_key: str) -> QdrantClient:
-    """Create and return Qdrant client."""
-    return QdrantClient(url=cloud_url, api_key=api_key, timeout=60)
-
 
 def build_filters(
-    year_from: Optional[int], year_to: Optional[int], types: Optional[List[str]]
+    year_from: Optional[int], year_to: Optional[int], types: Optional[list[str]]
 ) -> Optional[Filter]:
     """Build Qdrant filters for year range and legislation types."""
     conditions = []
@@ -100,12 +91,12 @@ def build_filters(
 
 
 def semantic_search(
-    client: QdrantClient,
+    client,
     collection_name: str,
     query: str,
     limit: int,
     filters: Optional[Filter] = None,
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """
     Perform semantic search using hybrid embeddings (dense + sparse).
 
@@ -151,8 +142,8 @@ def semantic_search(
     max_score = max([p.score for p in results.points], default=1.0) if results.points else 1.0
 
     for point in results.points:
-        # Normalize score to 0-100 range
-        normalized_score = (point.score / max_score) * 100 if max_score > 0 else 0
+        # Normalise score to 0-100 range
+        normalised_score = (point.score / max_score) * 100 if max_score > 0 else 0
 
         # Extract text field (handle nested dict if present)
         text_field = point.payload.get("text", "")
@@ -161,7 +152,7 @@ def semantic_search(
             text_field = text_field.get("text", "")
 
         result = {
-            "score": round(normalized_score, 2),
+            "score": round(normalised_score, 2),
             "id": point.payload.get("id"),
             "uri": point.payload.get("uri"),
             "title": point.payload.get("title"),
@@ -186,14 +177,14 @@ def semantic_search(
 
 
 def export_results(
-    results: List[Dict[str, Any]],
+    results: list[dict[str, Any]],
     query: str,
-    formats: List[str],
+    formats: list[str],
     output_dir: Optional[Path] = None,
 ):
     """Export results to CSV, Excel, and JSON."""
     if not results:
-        console.print("[yellow]⚠[/yellow] No results to export")
+        console.print("[yellow]No results to export[/yellow]")
         return
 
     # Create timestamp-based output directory
@@ -232,12 +223,12 @@ def export_results(
         console.print(f"[green]✓[/green] JSON: {json_path}")
 
 
-def display_results_table(results: List[Dict[str, Any]], max_rows: int = 10):
+def display_results_table(results: list[dict[str, Any]], max_rows: int = 10):
     """Display results in a rich table."""
     if not results:
         return
 
-    table = Table(title=f"\n🔍 Top {min(max_rows, len(results))} Results", show_lines=True)
+    table = Table(title=f"\nTop {min(max_rows, len(results))} Results", show_lines=True)
 
     table.add_column("Score", justify="right", style="green", width=8)
     table.add_column("Title", style="white", max_width=50)
@@ -275,19 +266,19 @@ def main():
         epilog="""
 Examples:
   # Basic semantic search
-  python lex_bulk_query.py --query "environmental reporting requirements" --limit 100
+  python bulk_search_qdrant.py --query "environmental reporting requirements" --limit 100
 
   # Filter by year range
-  python lex_bulk_query.py --query "data protection" --year-from 2010 --year-to 2024
+  python bulk_search_qdrant.py --query "data protection" --year-from 2010 --year-to 2024
 
   # Search legislation sections (default)
-  python lex_bulk_query.py --query "waste regulations" --collection legislation_section
+  python bulk_search_qdrant.py --query "waste regulations" --collection legislation_section
 
   # Search full legislation documents
-  python lex_bulk_query.py --query "climate change" --collection legislation --limit 50
+  python bulk_search_qdrant.py --query "climate change" --collection legislation --limit 50
 
   # Filter by legislation type
-  python lex_bulk_query.py --query "environmental" --types ukpga uksi --limit 200
+  python bulk_search_qdrant.py --query "environmental" --types ukpga uksi --limit 200
         """,
     )
 
@@ -300,18 +291,6 @@ Examples:
     )
 
     # Qdrant connection
-    parser.add_argument(
-        "--cloud-url",
-        type=str,
-        default=os.getenv("QDRANT_CLOUD_URL"),
-        help="Qdrant cloud URL (default: from QDRANT_CLOUD_URL env var)",
-    )
-    parser.add_argument(
-        "--api-key",
-        type=str,
-        default=os.getenv("QDRANT_CLOUD_API_KEY"),
-        help="Qdrant API key (default: from QDRANT_CLOUD_API_KEY env var)",
-    )
     parser.add_argument(
         "--collection",
         type=str,
@@ -366,35 +345,30 @@ Examples:
 
     args = parser.parse_args()
 
-    # Print header
-    console.print("\n[bold cyan]LEX - UK Legislation Semantic Search Tool[/bold cyan]")
-    console.print("=" * 70)
+    print_header(
+        "UK Legislation Semantic Search",
+        details={
+            "Query": args.query,
+            "Collection": args.collection,
+            "Limit": str(args.limit),
+        },
+    )
 
     # Check Azure OpenAI credentials
     if not os.getenv("AZURE_OPENAI_API_KEY"):
-        console.print("[red]✗[/red] AZURE_OPENAI_API_KEY not set")
+        console.print("[red]AZURE_OPENAI_API_KEY not set[/red]")
         console.print("[yellow]Set environment variables for Azure OpenAI:[/yellow]")
         console.print("  export AZURE_OPENAI_API_KEY=your_key")
         console.print("  export AZURE_OPENAI_ENDPOINT=your_endpoint")
         console.print("  export AZURE_OPENAI_EMBEDDING_DEPLOYMENT=text-embedding-3-large")
         return
 
-    # Check Qdrant credentials
-    if not args.cloud_url or not args.api_key:
-        console.print("[red]✗[/red] Qdrant credentials not set")
-        console.print("[yellow]Set environment variables:[/yellow]")
-        console.print("  export QDRANT_CLOUD_URL=your_url")
-        console.print("  export QDRANT_CLOUD_API_KEY=your_key")
-        console.print("[yellow]Or pass as arguments:[/yellow]")
-        console.print("  --cloud-url YOUR_URL --api-key YOUR_KEY")
-        return
-
     # Create Qdrant client
     try:
-        client = create_qdrant_client(args.cloud_url, args.api_key)
+        client = get_qdrant_client()
         console.print("[green]✓[/green] Connected to Qdrant")
     except Exception as e:
-        console.print(f"[red]✗[/red] Failed to connect to Qdrant: {e}")
+        console.print(f"[red]Failed to connect to Qdrant:[/red] {e}")
         return
 
     # Build filters
@@ -410,7 +384,7 @@ Examples:
             filters=filters,
         )
     except Exception as e:
-        console.print(f"[red]✗[/red] Search failed: {e}")
+        console.print(f"[red]Search failed:[/red] {e}")
         import traceback
 
         traceback.print_exc()
@@ -429,12 +403,17 @@ Examples:
             output_dir=args.output,
         )
     except Exception as e:
-        console.print(f"[red]✗[/red] Export failed: {e}")
+        console.print(f"[red]Export failed:[/red] {e}")
         return
 
-    console.print("\n[bold green]✓ Complete![/bold green]")
-    console.print(f"[dim]Query: {args.query}[/dim]")
-    console.print(f"[dim]Results: {len(results)}[/dim]")
+    print_summary(
+        "Search Complete",
+        {
+            "Query": args.query,
+            "Results": len(results),
+            "Formats": ", ".join(args.formats),
+        },
+    )
 
 
 if __name__ == "__main__":

@@ -12,13 +12,15 @@ import logging
 import sys
 from pathlib import Path
 
-# Add src to path
+# Add src and scripts to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+sys.path.insert(0, str(Path(__file__).parent))
 
 from dotenv import load_dotenv
 
 load_dotenv(dotenv_path=Path(__file__).parent.parent / ".env", override=True)
 
+from _console import print_header, print_summary, setup_logging
 from qdrant_client.models import PayloadSchemaType
 
 from lex.amendment.qdrant_schema import get_amendment_schema
@@ -30,10 +32,9 @@ from lex.caselaw.qdrant_schema import (
 from lex.explanatory_note.qdrant_schema import get_explanatory_note_schema
 from lex.legislation.qdrant_schema import get_legislation_schema, get_legislation_section_schema
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Initialize Qdrant client using the same method as the main application
+# Initialise Qdrant client using the same method as the main application
 from lex.core.qdrant_client import get_qdrant_client
 
 qdrant_client = get_qdrant_client()
@@ -85,31 +86,35 @@ def apply_payload_indexes():
             logger.info(f"⊘ No payload indexes defined for {collection_name}")
             continue
 
-        logger.info(f"\n📋 Processing {collection_name} ({len(payload_schema)} indexes)")
-        logger.info("=" * 80)
+        logger.info(f"\nProcessing {collection_name} ({len(payload_schema)} indexes)")
 
         for field_name, field_type in payload_schema.items():
             total_indexes += 1
             if create_index(collection_name, field_name, field_type):
                 successful_indexes += 1
 
-    logger.info("\n" + "=" * 80)
-    logger.info(f"✓ Successfully created {successful_indexes}/{total_indexes} indexes")
+    failed = total_indexes - successful_indexes
+    print_summary(
+        "Index Creation Complete",
+        {
+            "Total indexes": str(total_indexes),
+            "Successful": str(successful_indexes),
+            "Failed": str(failed),
+        },
+        success=failed == 0,
+    )
 
-    if successful_indexes < total_indexes:
-        logger.warning(f"⚠ {total_indexes - successful_indexes} indexes failed (may already exist)")
-
-    logger.info("\n📊 Monitoring index build progress...")
     logger.info(
-        "Use: curl http://localhost:6333/collections/<collection_name> | jq '.result.payload_schema'"
+        "Monitor progress: "
+        "curl http://localhost:6333/collections/<name> "
+        "| jq '.result.payload_schema'"
     )
 
 
 def main():
     """Main execution."""
-    logger.info("Qdrant Payload Index Creator")
-    logger.info("=" * 80)
-    logger.info("")
+    setup_logging()
+    print_header("Create Payload Indexes")
 
     apply_payload_indexes()
 
