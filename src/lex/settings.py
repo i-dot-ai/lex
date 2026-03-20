@@ -22,72 +22,10 @@ CASELAW_SUMMARY_COLLECTION = "caselaw_summary"
 EXPLANATORY_NOTE_COLLECTION = "explanatory_note"
 AMENDMENT_COLLECTION = "amendment"
 
-LEGISLATION_TYPES = [
-    "ukpga",
-    "asp",
-    "asc",
-    "anaw",
-    "wsi",
-    "uksi",
-    "ssi",
-    "ukcm",
-    "nisr",
-    "nia",
-    "eudn",
-    "eudr",
-    "eur",
-    "ukla",
-    "ukppa",
-    "apni",
-    "gbla",
-    "aosp",
-    "aep",
-    "apgb",
-    "mwa",
-    "aip",
-    "mnia",
-    "nisro",
-    "nisi",
-    "uksro",
-    "ukmo",
-    "ukci",
-]
-
 LEGISLATION_TYPE_MAPPING = {
     "primary": ["ukpga", "asp", "asc", "anaw", "ukcm", "nia"],
     "secondary": ["wsi", "uksi", "ssi", "nisr"],
     "european": ["eudn", "eudr", "eur"],
-}
-
-LEGISLATION_NAME_MAPPING = {
-    "ukpga": "UK Public General Acts",
-    "asp": "Acts of the Scottish Parliament",
-    "asc": "Acts of Senedd Cymru",
-    "anaw": "Acts of the National Assembly for Wales",
-    "wsi": "Wales Statutory Instruments",
-    "uksi": "UK Statutory Instruments",
-    "ssi": "Scottish Statutory Instruments",
-    "ukcm": "Church Measures",
-    "nisr": "Northern Ireland Statutory Rules",
-    "nia": "Acts of the Northern Ireland Assembly",
-    "eudn": "Decisions originating from the EU",
-    "eudr": "Directives originating from the EU",
-    "eur": "Regulations originating from the EU",
-    "ukla": "UK Local Acts",
-    "ukppa": "UK Private and Personal Acts",
-    "apni": "Acts of the Northern Ireland Parliament",
-    "gbla": "Local Acts of the Parliament of Great Britain",
-    "aosp": "Acts of the Old Scottish Parliament",
-    "aep": "Acts of the English Parliament",
-    "apgb": "Acts of the Parliament of Great Britain",
-    "mwa": "Measures of the Welsh Assembly",
-    "aip": "Acts of the Old Irish Parliament",
-    "mnia": "Measures of the Northern Ireland Assembly",
-    "nisro": "Northern Ireland Statutory Rules and Orders",
-    "nisi": "Northern Ireland Orders in Council",
-    "uksro": "UK Statutory Rules and Orders",
-    "ukmo": "Uk Ministerial Orders",
-    "ukci": "Church Instruments",
 }
 
 # Dynamically calculate years up to current year
