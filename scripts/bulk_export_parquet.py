@@ -345,32 +345,36 @@ def upload_to_blob(
 
 
 def get_years_in_collection(qdrant_client, collection_name: str, year_field: str) -> list[int]:
-    """Get all distinct years by scrolling with minimal payload."""
+    """Get distinct years by sampling records with minimal payload.
+
+    Samples 10K records (year field only) to discover year range, then generates
+    the full range. Much faster than scrolling 2M+ records.
+    """
+    results, _ = _retry_with_backoff(
+        f"year discovery {collection_name}",
+        lambda: qdrant_client.scroll(
+            collection_name=collection_name,
+            limit=10000,
+            with_payload=[year_field],
+            with_vectors=False,
+        ),
+    )
+
     years = set()
-    offset = None
+    for point in results:
+        year = point.payload.get(year_field)
+        if year is not None:
+            years.add(int(year))
 
-    while True:
-        results, next_offset = _retry_with_backoff(
-            f"year discovery {collection_name}",
-            lambda: qdrant_client.scroll(
-                collection_name=collection_name,
-                limit=2000,
-                offset=offset,
-                with_payload=[year_field],
-                with_vectors=False,
-            ),
-        )
+    if not years:
+        logger.warning(f"No years found in {collection_name} (sampled {len(results)} records)")
+        return []
 
-        for point in results:
-            year = point.payload.get(year_field)
-            if year is not None:
-                years.add(int(year))
-
-        offset = next_offset
-        if not results or offset is None:
-            break
-
-    return sorted(years)
+    # Fill range between min/max — empty years are skipped during export
+    min_year = min(years)
+    max_year = max(years)
+    logger.info(f"  Year sample: {len(years)} distinct years from {len(results)} records")
+    return list(range(min_year, max_year + 1))
 
 
 def export_collection(
