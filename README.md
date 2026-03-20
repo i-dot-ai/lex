@@ -7,26 +7,27 @@ UK legal API for AI agents and researchers. Access comprehensive UK legislation 
 
 ## What is Lex?
 
-Lex provides programmatic access to millions of UK legal documents and statutory instruments with advanced semantic search capabilities.
+Lex provides programmatic access to 8.4M+ UK legal documents - legislation, amendments, and explanatory notes - with hybrid semantic search.
 
 **This is an experimental service and should not be used as a production dependency.**
 
 ### Dataset Coverage
 
-- **Legislation** - Acts and Statutory Instruments (1267-present, complete from 1963)
-- **Explanatory Notes** - Legislative context and guidance
-- **Amendments** - Changes and modifications over time
-- **PDF Digitisation** - Historical legislation digitised using AI
+- **Legislation** - 220K Acts and Statutory Instruments (1267-present, complete from 1963)
+- **Amendments** - 892K legislative changes and modifications
+- **Explanatory Notes** - 89K notes providing legislative context
+- **Case Law** - 70K judgments and 4.7M paragraphs (temporarily disabled pending TNA licence)
+- **PDF Digitisation** - Historical legislation (pre-1963) digitised using AI
 
 ### What Can You Build?
 
-- **Legal Research** - Find precedents and relevant legislation in seconds
+- **Legal Research** - Find relevant legislation in seconds
 - **Policy Analysis** - Track legislative changes over time
 - **AI Grounding** - Ground AI assistants in authoritative UK legal sources
 
 ## MCP Integration
 
-Connect AI assistants to Lex via Model Context Protocol. See the [live documentation](https://lex-api.victoriousdesert-f8e685e0.uksouth.azurecontainerapps.io) for setup instructions for:
+Connect AI assistants to Lex via Model Context Protocol. See the [live documentation](https://lex.lab.i.ai.gov.uk/docs) for setup instructions for:
 
 - Claude Desktop
 - Claude Code
@@ -86,15 +87,19 @@ uv run ruff format .  # Format code
 ```
 lex/
 ├── src/
-│   ├── lex/          # Data pipeline (scraping, parsing, indexing)
-│   └── backend/      # API server (FastAPI + MCP)
-├── tools/            # Export utilities (Parquet/JSONL)
-└── docs/             # Documentation
+│   ├── lex/              # Data pipeline (scraping, parsing, indexing)
+│   └── backend/          # API server (FastAPI + MCP)
+├── infrastructure/       # Azure Bicep templates and deploy scripts
+├── scripts/              # Maintenance, migration, and export utilities
+├── tests/                # Test suite
+└── docs/                 # Documentation
 ```
 
 ## Documentation
 
+- [System Architecture](docs/system-architecture.md) - Start here for the full picture
 - [Deployment Guide](docs/deployment.md)
+- [Operations Runbook](docs/operations-runbook.md)
 - [Data Pipeline Guide](src/lex/README.md)
 - [API Reference](src/backend/README.md)
 - [Troubleshooting](docs/troubleshooting.md)

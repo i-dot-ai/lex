@@ -40,7 +40,7 @@ Single-method approaches fail:
 
 **Ratio**: 3x dense, 0.8x sparse (dense-favoring)
 
-**Code**: `src/backend/legislation/search.py:334`
+**Code**: `src/backend/legislation/search.py` (`qdrant_search`)
 
 ### RRF for Caselaw
 
@@ -51,7 +51,7 @@ Single-method approaches fail:
 
 **Why**: Simpler, no tuning needed, works universally.
 
-**Code**: `src/backend/caselaw/search.py:82`
+**Code**: `src/backend/caselaw/search.py` (`caselaw_search`)
 
 ## Performance Optimisations
 
@@ -158,8 +158,8 @@ Research confirms hybrid search outperforms single methods:
 **Core Implementation**:
 - `src/lex/core/embeddings.py` - Dense + sparse generation
 - `src/lex/core/embedding_cache.py` - Qdrant caching
-- `src/backend/legislation/search.py:270-388` - DBSF fusion
-- `src/backend/caselaw/search.py:54-118` - RRF fusion
+- `src/backend/legislation/search.py` - DBSF fusion (`qdrant_search`)
+- `src/backend/caselaw/search.py` - RRF fusion (`caselaw_search`)
 
 **Vector Config**:
 - `src/lex/*/qdrant_schema.py` - Collection schemas

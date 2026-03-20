@@ -1,6 +1,6 @@
 # UK Legal System Primer
 
-Essential UK legal concepts for understanding the Lex codebase.
+Essential UK legal concepts for understanding the Lex codebase. For the technical implementation of these concepts, see [data-models.md](data-models.md). For how The National Archives (TNA) API exposes this data, see [legislation-gov-uk-api.md](legislation-gov-uk-api.md).
 
 ## Regnal Years
 
@@ -147,11 +147,11 @@ The 1962 Act changed citation from regnal years to calendar years. This affects:
 | Modern Pre-1963 | 1900-1962 | ~50K | Very good |
 | Complete | 1963+ | ~150K | 100% complete |
 
-**Why sparse**: TNA prioritized in-force and constitutional legislation. Most medieval Acts were repealed and never digitized.
+**Why sparse**: TNA prioritised in-force and constitutional legislation. Most medieval Acts were repealed and never digitised.
 
 ### Case Law Starts 2001
 
-- TNA's Find Case Law digitized from 2001 onwards
+- TNA's Find Case Law digitised from 2001 onwards
 - UKSC only exists from 2009 (before: House of Lords)
 - Earlier cases in commercial databases (Westlaw, LexisNexis)
 

@@ -2,18 +2,19 @@
 
 Cost analysis for Qdrant Cloud deployment. For the system overview, see [system-architecture.md](system-architecture.md). For search performance characteristics, see [search-architecture.md](search-architecture.md).
 
-**Last Updated:** November 2025
+**Last Updated:** March 2026
 
 ## Dataset Overview
 
-- **Total Vectors:** ~5M points across 7 collections
-  - caselaw_section: 2,403,490
-  - legislation_section: 1,472,584
+- **Total Vectors:** ~8.4M points across 8 collections
+  - caselaw_section: 4,723,735
+  - legislation_section: 2,098,225
   - amendment: 892,210
-  - legislation: 155,989
-  - explanatory_note: 82,344
-  - caselaw: 30,512
-  - embedding_cache: 333,000+
+  - embedding_cache: 238,600
+  - legislation: 219,685
+  - explanatory_note: 88,956
+  - caselaw: 69,970
+  - caselaw_summary: 61,107
 
 - **Vector Dimensions:** 1024D dense (text-embedding-3-large) + ~200D sparse (BM25)
 - **Payload Size:** ~3 KB average per document (full text + metadata)
@@ -46,17 +47,17 @@ Cost analysis for Qdrant Cloud deployment. For the system overview, see [system-
 
 ## Storage Requirements
 
-### With Scalar Quantization (Recommended)
-- Dense vectors: ~4 GB (quantized from 16 GB)
-- Sparse vectors: ~3.2 GB (cannot quantize)
-- Payload data: ~12 GB
-- **Total: ~19 GB**
+### With Scalar Quantisation (Recommended)
+- Dense vectors: ~8 GB (quantised from ~32 GB)
+- Sparse vectors: ~5 GB (cannot quantise)
+- Payload data: ~20 GB
+- **Total: ~33 GB**
 
-### Without Quantization
-- Dense vectors: ~16 GB
-- Sparse vectors: ~3.2 GB
-- Payload data: ~12 GB
-- **Total: ~31 GB**
+### Without Quantisation
+- Dense vectors: ~32 GB
+- Sparse vectors: ~5 GB
+- Payload data: ~20 GB
+- **Total: ~57 GB**
 
 ## Cost Optimisation Notes
 
@@ -69,8 +70,8 @@ Cost analysis for Qdrant Cloud deployment. For the system overview, see [system-
    - Production may want replication_factor=2 for HA (doubles cost to ~$120/month)
 
 3. **Disk Space Buffer**
-   - Current dataset: ~19 GB with quantization
-   - Recommended provision: 24-32 GB for growth headroom
+   - Current dataset: ~33 GB with quantisation
+   - Recommended provision: 48-64 GB for growth headroom
 
 4. **Regional Considerations**
    - UK South chosen for data residency (UK legal documents)
@@ -88,7 +89,7 @@ uv run python scripts/maintenance/enable_quantization.py
 
 Collections transition: grey → yellow (optimising) → green (complete).
 
-**Warning**: Optimisation temporarily increases memory usage. With 5M points, 4GB RAM causes OOM. Use 16GB+ during index rebuilds.
+**Warning**: Optimisation temporarily increases memory usage. With 8M+ points, 4GB RAM causes OOM. Use 16GB+ during index rebuilds.
 
 ## Troubleshooting
 

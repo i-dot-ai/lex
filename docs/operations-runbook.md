@@ -8,10 +8,10 @@ Day-to-day operational reference for running Lex in production. For initial setu
 
 | Resource | URL |
 |----------|-----|
-| API | `https://lex-prod-apim.azure-api.net` |
-| MCP endpoint | `https://lex-prod-apim.azure-api.net/mcp-tools/mcp` |
-| Health check | `https://lex-prod-apim.azure-api.net/healthcheck` |
-| Developer portal | `https://lex-prod-apim.developer.azure-api.net` |
+| API | `https://lex.lab.i.ai.gov.uk` |
+| MCP endpoint | `https://lex.lab.i.ai.gov.uk/mcp` |
+| Health check | `https://lex.lab.i.ai.gov.uk/healthcheck` |
+| API docs (OpenAPI) | `https://lex.lab.i.ai.gov.uk/docs` |
 | Downloads manifest | `https://lexdownloads.blob.core.windows.net/downloads/latest/manifest.json` |
 | Azure resource group | `rg-lex` |
 
@@ -24,7 +24,7 @@ All secrets are stored as Azure Container Apps secret refs. Local dev credential
 ### 1. API health
 
 ```bash
-curl -s https://lex-prod-apim.azure-api.net/healthcheck | jq
+curl -s https://lex.lab.i.ai.gov.uk/healthcheck | jq
 ```
 
 Expected response (200 OK):
@@ -33,15 +33,16 @@ Expected response (200 OK):
 {
   "status": "healthy",
   "database": "qdrant",
-  "collections": 7,
+  "collections": 8,
   "collection_details": {
-    "legislation": { "points": 94000, "status": "green" },
-    "legislation_section": { "points": 2000000, "status": "green" },
-    "caselaw": { "points": 750000, "status": "green" },
-    "caselaw_section": { "points": 600000, "status": "green" },
-    "caselaw_summary": { "points": 750000, "status": "green" },
-    "explanatory_note": { "points": 82000, "status": "green" },
-    "amendment": { "points": 892000, "status": "green" }
+    "caselaw_section": { "points": 4723735, "status": "green" },
+    "legislation_section": { "points": 2098225, "status": "green" },
+    "amendment": { "points": 892210, "status": "green" },
+    "embedding_cache": { "points": 238600, "status": "green" },
+    "legislation": { "points": 219685, "status": "green" },
+    "explanatory_note": { "points": 88956, "status": "green" },
+    "caselaw": { "points": 69970, "status": "green" },
+    "caselaw_summary": { "points": 61107, "status": "green" }
   }
 }
 ```

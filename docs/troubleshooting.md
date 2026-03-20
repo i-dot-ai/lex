@@ -1,6 +1,6 @@
 # Troubleshooting
 
-Common issues and solutions when running Lex locally.
+Common issues and solutions when running Lex locally. For production issues, see [operations-runbook.md](operations-runbook.md). For deployment setup, see [deployment.md](deployment.md).
 
 ## Services won't start
 

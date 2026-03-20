@@ -1,376 +1,167 @@
-# Data Models Guide
+# Data Models
 
-## Overview
+Pydantic models for all document types in the Lex pipeline. Each model defines the fields stored in Qdrant and validated at ingest time.
 
-Lex uses Pydantic models to ensure data consistency and validation across the pipeline. Each document type has its own model with specific fields, validation rules, and computed properties. All models are stored in Qdrant vector database with hybrid vector embeddings (dense + sparse).
+For domain context on legislation types and court hierarchy, see [uk-legal-system.md](uk-legal-system.md). For how these models flow through the pipeline, see [ingestion-process.md](ingestion-process.md).
 
-## Base Models
+---
 
-### LexModel
-The base class for all Lex documents, providing common fields and functionality.
+## Legislation
 
-```python
-class LexModel(BaseModel):
-    id: str                    # Unique identifier (required)
-    created_at: datetime       # When document was created
-    updated_at: datetime       # Last modification time
-```
+Top-level legislative documents (Acts, SIs, etc.).
 
-## Legislation Models
+**Source**: `src/lex/legislation/models.py`
 
-### Legislation
-Primary model for legislative documents (Acts, SIs, etc.).
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | str | Canonical URI (`http://www.legislation.gov.uk/id/ukpga/2023/52`) |
+| `uri` | str | Document URI |
+| `title` | str | Document title |
+| `type` | LegislationType | One of 28 legislation type codes — see [uk-legal-system.md](uk-legal-system.md) |
+| `year` | int | Year of enactment/making |
+| `number` | int | Document number within that year |
+| `enacted` | date | Enactment/making date |
+| `modified` | datetime | Last modification timestamp |
+| `version` | int | Version number |
+| `status` | str | Current status (e.g. "enacted", "revised") |
+| `html_snippet` | str | HTML preview |
+| `html` | str | Full HTML content |
+| `number_of_provisions` | int | Section count |
+| `territorial_extent` | list[str] | Geographic coverage (England, Wales, Scotland, N.I.) |
 
-| Field | Type | Description | Example |
-|-------|------|-------------|---------|
-| `id` | str | Unique identifier | `"http://www.legislation.gov.uk/id/ukpga/2023/52"` |
-| `title` | str | Document title | `"Online Safety Act 2023"` |
-| `type` | LegislationType | Document type enum | `LegislationType.UKPGA` |
-| `year` | int | Year of enactment | `2023` |
-| `number` | int | Document number | `52` |
-| `enacted` | date | Enactment date | `"2023-10-26"` |
-| `modified` | datetime | Last modification | `"2023-10-26T00:00:00"` |
-| `version` | int | Version number | `1` |
-| `status` | str | Current status | `"enacted"` |
-| `html_snippet` | str | HTML preview | `"<p>An Act to...</p>"` |
-| `html` | str | Full HTML content | Complete document HTML |
-| `number_of_provisions` | int | Section count | `215` |
-| `territorial_extent` | List[str] | Geographic coverage | `["England", "Wales", "Scotland"]` |
+**Computed**: `citation` (e.g. "2023 c. 52"), `url` (link to legislation.gov.uk)
 
-#### Computed Fields
-- `citation` - Full citation (e.g., "2023 c. 52")
-- `url` - Link to legislation.gov.uk
+## LegislationSection
 
-### LegislationType Enum
-```python
-class LegislationType(str, Enum):
-    # UK-wide
-    UKPGA = "ukpga"    # UK Public General Acts
-    UKSI = "uksi"      # UK Statutory Instruments
-    UKLA = "ukla"      # UK Local Acts
-    UKPPA = "ukppa"    # UK Private and Personal Acts
-    
-    # Scotland
-    ASP = "asp"        # Acts of the Scottish Parliament
-    SSI = "ssi"        # Scottish Statutory Instruments
-    
-    # Wales
-    ASC = "asc"        # Acts of Senedd Cymru
-    ANAW = "anaw"      # Acts of National Assembly for Wales
-    WSI = "wsi"        # Wales Statutory Instruments
-    
-    # Northern Ireland
-    NIA = "nia"        # NI Assembly Acts
-    NISR = "nisr"      # NI Statutory Rules
-    NISI = "nisi"      # NI Orders in Council
-    
-    # European (pre-Brexit)
-    EUR = "eur"        # EU Regulations
-    EUDR = "eudr"      # EU Directives
-    EUDN = "eudn"      # EU Decisions
-    
-    # ... (28 types total)
-```
-
-### LegislationSection
 Individual provisions within legislation.
 
-| Field | Type | Description | Example |
-|-------|------|-------------|---------|
-| `id` | str | Section identifier | `"ukpga/2023/52/section/1"` |
-| `uri` | str | Full URI | `"http://www.legislation.gov.uk/id/ukpga/2023/52/section/1"` |
-| `legislation_id` | str | Parent document ID | `"http://www.legislation.gov.uk/id/ukpga/2023/52"` |
-| `title` | str | Section title | `"Meaning of 'online safety'"` |
-| `text` | str | Section content | Full text of the provision |
-| `extent` | List[GeographicalExtent] | Geographic application | See GeographicalExtent |
-| `provision_type` | ProvisionType | Type of provision | `ProvisionType.SECTION` |
+**Source**: `src/lex/legislation/models.py`
 
-#### Computed Fields
-- `section_number` - Extracted section number
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | str | Section identifier |
+| `uri` | str | Full URI |
+| `legislation_id` | str | Parent document ID |
+| `title` | str | Section title |
+| `text` | str | Section content |
+| `extent` | list[GeographicalExtent] | Territorial application |
+| `provision_type` | ProvisionType | Type of provision (section, schedule, etc.) |
 
-### GeographicalExtent
-Territorial application details.
+**Computed**: `section_number`
 
-| Field | Type | Description | Example |
-|-------|------|-------------|---------|
-| `territory` | str | Geographic area | `"England"` |
-| `start_date` | date | When extent begins | `"2023-10-26"` |
-| `end_date` | Optional[date] | When extent ends | `None` |
-| `notes` | str | Additional notes | `"Applies to reserved matters only"` |
+---
 
-## Case Law Models
+## Case Law
 
-### CaseLaw
 Court judgments and decisions.
 
-| Field | Type | Description | Example |
-|-------|------|-------------|---------|
-| `id` | str | Unique identifier | `"ewca/civ/2023/1234"` |
-| `title` | str | Case title | `"Smith v Jones"` |
-| `neutral_citation` | str | Neutral citation | `"[2023] EWCA Civ 1234"` |
-| `court` | Court | Court enum | `Court.EWCA` |
-| `division` | Optional[str] | Court division | `"Civil Division"` |
-| `year` | int | Judgment year | `2023` |
-| `number` | int | Case number | `1234` |
-| `date` | date | Judgment date | `"2023-11-15"` |
-| `judges` | List[str] | Presiding judges | `["Lord Justice Smith", "Lady Justice Jones"]` |
-| `parties` | List[str] | Case parties | `["John Smith", "Jane Jones"]` |
-| `catchwords` | List[str] | Key topics | `["Contract", "Breach", "Damages"]` |
-| `headnote` | str | Case summary | Brief summary |
-| `html` | str | Full judgment HTML | Complete judgment text |
+**Source**: `src/lex/caselaw/models.py`
 
-### Court Enum
-```python
-class Court(str, Enum):
-    # Supreme Court
-    UKSC = "uksc"      # UK Supreme Court
-    UKPC = "ukpc"      # Privy Council
-    
-    # Court of Appeal
-    EWCA_CIV = "ewca-civ"   # Civil Division
-    EWCA_CRIM = "ewca-crim" # Criminal Division
-    
-    # High Court
-    EWHC_ADMIN = "ewhc-admin"  # Administrative Court
-    EWHC_CH = "ewhc-ch"        # Chancery Division
-    EWHC_QB = "ewhc-qb"        # Queen's Bench
-    EWHC_FAM = "ewhc-fam"      # Family Division
-    
-    # ... (many more courts)
-```
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | str | Identifier (e.g. `ewca/civ/2023/1234`) |
+| `title` | str | Case title (e.g. "Smith v Jones") |
+| `neutral_citation` | str | Neutral citation (e.g. `[2023] EWCA Civ 1234`) |
+| `court` | Court | Court enum — see [uk-legal-system.md](uk-legal-system.md) |
+| `division` | str? | Court division |
+| `year` | int | Judgment year |
+| `number` | int | Case number |
+| `date` | date | Judgment date |
+| `judges` | list[str] | Presiding judges |
+| `parties` | list[str] | Case parties |
+| `catchwords` | list[str] | Key topics |
+| `headnote` | str | Case summary |
+| `html` | str | Full judgment HTML |
 
-### CaseLawSection
+## CaseLawSection
+
 Paragraphs within judgments.
 
-| Field | Type | Description | Example |
-|-------|------|-------------|---------|
-| `id` | str | Section identifier | `"ewca/civ/2023/1234/para/45"` |
-| `caselaw_id` | str | Parent case ID | `"ewca/civ/2023/1234"` |
-| `paragraph_number` | int | Paragraph number | `45` |
-| `text` | str | Paragraph content | Full paragraph text |
-| `is_quote` | bool | Whether it's a quote | `false` |
-| `judge` | Optional[str] | Speaking judge | `"Lord Justice Smith"` |
+**Source**: `src/lex/caselaw/models.py`
 
-## Amendment Models
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | str | Section identifier |
+| `caselaw_id` | str | Parent case ID |
+| `paragraph_number` | int | Paragraph number |
+| `text` | str | Paragraph content |
+| `is_quote` | bool | Whether it's a quotation |
+| `judge` | str? | Speaking judge |
 
-### Amendment
+---
+
+## Amendment
+
 Legislative changes and modifications.
 
-| Field | Type | Description | Example |
-|-------|------|-------------|---------|
-| `id` | str | Unique identifier | Generated UUID |
-| `changed_legislation` | str | Document being changed | `"ukpga/2006/41"` |
-| `changed_provision` | Optional[str] | Specific provision | `"section/45"` |
-| `affecting_legislation` | str | Document making change | `"uksi/2023/1234"` |
-| `affecting_provision` | Optional[str] | Provision making change | `"regulation/2"` |
-| `type` | AmendmentType | Type of change | `AmendmentType.SUBSTITUTION` |
-| `date` | date | When change takes effect | `"2024-01-01"` |
-| `extent` | List[str] | Geographic application | `["England", "Wales"]` |
-| `note` | Optional[str] | Explanatory note | `"Words substituted"` |
+**Source**: `src/lex/amendment/models.py`
 
-### AmendmentType Enum
-```python
-class AmendmentType(str, Enum):
-    SUBSTITUTION = "substitution"   # Text replaced
-    INSERTION = "insertion"         # Text added
-    REPEAL = "repeal"              # Section removed
-    REVOCATION = "revocation"      # SI revoked
-    AMENDMENT = "amendment"        # General change
-    MODIFICATION = "modification"  # Modified application
-```
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | str | Generated UUID |
+| `changed_legislation` | str | Document being changed |
+| `changed_provision` | str? | Specific provision changed |
+| `affecting_legislation` | str | Document making the change |
+| `affecting_provision` | str? | Provision making the change |
+| `type` | AmendmentType | substitution, insertion, repeal, revocation, amendment, modification |
+| `date` | date | When change takes effect |
+| `extent` | list[str] | Geographic application |
+| `note` | str? | Explanatory note |
 
-## Explanatory Note Models
+---
 
-### ExplanatoryNote
+## Explanatory Note
+
 Explanatory memoranda for legislation.
 
-| Field | Type | Description | Example |
-|-------|------|-------------|---------|
-| `id` | str | Unique identifier | `"ukpga/2023/52/en"` |
-| `legislation_id` | str | Related legislation | `"ukpga/2023/52"` |
-| `title` | str | Note title | `"Explanatory Notes to Online Safety Act 2023"` |
-| `html` | str | Full HTML content | Complete explanatory text |
-| `sections` | List[ExplanatoryNoteSection] | Individual sections | See below |
+**Source**: `src/lex/explanatory_note/models.py`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | str | Identifier (e.g. `ukpga/2023/52/en`) |
+| `legislation_id` | str | Related legislation |
+| `title` | str | Note title |
+| `html` | str | Full HTML content |
+| `sections` | list[ExplanatoryNoteSection] | Individual sections |
 
 ### ExplanatoryNoteSection
-Sections within explanatory notes.
 
-| Field | Type | Description | Example |
-|-------|------|-------------|---------|
-| `id` | str | Section identifier | `"ukpga/2023/52/en/section/1"` |
-| `explanatory_note_id` | str | Parent note ID | `"ukpga/2023/52/en"` |
-| `section_ref` | str | Related legislation section | `"section/1"` |
-| `title` | str | Section title | `"Overview of section 1"` |
-| `text` | str | Explanatory text | Detailed explanation |
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | str | Section identifier |
+| `explanatory_note_id` | str | Parent note ID |
+| `section_ref` | str | Related legislation section |
+| `title` | str | Section title |
+| `text` | str | Explanatory text |
+
+---
 
 ## Validation Rules
 
-### Common Validations
-1. **IDs must be unique** - Enforced by Qdrant UUID5 generation
-2. **Required fields** - Cannot be None or empty
-3. **Date formats** - ISO 8601 format required
-4. **Enums** - Must match defined values
-5. **URLs** - Must be valid HTTP(S) URLs
+All models inherit from `LexModel` (defined in `src/lex/core/models.py`) which provides `id`, `created_at`, and `updated_at`.
 
-### Type-Specific Validations
+**Common rules**:
+- IDs must be unique (enforced by UUID5 generation at upload)
+- Required fields cannot be None or empty
+- Dates must be ISO 8601 format
+- Enums must match defined values
 
-#### Legislation
-- `year` must be between 1066 and current year
-- `number` must be positive integer
-- `type` must be valid LegislationType enum
+**Type-specific**:
+- Legislation `year` must be between 1066 and current year
+- Case law `neutral_citation` must match citation pattern
+- Case law `date` cannot be in future
+- Amendment `changed_legislation` and `affecting_legislation` must be valid document IDs
 
-#### Case Law
-- `neutral_citation` must match citation pattern
-- `court` must be valid Court enum
-- `date` cannot be in future
+---
 
-#### Amendments
-- `changed_legislation` must be valid document ID
-- `affecting_legislation` must be valid document ID
-- `date` represents when change takes effect
+## Qdrant Storage
 
-## Qdrant Schema
+Each model is stored in Qdrant with hybrid vectors: dense (1024D Azure OpenAI) + sparse (BM25 FastEmbed). Point IDs are deterministic UUID5s derived from document identifiers, making re-ingestion idempotent.
 
-Each model is stored in Qdrant with:
-- **Hybrid vectors**: Dense (1024D Azure OpenAI) + Sparse (BM25 FastEmbed)
-- **Payload**: Full Pydantic model as JSON
-- **UUID5 point IDs**: Deterministic IDs from document identifiers
-- **Named vectors**: `dense` and `sparse` for RRF fusion search
+Collection schemas are defined in `src/lex/*/qdrant_schema.py` — these are the source of truth. See [search-architecture.md](search-architecture.md) for how hybrid search works.
 
-Example Qdrant collection configuration for Legislation:
-```python
-{
-    "vectors": {
-        "dense": {
-            "size": 1024,  # Azure OpenAI text-embedding-3-large
-            "distance": "Cosine"
-        },
-        "sparse": {
-            "modifier": "Idf"  # BM25 from FastEmbed
-        }
-    },
-    "hnsw_config": {
-        "m": 16,
-        "ef_construct": 100
-    }
-}
-```
+## ID Format Conventions
 
-Point structure:
-```python
-{
-    "id": uuid.uuid5(NAMESPACE, document_id),  # Deterministic UUID
-    "vector": {
-        "dense": [0.123, ...],  # 1024D float array
-        "sparse": {"indices": [...], "values": [...]}  # BM25 vector
-    },
-    "payload": {
-        "id": "ukpga/2023/52",
-        "title": "Online Safety Act 2023",
-        "type": "ukpga",
-        "year": 2023,
-        "html": "<p>...</p>",
-        # ... all other Pydantic fields
-    }
-}
-```
-
-## Best Practices
-
-### 1. Use Enums for Fixed Values
-```python
-# Good
-type: LegislationType = LegislationType.UKPGA
-
-# Bad
-type: str = "ukpga"
-```
-
-### 2. Validate Early
-```python
-# Models validate on instantiation
-try:
-    legislation = Legislation(**data)
-except ValidationError as e:
-    logger.error(f"Invalid data: {e}")
-```
-
-### 3. Use Computed Properties
-```python
-@computed_field
-@property
-def citation(self) -> str:
-    return f"{self.year} c. {self.number}"
-```
-
-### 4. Handle Optional Fields
-```python
-# Check optional fields before use
-if legislation.enacted:
-    days_since = (date.today() - legislation.enacted).days
-```
-
-### 5. Consistent ID Format
-- Legislation: `{type}/{year}/{number}`
-- Case Law: `{court}/{year}/{number}`
+- Legislation: `http://www.legislation.gov.uk/id/{type}/{year}/{number}`
+- Case law: `{court}/{year}/{number}`
 - Sections: `{parent_id}/section/{number}`
-
-## Extending Models
-
-To add a new document type:
-
-1. Create model in `src/lex/{type}/models.py`
-2. Inherit from `LexModel`
-3. Define fields with types and validation
-4. Add computed properties as needed
-5. Create corresponding Qdrant collection schema
-6. Update documentation
-
-Example:
-```python
-class NewDocumentType(LexModel):
-    """Model for new document type."""
-    
-    # Required fields
-    title: str
-    type: NewDocumentEnum
-    content: str
-    
-    # Optional fields
-    metadata: Optional[Dict[str, Any]] = None
-    
-    # Computed property
-    @computed_field
-    @property
-    def summary(self) -> str:
-        return self.content[:200] + "..."
-```
-
-## Common Issues
-
-### 1. Validation Errors
-```python
-# Missing required field
-ValidationError: field required (type=value_error.missing)
-
-# Wrong type
-ValidationError: value is not a valid integer (type=type_error.integer)
-```
-
-### 2. Enum Mismatches
-```python
-# Use .value for string representation
-doc_type = LegislationType.UKPGA.value  # "ukpga"
-```
-
-### 3. Date Parsing
-```python
-# Dates must be ISO format
-date: "2023-11-15"  # Good
-date: "15/11/2023"  # Bad
-```
-
-### 4. Large Text Fields
-- Consider truncating for previews
-- Use separate fields for full content
-- Be mindful of Qdrant payload size limits (10MB default)

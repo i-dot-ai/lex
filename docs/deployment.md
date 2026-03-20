@@ -1,6 +1,6 @@
 # Deployment Guide
 
-Deploy Lex to run your own instance of the UK legal data API.
+Deploy Lex to run your own instance of the UK legal data API. For the system overview, see [system-architecture.md](system-architecture.md). For day-to-day operations after deployment, see [operations-runbook.md](operations-runbook.md).
 
 ## Deployment Options
 

@@ -1,260 +1,100 @@
-# Ingestion Process Documentation
+# Ingestion Process
 
-## Overview
+Pipeline internals for scraping, parsing, embedding, and uploading UK legal documents. For the high-level system overview, see [system-architecture.md](system-architecture.md). For scheduling and operational procedures, see [operations-runbook.md](operations-runbook.md).
 
-The Lex pipeline ingests UK legislative documents from The National Archives website (legislation.gov.uk) and stores them in Qdrant vector database with hybrid embeddings. The system handles multiple document types with a consistent architecture: **Scraper → Parser → Pipeline → Qdrant**.
+---
 
-## Document Types
+## Pipeline Architecture
 
-The system processes four main document types:
-
-1. **Legislation** - Primary and secondary legislation (Acts, SIs, etc.)
-2. **Legislation Sections** - Individual provisions extracted from legislation
-3. **Case Law** - Court judgments and decisions
-4. **Explanatory Notes** - Explanatory memoranda for legislation
-5. **Amendments** - Legislative changes and modifications
-
-## Architecture
-
-### Pipeline Flow
+Every document type follows the same four-stage pattern:
 
 ```
-1. Scraper (fetch URLs) → 2. Load Content (download XML) → 3. Parser (extract data) → 4. Upload (store in Qdrant with hybrid vectors)
+Scraper (fetch URLs) → Parser (extract data) → Embeddings (dense + sparse) → Upload (Qdrant)
 ```
 
-### Key Components
+The system processes five document types: legislation, legislation sections, case law, explanatory notes, and amendments. Each has its own scraper, parser, and pipeline module under `src/lex/{type}/`.
 
-#### 1. Scrapers (`src/lex/{type}/scraper.py`)
-- Generate URLs by iterating through years and document types
-- Download XML content from legislation.gov.uk
-- Handle pagination for search results
-- Implement checkpointing for resilient processing
+---
 
-#### 2. Parsers (`src/lex/{type}/parser.py`)
-- Transform XML/HTML into Pydantic models
-- Extract structured data (title, text, metadata)
-- Handle different XML schemas and formats
-- Validate data integrity
+## Scrapers (`src/lex/{type}/scraper.py`)
 
-#### 3. Pipelines (`src/lex/{type}/pipeline.py`)
-- Orchestrate the scraping and parsing process
-- Handle errors and PDF fallbacks
-- Generate embeddings and upload to Qdrant
-- Implement structured logging
+Scrapers generate document URLs by iterating through years and legislation types, then download XML content from legislation.gov.uk or caselaw.nationalarchives.gov.uk.
 
-#### 4. Models (`src/lex/{type}/models.py`)
-- Define Pydantic data models
-- Ensure consistent field types
-- Provide computed properties
-- Handle data validation
+- **Pagination**: Atom feeds return 20 entries per page; scrapers follow `<leg:morePages>` until exhausted
+- **Checkpointing**: Progress is saved periodically so interrupted runs can resume
+- **Rate limiting**: Exponential backoff with circuit breaker prevents hammering external APIs
+- **Error recovery**: HTTP 5xx errors are logged and skipped; the pipeline continues with remaining documents
 
-## Running Ingestion
+URL patterns follow legislation.gov.uk conventions — see [legislation-gov-uk-api.md](legislation-gov-uk-api.md) for details.
 
-### Sample Data (Quick Testing)
-```bash
-# Ingest sample of all document types
-make ingest-all-sample
+## Parsers (`src/lex/{type}/parser.py`)
 
-# Ingest specific type with limit
-make ingest-legislation-sample    # 50 documents
-make ingest-caselaw-sample       # 50 documents
-```
+Parsers transform XML/HTML into Pydantic models (defined in [data-models.md](data-models.md)).
 
-### Full Data (Production)
-```bash
-# Ingest all document types
-make ingest-all-full
+- **XML schemas**: Crown Legislation Markup Language (CLML) for legislation, XHTML for case law
+- **Section extraction**: Walks the hierarchical XML structure (Body → Part → P1group → P1 → P1para) to extract individual provisions
+- **PDF fallback**: Pre-1987 documents often lack XML body text. The parser detects empty bodies, logs `processing_status: "pdf_fallback"`, and continues without crashing
+- **URI normalisation**: All URIs are normalised to canonical format (`http://www.legislation.gov.uk/id/{type}/{year}/{number}`) at parse time
 
-# Ingest specific types
-make ingest-legislation-full      # 1963-current, all types
-make ingest-caselaw-full         # 2001-current
-make ingest-legislation-section-full
-```
+## Embeddings (`src/lex/core/embeddings.py`)
 
-### Command Line Options
-```bash
-# Direct command with options
-docker compose exec pipeline uv run src/lex/main.py \
-  -m legislation \              # Model type
-  --years 2020-2023 \          # Year range
-  --types uksi ukpga \         # Document types
-  --limit 100 \                # Max documents
-  --batch-size 50 \            # Qdrant batch size
-  --non-interactive \          # No prompts
-  --no-checkpoint \            # Disable checkpointing
-  --clear-checkpoint           # Start fresh
-```
+Each document gets two vectors:
 
-## Document Type Details
+- **Dense** (1024D): Azure OpenAI `text-embedding-3-large` — captures semantic meaning
+- **Sparse** (BM25): FastEmbed — captures exact term frequencies for citation matching
 
-### Legislation Types (28 types)
+An embedding cache (`src/lex/core/embedding_cache.py`) stores results in a dedicated Qdrant collection. Lookups use UUID5(SHA-256(text)) for O(1) retrieval, giving a 35x speedup on repeated text.
 
-The system supports 28 different legislation types, organised by jurisdiction:
+For why hybrid vectors and how fusion works, see [search-architecture.md](search-architecture.md).
 
-**UK-wide:**
-- `ukpga` - UK Public General Acts
-- `uksi` - UK Statutory Instruments
-- `ukla` - UK Local Acts
-- `ukppa` - UK Private and Personal Acts
+## Upload (`src/lex/{type}/pipeline.py`)
 
-**Scotland:**
-- `asp` - Acts of the Scottish Parliament
-- `ssi` - Scottish Statutory Instruments
-- `aosp` - Acts of the Old Scottish Parliament
+Documents are uploaded to Qdrant in configurable batches (default: 25, 10 for case law).
 
-**Wales:**
-- `asc`/`anaw` - Acts of Senedd Cymru/National Assembly
-- `wsi` - Wales Statutory Instruments
-- `mwa` - Measures of the Welsh Assembly
+- **Idempotency**: Point IDs are UUID5-derived from document identifiers, so re-running a pipeline is safe
+- **Batch upsert**: Chunks uploads to stay within Qdrant's 32MB payload limit
+- **Memory efficiency**: Documents flow through as generators, not lists — typical usage is 500MB-1GB
 
-**Northern Ireland:**
-- `nia` - Acts of the Northern Ireland Assembly
-- `nisr` - Northern Ireland Statutory Rules
-- `nisi` - Northern Ireland Orders in Council
+---
 
-**European (pre-Brexit):**
-- `eur` - EU Regulations
-- `eudr` - EU Directives
-- `eudn` - EU Decisions
+## Amendments-Led Mode
 
-### URL Patterns
+The daily ingest uses amendments as a "change manifest" rather than blindly rescraping by year. This is the most important mode to understand.
 
-Documents follow predictable URL patterns:
-```
-https://www.legislation.gov.uk/{type}/{year}/{number}/data.xml
-```
+**How it works** (`src/lex/ingest/amendments_led.py`):
 
-Examples:
-- `https://www.legislation.gov.uk/ukpga/2023/52/data.xml`
-- `https://www.legislation.gov.uk/uksi/2023/1234/data.xml`
-
-## Error Handling
-
-### PDF Fallbacks
-Many older documents (especially pre-1987) only exist as PDFs:
-- Parser detects "no body found" in XML
-- Logs as `processing_status: "pdf_fallback"`
-- Continues processing without crashing
-
-### Server Errors
-The scraper gracefully handles HTTP 5xx errors:
-- Logs warning and skips affected year/type
-- Continues processing other documents
-- Prevents pipeline crashes
-
-### Rate Limiting
-Built-in rate limit handling:
-- Exponential backoff with retry
-- Circuit breaker pattern
-- Checkpoint saves before exit
-
-## Batch Processing
-
-Documents are processed in configurable batches:
-- Default batch size: 25 documents (10 for caselaw due to size)
-- Batches uploaded to Qdrant using batch upsert with UUID5 idempotency
-- Memory efficient for large datasets
-- Progress logged every N batches
-
-## Performance Considerations
-
-### Typical Processing Rates
-- **Legislation**: ~5-10 documents/second
-- **Case Law**: ~2-5 documents/second (larger documents)
-- **Sections**: ~20-50 sections/second
-
-### Memory Usage
-- Documents processed as generators (not lists)
-- Batching prevents memory overflow
-- Typical usage: 500MB-1GB for pipeline
-
-### Network Optimisation
-- HTTP responses cached (14-day TTL)
-- Connection pooling via requests session
-- Parallel processing not implemented (API friendly)
-
-## Automated Scheduling (Azure Container Apps Jobs)
-
-The system uses a tiered scheduling strategy for data freshness, running as Azure Container Apps Jobs.
-
-### Schedule Overview
-
-| Job | Schedule | Mode | Description | Timeout |
-|-----|----------|------|-------------|---------|
-| **Daily** | 02:00 UTC | `amendments-led` | Smart incremental update (2 years) | 4 hours |
-| **Weekly** | Saturday 02:00 UTC | `amendments-led --years-back 5` | Extended amendments scan (5 years) | 24 hours |
-| **Monthly** | 1st of month 01:00 UTC | `full` | Complete historical rescan | 1 week |
-| **Export** | Sunday 03:00 UTC | `bulk_export_parquet.py` | Generate downloadable datasets | 6 hours |
-
-### Ingest Modes
-
-#### Daily: Amendments-Led Mode (`--mode amendments-led`)
-Uses amendments as a "change manifest" to intelligently target updates:
-
-1. Query amendments collection for `affecting_year` in current + previous year
+1. Query the amendments collection for `affecting_year` in the target range
 2. Extract unique `changed_legislation` IDs from those amendments
-3. Check which legislation IDs are missing or stale in Qdrant
+3. Check which IDs are missing or stale in Qdrant
 4. Rescrape only those specific legislation items
-5. Also ingest new caselaw and amendments for the year range
+5. Also ingest new case law and amendments for the year range
 
-This approach is efficient because it only rescrapes legislation that we know has changed, rather than blindly processing by year.
+The weekly job extends the lookback to 5 years (`--years-back 5`). The monthly job bypasses this entirely and runs a full historical rescan.
 
-#### Weekly: Extended Lookback
-Same as daily but with `--years-back 5` to catch amendments affecting older legislation that may have been missed.
+---
 
-#### Monthly: Full Historical
-Complete rescan using `--mode full` to ensure data integrity across all years (1963-present). This catches edge cases where very old legislation was recently amended.
+## Performance
 
-### CLI Usage
+| Metric | Typical value |
+|--------|--------------|
+| Legislation throughput | 5-10 docs/second |
+| Case law throughput | 2-5 docs/second |
+| Section throughput | 20-50 sections/second |
+| Pipeline memory | 500MB-1GB |
+| HTTP cache TTL | 14 days |
 
-```bash
-# Run daily amendments-led ingest (default 2 years)
-python -m lex.ingest --mode amendments-led
+Network requests use connection pooling via requests sessions. Processing is single-threaded (API-friendly).
 
-# Run with extended lookback (5 years)
-python -m lex.ingest --mode amendments-led --years-back 5
+---
 
-# Run full historical ingest
-python -m lex.ingest --mode full
+## Code References
 
-# Test with limit
-python -m lex.ingest --mode amendments-led --limit 10 -v
-```
-
-### Monitoring Jobs in Azure
-
-```bash
-# List recent job executions
-az containerapp job execution list --name lex-ingest-job --resource-group rg-lex -o table
-
-# Check specific execution status
-az containerapp job execution show --name lex-ingest-job --resource-group rg-lex \
-  --job-execution-name <execution-name> -o table
-
-# View job logs
-az containerapp job logs show --name lex-ingest-job --resource-group rg-lex \
-  --container ingest-job --execution <execution-name> --tail 50
-```
-
-## Monitoring Progress
-
-### Check Pipeline Status
-```bash
-# View recent logs
-docker compose logs -f pipeline
-
-# Check Qdrant collection counts
-curl localhost:6333/collections
-
-# Check specific collection
-curl localhost:6333/collections/legislation
-
-# View Qdrant dashboard
-open http://localhost:6333/dashboard
-```
-
-### Key Metrics
-- Documents processed per hour
-- Error rates by type
-- PDF fallback percentages
-- Processing duration by document type
+| Component | Path |
+|-----------|------|
+| Orchestrator | `src/lex/ingest/orchestrator.py` |
+| Amendments-led mode | `src/lex/ingest/amendments_led.py` |
+| Embeddings | `src/lex/core/embeddings.py` |
+| Embedding cache | `src/lex/core/embedding_cache.py` |
+| Legislation pipeline | `src/lex/legislation/pipeline.py` |
+| Case law pipeline | `src/lex/caselaw/pipeline.py` |
+| Models | `src/lex/{type}/models.py` — see [data-models.md](data-models.md) |

@@ -1,6 +1,6 @@
 # Legislation.gov.uk Technical Documentation
 
-Comprehensive documentation of The National Archives legislation API, XML structure, URL patterns, and data availability.
+Documentation of The National Archives (TNA) legislation API behaviour, discovered through empirical testing. For legislation types and domain context, see [uk-legal-system.md](uk-legal-system.md) and [data-models.md](data-models.md).
 
 **Last Updated:** 2025-10-13
 **API Base:** https://www.legislation.gov.uk
@@ -15,10 +15,8 @@ Comprehensive documentation of The National Archives legislation API, XML struct
 3. [Data Formats](#data-formats)
 4. [XML Structure (CLML)](#xml-structure-clml)
 5. [Historical Data Coverage](#historical-data-coverage)
-6. [Legislation Types](#legislation-types)
-7. [Regnal Years](#regnal-years)
-8. [Pagination & Feeds](#pagination--feeds)
-9. [API Best Practices](#api-best-practices)
+6. [Pagination & Feeds](#pagination--feeds)
+7. [API Best Practices](#api-best-practices)
 
 ---
 
@@ -39,10 +37,10 @@ The National Archives (TNA) provides free, structured access to all UK legislati
 
 | Period | Coverage | Notes |
 |--------|----------|-------|
-| 1988-Present | Complete | All legislation digitized |
-| 1801-1987 | Partial | Significant Acts digitized (~85K) |
+| 1988-Present | Complete | All legislation digitised |
+| 1801-1987 | Partial | Significant Acts digitised (~85K) |
 | 1267-1800 | Sparse | Historical/constitutional Acts (~2K) |
-| Pre-1267 | None | No digitized legislation |
+| Pre-1267 | None | No digitised legislation |
 
 ---
 
@@ -557,123 +555,7 @@ Total documents by year (sample from feed metadata):
 
 ---
 
-## Legislation Types
-
-The UK has 28 distinct legislation types, categorized as Primary, Secondary, or European.
-
-### Primary Legislation (16 types)
-
-| Code | Full Name | Years Active | Notes |
-|------|-----------|--------------|-------|
-| **ukpga** | UK Public General Acts | 1801-present | Main UK legislation post-union |
-| **asp** | Acts of the Scottish Parliament | 1999-present | Devolved Scotland |
-| **asc** | Acts of Senedd Cymru | 2020-present | Welsh Parliament (renamed from anaw) |
-| **anaw** | Acts of National Assembly for Wales | 2012-2020 | Now asc |
-| **ukcm** | Church Measures | 1920-present | Church of England |
-| **nia** | Acts of NI Assembly | 2000-present | Devolved NI (restored) |
-| **ukla** | UK Local Acts | 1797-present | Local/private scope |
-| **ukppa** | UK Private and Personal Acts | 1539-present | Private bills |
-| **apni** | Acts of NI Parliament | 1921-1972 | Old Stormont |
-| **gbla** | Local Acts of Parliament of GB | 1797-1800 | Pre-union local |
-| **aosp** | Acts of Old Scottish Parliament | 1424-1707 | Pre-union Scotland |
-| **aep** | Acts of English Parliament | 1267-1707 | Pre-union England |
-| **apgb** | Acts of Parliament of Great Britain | 1707-1800 | Post-union, pre-Ireland |
-| **mwa** | Measures of Welsh Assembly | 2008-2011 | Old Welsh powers |
-| **aip** | Acts of Old Irish Parliament | 1495-1800 | Pre-union Ireland |
-| **mnia** | Measures of NI Assembly | 1974 only | Brief period |
-
-### Secondary Legislation (9 types)
-
-| Code | Full Name | Years Active | Notes |
-|------|-----------|--------------|-------|
-| **uksi** | UK Statutory Instruments | 1948-present | Main secondary legislation |
-| **wsi** | Wales Statutory Instruments | 2012-present | Welsh SIs |
-| **ssi** | Scottish Statutory Instruments | 1999-present | Scottish SIs |
-| **nisr** | Northern Ireland Statutory Rules | 2000-present | NI SIs |
-| **nisro** | NI Statutory Rules and Orders | 1922-1974 | Historical NI |
-| **nisi** | Northern Ireland Orders in Council | 1974-present | Direct rule orders |
-| **uksro** | UK Statutory Rules and Orders | 1894-1947 | Pre-SI system |
-| **ukmo** | UK Ministerial Orders | Various | Ministerial powers |
-| **ukci** | Church Instruments | 1991-present | Church of England rules |
-
-### European Legislation (3 types)
-
-| Code | Full Name | Years Active | Notes |
-|------|-----------|--------------|-------|
-| **eur** | EU Regulations | 1973-2020 | Direct effect |
-| **eudr** | EU Directives | 1973-2020 | Require implementation |
-| **eudn** | EU Decisions | 1973-2020 | Specific addressees |
-
-**Note:** EU legislation remains on legislation.gov.uk as "retained EU law" post-Brexit but is no longer updated.
-
----
-
-## Regnal Years
-
-Pre-1963 legislation uses regnal year numbering (year of monarch's reign).
-
-### Format
-
-```
-{MonarchName}{RegnalNumber}/{RegnaYearStart}[-{RegnalYearEnd}]/{ActNumber}
-```
-
-### Common Monarchs in Database
-
-| Monarch | Code | Reign | Regnal Years |
-|---------|------|-------|--------------|
-| Edward I | Edw1 | 1272-1307 | 1-35 |
-| Edward III | Edw3 | 1327-1377 | 1-51 |
-| Henry VIII | Hen8 | 1509-1547 | 1-38 |
-| Elizabeth I | Eliz1 | 1558-1603 | 1-45 |
-| James I | Jas1 | 1603-1625 | 1-23 |
-| Charles II | Cha2 | 1660-1685 | 12-37 (starts at 12) |
-| William III | Will3 | 1689-1702 | 1-14 |
-| Anne | Ann | 1702-1714 | 1-13 |
-| George II | Geo2 | 1727-1760 | 1-33 |
-| George III | Geo3 | 1760-1820 | 1-60 |
-| George IV | Geo4 | 1820-1830 | 1-11 |
-| William IV | Will4 | 1830-1837 | 1-7 |
-| Victoria | Vict | 1837-1901 | 1-64 |
-| Edward VII | Edw7 | 1901-1910 | 1-10 |
-| George V | Geo5 | 1910-1936 | 1-26 |
-| Edward VIII | Edw8 | 1936 | 1 |
-| George VI | Geo6 | 1936-1952 | 1-16 |
-| Elizabeth II | Eliz2 | 1952-2022 | 1-71 |
-
-### Regnal Year Spans
-
-When an Act spans regnal years (e.g., passed in Feb 1801 = George III's 40th year ends, 41st begins), both years are referenced:
-
-```
-Geo3/40-41/120  # Act passed across two regnal years
-```
-
-### Computing Calendar Year from Regnal Year
-
-The API provides `<ukm:AlternativeNumber Category="Regnal" Value="41_Geo_3_"/>` in metadata, but you must compute the calendar year from the reign dates:
-
-```python
-def regnal_to_calendar_year(monarch: str, regnal_year: int) -> int:
-    """
-    Convert regnal year to calendar year.
-    Requires knowing accession date of each monarch.
-    """
-    # George III: Accession 25 Oct 1760
-    # Regnal year 1: 25 Oct 1760 - 24 Oct 1761
-    # Regnal year 41: 25 Oct 1800 - 24 Oct 1801
-    # Therefore: Geo3/41 = 1801 (primarily)
-
-    accession_dates = {
-        'Geo3': (1760, 10, 25),
-        'Vict': (1837, 6, 20),
-        'Edw7': (1901, 1, 22),
-        # ... etc
-    }
-    # Calculate from regnal_year + accession_date
-```
-
-**Simpler approach:** Extract year from `<ukm:Year Value="1801"/>` in metadata (TNA does the conversion).
+For a complete list of all 28 legislation types, see [data-models.md](data-models.md) (technical enum) or [uk-legal-system.md](uk-legal-system.md) (domain context). For regnal year URL patterns, see the [Historical URI](#2-historical-pre-1963-regnal-year-uri) section above and [uk-legal-system.md](uk-legal-system.md).
 
 ---
 
@@ -759,7 +641,7 @@ Accept: application/xml
 - `application/atom+xml` - Returns Atom feed (for lists)
 - `text/html` - Returns HTML rendering
 
-**Recommendation:** Explicitly request `/data.xml` instead of relying on content negotiation for deterministic behavior.
+**Recommendation:** Explicitly request `/data.xml` instead of relying on content negotiation for deterministic behaviour.
 
 ### 2. Caching
 

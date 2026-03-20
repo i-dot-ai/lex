@@ -1,69 +1,74 @@
 # Dataset Statistics
 
-Empirical statistics from production Qdrant Cloud instance.
+Empirical statistics from the production Qdrant Cloud instance. For the system overview, see [system-architecture.md](system-architecture.md).
 
-**Last Updated**: November 2025
-**Source**: Azure-hosted Qdrant cluster
+**Last Updated**: March 2026
+**Source**: Production healthcheck (`https://lex.lab.i.ai.gov.uk/healthcheck`)
 
 ## Collection Sizes
 
 | Collection | Points | Description |
 |------------|--------|-------------|
-| `legislation_section` | 997,461 | Individual provisions within Acts and SIs |
-| `caselaw_section` | 2,403,490 | Paragraphs within court judgments |
-| `embedding_cache` | 333,000+ | Cached embeddings for performance |
-| `legislation` | 125,255 | Acts and Statutory Instruments (document-level) |
-| `explanatory_note` | 82,344 | Explanatory memoranda sections |
-| `caselaw` | 30,512 | Court judgments (document-level) |
-| `amendment` | 32 | Legislative changes and modifications |
-| **Total** | **~4,000,000** | **Total vectors in production** |
+| `caselaw_section` | 4,723,735 | Paragraphs within court judgments |
+| `legislation_section` | 2,098,225 | Individual provisions within Acts and SIs |
+| `amendment` | 892,210 | Legislative changes and modifications |
+| `embedding_cache` | 238,600 | Cached embeddings for performance |
+| `legislation` | 219,685 | Acts and Statutory Instruments (document-level) |
+| `explanatory_note` | 88,956 | Explanatory memoranda sections |
+| `caselaw` | 69,970 | Court judgments (document-level) |
+| `caselaw_summary` | 61,107 | AI-generated case summaries |
+| **Total** | **~8.4M** | **Total vectors in production** |
 
 ## Coverage by Document Type
 
 ### Legislation
-- **Total Acts/SIs**: 125,255 documents
-- **Total Provisions**: 997,461 sections
+- **Total Acts/SIs**: 219,685 documents
+- **Total Provisions**: 2,098,225 sections
 - **Coverage**: 1963-present (complete), 1267-1962 (partial)
-- **Average sections per document**: 7.97
+- **Average sections per document**: 9.6
 
 ### Case Law
-- **Total Cases**: 30,512 judgments
-- **Total Paragraphs**: 2,403,490 sections
+- **Total Cases**: 69,970 judgments
+- **Total Paragraphs**: 4,723,735 sections
+- **Total Summaries**: 61,107 AI-generated summaries
 - **Coverage**: 2001-present
-- **Average paragraphs per case**: 78.7
+- **Average paragraphs per case**: 67.5
 
 ### Explanatory Notes
-- **Total Sections**: 82,344
+- **Total Sections**: 88,956
 - **Coverage**: Modern legislation with published explanatory notes
 
 ### Amendments
-- **Total Records**: 32
-- **Status**: Early development (limited ingestion)
+- **Total Records**: 892,210
+- **Coverage**: Cross-references between affecting and changed legislation
 
 ## Storage Metrics
 
-**With Scalar Quantization (INT8)**:
-- Dense vectors: ~4 GB (quantized from 16 GB)
-- Sparse vectors: ~3.2 GB
-- Payload data: ~12 GB
-- **Total**: ~19 GB
+**With Scalar Quantisation (INT8)**:
+- Dense vectors: ~8 GB (quantised from ~32 GB)
+- Sparse vectors: ~5 GB
+- Payload data: ~20 GB
+- **Total**: ~33 GB
 
 **Cloud Configuration**:
 - Provider: Qdrant Cloud (Azure UK South)
-- RAM: 4 GiB
-- Disk: 32 GB
-- Monthly cost: ~$60 (see `qdrant-hosting.md`)
+- Quantisation: INT8 scalar, `always_ram=True`
+- Monthly cost: see [qdrant-hosting.md](qdrant-hosting.md)
 
 ## Data Quality
 
 ### Legislation Coverage Gaps
 - **Pre-1963**: Partial coverage (~85K Acts from 1267-1962)
-- **PDF-only documents**: 93,883 PDFs identified (1837-2025)
+- **PDF-only documents**: 93,883 PDFs identified (1837-2025) — see [pdf-dataset.md](pdf-dataset.md)
 - **Sections missing**: Some documents have metadata but incomplete section ingestion
 
 ### Case Law Constraints
-- **Historical limit**: TNA data only exists from 2001 onwards
+- **Historical limit**: TNA data only from 2001 onwards
 - **UKSC**: Only exists from 2009 onwards (court established 2009)
+
+### Amendment Status
+- Collection status: yellow (optimising)
+- URI normalisation partially complete — see [operations-runbook.md](operations-runbook.md)
 
 ## Data Sources
 
@@ -74,7 +79,7 @@ All data sourced from:
 
 ## Related Documentation
 
-- **PDF Dataset**: `pdf-dataset.md` - Detailed PDF coverage analysis
-- **Data Models**: `data-models.md` - Pydantic model definitions
-- **Ingestion Process**: `ingestion-process.md` - How data is collected
-- **Cost Analysis**: `qdrant-hosting.md` - Storage and hosting costs
+- [pdf-dataset.md](pdf-dataset.md) — Detailed PDF coverage analysis
+- [data-models.md](data-models.md) — Pydantic model definitions
+- [ingestion-process.md](ingestion-process.md) — How data is collected
+- [qdrant-hosting.md](qdrant-hosting.md) — Storage and hosting costs

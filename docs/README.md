@@ -2,7 +2,14 @@
 
 Documentation for the Lex UK legislative search system.
 
+**Start here**: [system-architecture.md](system-architecture.md) — high-level overview of how all components fit together.
+
 ## Core Documentation
+
+### [system-architecture.md](system-architecture.md)
+System overview: components, data flow, collections, API surface, and infrastructure. The map that ties everything else together.
+
+**When to read**: First. Before anything else.
 
 ### [data-models.md](data-models.md)
 Pydantic models for all document types (Legislation, CaseLaw, ExplanatoryNote, Amendment). Defines field types, validation rules, and computed properties.
@@ -10,29 +17,34 @@ Pydantic models for all document types (Legislation, CaseLaw, ExplanatoryNote, A
 **When to read**: Understanding data structures, adding new document types, or debugging validation issues.
 
 ### [legislation-gov-uk-api.md](legislation-gov-uk-api.md)
-Documentation of The National Archives API behavior we discovered through empirical testing.
+Documentation of The National Archives API behaviour we discovered through empirical testing.
 
-**Why it exists**: Documents external API we don't control. Captures URL patterns, redirect behavior, XML schema variations, and historical data availability.
+**Why it exists**: Documents external API we don't control. Captures URL patterns, redirect behaviour, XML schema variations, and historical data availability.
 
 ### [pdf-dataset.md](pdf-dataset.md)
-Analysis of PDF-only legislation dataset (1797-2025). Coverage statistics, era breakdowns, and digitization findings.
+Analysis of PDF-only legislation dataset (1797-2025). Coverage statistics, era breakdowns, and digitisation findings.
 
 **Why it exists**: Empirical data about what PDFs exist and where coverage gaps are. Used for OCR pipeline planning.
 
 ### [qdrant-hosting.md](qdrant-hosting.md)
 Cost analysis for Qdrant Cloud deployment with production dataset (~4M points).
 
-**Why it exists**: Business case for cloud vs self-hosted, quantization trade-offs, storage calculations.
+**Why it exists**: Business case for cloud vs self-hosted, quantisation trade-offs, storage calculations.
 
 ### [ingestion-process.md](ingestion-process.md)
-Overview of data ingestion pipeline architecture: Scraper → Parser → Qdrant.
+Pipeline internals: scraper patterns, parser logic, embedding strategy, and amendments-led mode.
 
-**When to read**: Understanding how data flows through the system, debugging ingestion issues.
+**When to read**: Understanding how documents flow through the pipeline, debugging ingestion issues.
 
 ### [dataset-statistics.md](dataset-statistics.md)
 Current dataset statistics from production Qdrant instance (actual counts, not estimates).
 
 **Why it exists**: Single source of truth for dataset size, coverage by era, and data quality metrics.
+
+### [handover-plan.md](handover-plan.md)
+Prioritised list of handover work items with completion status. Tracks what's been done and what remains.
+
+**When to read**: Understanding what maintenance work has been completed and what's outstanding.
 
 ## Auto-Generated Documentation
 
@@ -44,7 +56,7 @@ Current dataset statistics from production Qdrant instance (actual counts, not e
 ## Contributing to Docs
 
 **Good documentation**:
-- Documents external systems (legislation.gov.uk API behavior)
+- Documents external systems (legislation.gov.uk API behaviour)
 - Captures empirical data (dataset statistics, cost analysis)
 - Explains WHY decisions were made (trade-offs, architecture choices)
 - Provides domain knowledge context (UK legal system quirks)
