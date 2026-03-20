@@ -300,7 +300,7 @@ class HttpClient:
 
         return {
             "enabled": True,
-            "size": self._cache.size,
+            "size": self._cache.volume(),
             "size_limit": self._cache.size_limit,
             "directory": self._cache.directory,
             "ttl": self.cache_ttl,

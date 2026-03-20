@@ -273,12 +273,12 @@ class TestHttpClientIntegration:
         # httpbin.org/json returns a sample JSON object
 
     def test_error_handling_404(self):
-        """Test handling of 404 errors."""
+        """Test handling of 404 errors raises NotFoundError without retrying."""
         client = HttpClient(enable_cache=False, max_retries=1)
 
-        from tenacity import RetryError
+        from lex.core.exceptions import NotFoundError
 
-        with pytest.raises(RetryError):
+        with pytest.raises(NotFoundError):
             client.get("https://httpbin.org/status/404")
 
     def test_error_handling_500(self):
