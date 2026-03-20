@@ -127,6 +127,7 @@ deploy_infrastructure() {
         POSTHOG_KEY=$(grep "^POSTHOG_KEY=" .env | cut -d '=' -f2)
         POSTHOG_HOST=$(grep "^POSTHOG_HOST=" .env | cut -d '=' -f2)
         CUSTOM_DOMAIN=$(grep "^CUSTOM_DOMAIN=" .env | cut -d '=' -f2)
+        SLACK_WEBHOOK_URL=$(grep "^SLACK_WEBHOOK_URL=" .env | cut -d '=' -f2)
     fi
     
     # Set default embedding model if not specified
@@ -157,7 +158,8 @@ deploy_infrastructure() {
             azureOpenAIEmbeddingModel="$AZURE_OPENAI_EMBEDDING_MODEL" \
             posthogKey="$POSTHOG_KEY" \
             posthogHost="$POSTHOG_HOST" \
-            customDomain="${CUSTOM_DOMAIN:-}"
+            customDomain="${CUSTOM_DOMAIN:-}" \
+            slackWebhookUrl="${SLACK_WEBHOOK_URL:-}"
     
     log_success "Infrastructure deployment completed"
 }

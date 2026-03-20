@@ -37,6 +37,10 @@ param posthogHost string = 'https://eu.i.posthog.com'
 @description('Custom domain hostname (optional). Requires DNS CNAME and TXT records configured first.')
 param customDomain string = ''
 
+@description('Slack incoming webhook URL for alert notifications (optional)')
+@secure()
+param slackWebhookUrl string = ''
+
 @description('Rate limit per minute')
 param rateLimitPerMinute int = 60
 
@@ -678,6 +682,90 @@ resource monthlyIngestJob 'Microsoft.App/jobs@2024-03-01' = {
           ]
         }
       ]
+    }
+  }
+}
+
+// Alerting — Slack notifications for export job failures and staleness
+resource slackActionGroup 'Microsoft.Insights/actionGroups@2023-01-01' = if (!empty(slackWebhookUrl)) {
+  name: '${resourcePrefix}-slack-alerts'
+  location: 'global'
+  properties: {
+    groupShortName: 'LexAlerts'
+    enabled: true
+    webhookReceivers: [
+      {
+        name: 'slack-webhook'
+        serviceUri: slackWebhookUrl
+        useCommonAlertSchema: true
+      }
+    ]
+  }
+}
+
+resource exportJobFailureAlert 'Microsoft.Insights/scheduledQueryRules@2023-03-15-preview' = if (!empty(slackWebhookUrl)) {
+  name: '${resourcePrefix}-export-job-failure'
+  location: location
+  properties: {
+    displayName: 'Export Job Failure'
+    description: 'Fires when the weekly bulk export job fails'
+    severity: 2
+    enabled: true
+    autoMitigate: true
+    scopes: [logAnalytics.id]
+    evaluationFrequency: 'PT1H'
+    windowSize: 'PT1H'
+    criteria: {
+      allOf: [
+        {
+          query: '''
+            ContainerAppSystemLogs_CL
+            | where ContainerAppName_s == 'lex-export-job'
+            | where Reason_s in ('Failed', 'BackoffLimitExceeded')
+          '''
+          timeAggregation: 'Count'
+          operator: 'GreaterThan'
+          threshold: 0
+        }
+      ]
+    }
+    actions: {
+      actionGroups: [slackActionGroup.id]
+    }
+  }
+}
+
+resource exportStalenessAlert 'Microsoft.Insights/scheduledQueryRules@2023-03-15-preview' = if (!empty(slackWebhookUrl)) {
+  name: '${resourcePrefix}-export-staleness'
+  location: location
+  properties: {
+    displayName: 'Export Data Staleness'
+    description: 'No successful export job completion in the past 10 days'
+    severity: 1
+    enabled: true
+    autoMitigate: true
+    scopes: [logAnalytics.id]
+    evaluationFrequency: 'P1D'
+    windowSize: 'P1D'
+    criteria: {
+      allOf: [
+        {
+          query: '''
+            ContainerAppSystemLogs_CL
+            | where ContainerAppName_s == 'lex-export-job'
+            | where Reason_s == 'Completed'
+            | where TimeGenerated > ago(10d)
+            | summarize SuccessCount = count()
+          '''
+          timeAggregation: 'Total'
+          metricMeasureColumn: 'SuccessCount'
+          operator: 'LessThanOrEqual'
+          threshold: 0
+        }
+      ]
+    }
+    actions: {
+      actionGroups: [slackActionGroup.id]
     }
   }
 }
