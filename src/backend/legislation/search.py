@@ -10,10 +10,10 @@ from qdrant_client.models import (
     MatchAny,
     MatchValue,
     Prefetch,
-    Range,
 )
 
 from backend.core.cache import cached_search
+from backend.core.filters import build_year_range_conditions
 from backend.legislation.models import (
     LegislationActSearch,
     LegislationFullText,
@@ -22,8 +22,8 @@ from backend.legislation.models import (
     LegislationSectionLookup,
     LegislationSectionSearch,
 )
-from lex.core.embeddings import generate_hybrid_embeddings
-from lex.core.qdrant_client import qdrant_client
+from lex.core.embeddings import generate_hybrid_embeddings_async
+from lex.core.qdrant_client import async_qdrant_client
 from lex.core.uri import normalise_legislation_uri
 from lex.legislation.models import (
     Legislation,
@@ -153,15 +153,17 @@ async def legislation_act_search(input: LegislationActSearch) -> dict:
 
     # Apply same year filters to legislation lookup to ensure consistency
     lookup_conditions = [FieldCondition(key="id", match=MatchAny(any=unique_leg_ids))]
-    lookup_conditions.extend(build_year_filters(input.year_from, input.year_to, year_field="year"))
+    lookup_conditions.extend(
+        build_year_range_conditions(input.year_from, input.year_to, year_field="year")
+    )
 
-    points = qdrant_client.scroll(
+    points, _ = await async_qdrant_client.scroll(
         collection_name=LEGISLATION_COLLECTION,
         scroll_filter=Filter(must=lookup_conditions),
         limit=len(unique_leg_ids),
         with_payload=True,
         with_vectors=False,
-    )[0]
+    )
 
     for point in points:
         leg_id = point.payload.get("id")
@@ -241,18 +243,6 @@ def normalise_legislation_id(legislation_id: str) -> str:
     return normalise_legislation_uri(legislation_id)
 
 
-def build_year_filters(
-    year_from: int = None, year_to: int = None, year_field: str = "legislation_year"
-) -> list:
-    """Build consistent year filter conditions."""
-    filters = []
-    if year_from:
-        filters.append(FieldCondition(key=year_field, range=Range(gte=year_from)))
-    if year_to:
-        filters.append(FieldCondition(key=year_field, range=Range(lte=year_to)))
-    return filters
-
-
 def get_filters(
     category_selection: list[LegislationCategory],
     type_selection: list[LegislationType],
@@ -284,8 +274,9 @@ def get_filters(
             FieldCondition(key="legislation_type", match=MatchAny(any=legislation_types))
         )
 
-    # Add year filters using the new helper
-    conditions.extend(build_year_filters(year_from, year_to))
+    conditions.extend(
+        build_year_range_conditions(year_from, year_to, year_field="legislation_year")
+    )
 
     logger.debug(f"Created {len(conditions)} filter conditions")
     return conditions
@@ -343,17 +334,17 @@ async def qdrant_search(
     )
 
     if is_semantic_search and search_query:
-        # Generate hybrid embeddings
-        dense, sparse = generate_hybrid_embeddings(search_query)
+        # Generate hybrid embeddings (async: runs dense + sparse concurrently off event loop)
+        dense, sparse = await generate_hybrid_embeddings_async(search_query)
 
         # Hybrid search with DBSF fusion (optimised via blind evaluation experiments)
-        # DBSF (Distribution-Based Score Fusion) with dense-favoring ratio
-        # outperforms RRF by using statistical normalization (mean ± 3σ)
+        # DBSF (Distribution-Based Score Fusion) with dense-favouring ratio
+        # outperforms RRF by using statistical normalisation (mean ± 3σ)
         # Reduced from 5x/1x to 3x/0.8x for 40% fewer vector comparisons
         dense_limit = max(30, 3 * (size + offset))  # 3x multiplier for dense
         sparse_limit = max(8, int(0.8 * (size + offset)))  # 0.8x multiplier for sparse
 
-        results = qdrant_client.query_points(
+        results = await async_qdrant_client.query_points(
             collection_name=collection,
             query=FusionQuery(fusion=Fusion.DBSF),  # Distribution-Based Score Fusion
             prefetch=[
@@ -368,9 +359,9 @@ async def qdrant_search(
 
     elif search_query:
         # Sparse-only (BM25) search for non-semantic queries
-        _, sparse = generate_hybrid_embeddings(search_query)
+        _, sparse = await generate_hybrid_embeddings_async(search_query)
 
-        results = qdrant_client.query_points(
+        results = await async_qdrant_client.query_points(
             collection_name=collection,
             query=sparse,
             using="sparse",
@@ -381,7 +372,7 @@ async def qdrant_search(
         )
     else:
         # No query - just filter
-        results = qdrant_client.query_points(
+        results = await async_qdrant_client.query_points(
             collection_name=collection,
             query_filter=query_filter,
             limit=size,
@@ -440,7 +431,7 @@ async def legislation_lookup(input: LegislationLookup) -> Legislation | None:
         logger.warning(f"Invalid number provided: {input.number}. Should be positive.")
         return None
 
-    points = qdrant_client.scroll(
+    points, _ = await async_qdrant_client.scroll(
         collection_name=LEGISLATION_COLLECTION,
         scroll_filter=Filter(
             must=[
@@ -452,7 +443,7 @@ async def legislation_lookup(input: LegislationLookup) -> Legislation | None:
         limit=1,
         with_payload=True,
         with_vectors=False,
-    )[0]
+    )
 
     if not points:
         logger.info(
@@ -484,7 +475,7 @@ async def get_legislation_sections(
     )
 
     # Use scroll to get all sections (sorted by number in payload)
-    points, _ = qdrant_client.scroll(
+    points, _ = await async_qdrant_client.scroll(
         collection_name=LEGISLATION_SECTION_COLLECTION,
         scroll_filter=Filter(
             must=[FieldCondition(key="legislation_id", match=MatchValue(value=normalised_id))]
@@ -519,8 +510,15 @@ async def get_legislation_full_text(input: LegislationFullTextLookup) -> Legisla
         f"Getting full text for legislation_id: '{input.legislation_id}' -> normalised: '{normalised_id}', include_schedules={input.include_schedules}"
     )
 
-    # Get legislation metadata
-    points = qdrant_client.scroll(
+    # Build provision type filter
+    provision_types = ["section"]
+    if input.include_schedules:
+        provision_types.append("schedule")
+
+    # Run both scroll queries concurrently — they are independent
+    import asyncio
+
+    metadata_task = async_qdrant_client.scroll(
         collection_name=LEGISLATION_COLLECTION,
         scroll_filter=Filter(
             must=[FieldCondition(key="id", match=MatchValue(value=normalised_id))]
@@ -528,22 +526,8 @@ async def get_legislation_full_text(input: LegislationFullTextLookup) -> Legisla
         limit=1,
         with_payload=True,
         with_vectors=False,
-    )[0]
-
-    if not points:
-        logger.warning(f"No legislation found with id: '{normalised_id}'")
-        return None
-
-    legislation = Legislation(**points[0].payload)
-    logger.info(f"Found legislation: '{legislation.title}'")
-
-    # Build provision type filter
-    provision_types = ["section"]
-    if input.include_schedules:
-        provision_types.append("schedule")
-
-    # Query for provisions
-    provisions_points, _ = qdrant_client.scroll(
+    )
+    provisions_task = async_qdrant_client.scroll(
         collection_name=LEGISLATION_SECTION_COLLECTION,
         scroll_filter=Filter(
             must=[
@@ -555,6 +539,15 @@ async def get_legislation_full_text(input: LegislationFullTextLookup) -> Legisla
         with_payload=True,
         with_vectors=False,
     )
+
+    (points, _), (provisions_points, _) = await asyncio.gather(metadata_task, provisions_task)
+
+    if not points:
+        logger.warning(f"No legislation found with id: '{normalised_id}'")
+        return None
+
+    legislation = Legislation(**points[0].payload)
+    logger.info(f"Found legislation: '{legislation.title}'")
 
     provisions = [LegislationSection(**point.payload) for point in provisions_points]
 

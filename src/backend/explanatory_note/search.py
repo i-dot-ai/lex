@@ -10,9 +10,11 @@ from qdrant_client.models import (
     Prefetch,
 )
 
+from backend.core.cache import cached_search
+from backend.core.filters import extract_enum_values
 from backend.explanatory_note.models import ExplanatoryNoteSearch
-from lex.core.embeddings import generate_hybrid_embeddings
-from lex.core.qdrant_client import qdrant_client
+from lex.core.embeddings import generate_hybrid_embeddings_async
+from lex.core.qdrant_client import async_qdrant_client
 from lex.core.uri import normalise_legislation_uri
 from lex.explanatory_note.models import (
     ExplanatoryNote,
@@ -39,18 +41,21 @@ def get_filters(
         )
 
     if note_type_filter and len(note_type_filter) > 0:
-        note_type_values = [nt.value for nt in note_type_filter]
-        conditions.append(FieldCondition(key="note_type", match=MatchAny(any=note_type_values)))
+        conditions.append(
+            FieldCondition(key="note_type", match=MatchAny(any=extract_enum_values(note_type_filter)))
+        )
 
     if section_type_filter and len(section_type_filter) > 0:
-        section_type_values = [st.value for st in section_type_filter]
         conditions.append(
-            FieldCondition(key="section_type", match=MatchAny(any=section_type_values))
+            FieldCondition(
+                key="section_type", match=MatchAny(any=extract_enum_values(section_type_filter))
+            )
         )
 
     return conditions
 
 
+@cached_search
 async def search_explanatory_note(input: ExplanatoryNoteSearch) -> list[ExplanatoryNote]:
     """Search for explanatory notes using Qdrant hybrid search."""
     filter_conditions = get_filters(
@@ -63,10 +68,10 @@ async def search_explanatory_note(input: ExplanatoryNoteSearch) -> list[Explanat
 
     if input.query and input.query.strip():
         # Generate hybrid embeddings
-        dense, sparse = generate_hybrid_embeddings(input.query)
+        dense, sparse = await generate_hybrid_embeddings_async(input.query)
 
         # Hybrid search with RRF fusion
-        results = qdrant_client.query_points(
+        results = await async_qdrant_client.query_points(
             collection_name=EXPLANATORY_NOTE_COLLECTION,
             query=FusionQuery(fusion=Fusion.RRF),
             prefetch=[
@@ -79,7 +84,7 @@ async def search_explanatory_note(input: ExplanatoryNoteSearch) -> list[Explanat
         )
     else:
         # No query - just filter
-        results = qdrant_client.query_points(
+        results = await async_qdrant_client.query_points(
             collection_name=EXPLANATORY_NOTE_COLLECTION,
             query_filter=query_filter,
             limit=input.size,
@@ -105,7 +110,7 @@ async def get_explanatory_note_by_legislation_id(
     )
 
     # Use scroll to get all matching documents
-    results, _ = qdrant_client.scroll(
+    results, _ = await async_qdrant_client.scroll(
         collection_name=EXPLANATORY_NOTE_COLLECTION,
         scroll_filter=query_filter,
         limit=limit,
@@ -136,7 +141,7 @@ async def get_explanatory_note_by_section(
     )
 
     # Use scroll to get matching document
-    results, _ = qdrant_client.scroll(
+    results, _ = await async_qdrant_client.scroll(
         collection_name=EXPLANATORY_NOTE_COLLECTION,
         scroll_filter=query_filter,
         limit=1,

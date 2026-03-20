@@ -6,8 +6,8 @@ from qdrant_client.models import (
     Fusion,
     FusionQuery,
     MatchAny,
+    PayloadSelectorExclude,
     Prefetch,
-    Range,
 )
 
 from backend.caselaw.models import (
@@ -18,12 +18,16 @@ from backend.caselaw.models import (
     ReferenceType,
 )
 from backend.core.cache import cached_search
+from backend.core.filters import build_year_range_conditions, extract_enum_values
 from lex.caselaw.models import Caselaw, CaselawSection, CaselawSummary
-from lex.core.embeddings import generate_hybrid_embeddings
-from lex.core.qdrant_client import qdrant_client
+from lex.core.embeddings import generate_hybrid_embeddings_async
+from lex.core.qdrant_client import async_qdrant_client
 from lex.settings import CASELAW_COLLECTION, CASELAW_SECTION_COLLECTION, CASELAW_SUMMARY_COLLECTION
 
 logger = logging.getLogger(__name__)
+
+# Exclude large text fields from caselaw search results (text can be 260K+ chars)
+_CASELAW_METADATA_ONLY = PayloadSelectorExclude(exclude=["text", "header"])
 
 
 def get_filters(
@@ -36,18 +40,16 @@ def get_filters(
     conditions = []
 
     if court_filter and len(court_filter) > 0:
-        court_values = [c.value if hasattr(c, "value") else c for c in court_filter]
-        conditions.append(FieldCondition(key="court", match=MatchAny(any=court_values)))
+        conditions.append(
+            FieldCondition(key="court", match=MatchAny(any=extract_enum_values(court_filter)))
+        )
 
     if division_filter and len(division_filter) > 0:
-        division_values = [d.value if hasattr(d, "value") else d for d in division_filter]
-        conditions.append(FieldCondition(key="division", match=MatchAny(any=division_values)))
+        conditions.append(
+            FieldCondition(key="division", match=MatchAny(any=extract_enum_values(division_filter)))
+        )
 
-    if year_from:
-        conditions.append(FieldCondition(key="year", range=Range(gte=year_from)))
-
-    if year_to:
-        conditions.append(FieldCondition(key="year", range=Range(lte=year_to)))
+    conditions.extend(build_year_range_conditions(year_from, year_to))
 
     return conditions
 
@@ -73,12 +75,10 @@ async def caselaw_search(input: CaselawSearch) -> dict:
     query_filter = Filter(must=filter_conditions) if filter_conditions else None
 
     if input.query and input.query.strip():
-        # Generate embeddings for query
-        dense, sparse = generate_hybrid_embeddings(input.query)
+        dense, sparse = await generate_hybrid_embeddings_async(input.query)
 
         if input.is_semantic_search:
-            # Hybrid search with RRF fusion
-            results = qdrant_client.query_points(
+            results = await async_qdrant_client.query_points(
                 collection_name=CASELAW_COLLECTION,
                 query=FusionQuery(fusion=Fusion.RRF),
                 prefetch=[
@@ -88,43 +88,35 @@ async def caselaw_search(input: CaselawSearch) -> dict:
                 query_filter=query_filter,
                 limit=input.size,
                 offset=input.offset,
-                with_payload=True,
+                with_payload=_CASELAW_METADATA_ONLY,
             )
         else:
-            # Sparse-only (BM25) search
-            results = qdrant_client.query_points(
+            results = await async_qdrant_client.query_points(
                 collection_name=CASELAW_COLLECTION,
                 query=sparse,
                 using="sparse",
                 query_filter=query_filter,
                 limit=input.size,
                 offset=input.offset,
-                with_payload=True,
+                with_payload=_CASELAW_METADATA_ONLY,
             )
     else:
-        # No query - just filter
-        results = qdrant_client.query_points(
+        results = await async_qdrant_client.query_points(
             collection_name=CASELAW_COLLECTION,
             query_filter=query_filter,
             limit=input.size,
             offset=input.offset,
-            with_payload=True,
+            with_payload=_CASELAW_METADATA_ONLY,
         )
 
     cases = [Caselaw(**point.payload) for point in results.points]
-
-    # Qdrant doesn't return total in query_points, approximate with results length
     total = len(results.points)
 
     return {"results": cases, "total": total, "offset": input.offset, "size": input.size}
 
 
 async def caselaw_section_search(input: CaselawSectionSearch) -> list[CaselawSection]:
-    """Search for caselaw sections using Qdrant hybrid search.
-
-    If a query is provided, performs hybrid semantic search.
-    Otherwise, returns results based on filters only.
-    """
+    """Search for caselaw sections using Qdrant hybrid search."""
     filter_conditions = get_filters(
         court_filter=input.court,
         division_filter=input.division,
@@ -135,11 +127,9 @@ async def caselaw_section_search(input: CaselawSectionSearch) -> list[CaselawSec
     query_filter = Filter(must=filter_conditions) if filter_conditions else None
 
     if input.query and input.query.strip():
-        # Generate hybrid embeddings
-        dense, sparse = generate_hybrid_embeddings(input.query)
+        dense, sparse = await generate_hybrid_embeddings_async(input.query)
 
-        # Hybrid search with RRF fusion
-        results = qdrant_client.query_points(
+        results = await async_qdrant_client.query_points(
             collection_name=CASELAW_SECTION_COLLECTION,
             query=FusionQuery(fusion=Fusion.RRF),
             prefetch=[
@@ -152,8 +142,7 @@ async def caselaw_section_search(input: CaselawSectionSearch) -> list[CaselawSec
             with_payload=True,
         )
     else:
-        # No query - just filter
-        results = qdrant_client.query_points(
+        results = await async_qdrant_client.query_points(
             collection_name=CASELAW_SECTION_COLLECTION,
             query_filter=query_filter,
             limit=input.limit,
@@ -161,25 +150,17 @@ async def caselaw_section_search(input: CaselawSectionSearch) -> list[CaselawSec
             with_payload=True,
         )
 
-    sections = [CaselawSection(**point.payload) for point in results.points]
-
-    return sections
+    return [CaselawSection(**point.payload) for point in results.points]
 
 
 async def caselaw_reference_search(input: CaselawReferenceSearch) -> list[Caselaw]:
-    """Search for caselaw that references a specific case or legislation.
-
-    This function takes a reference ID and type, and returns all cases that
-    reference that ID, filtered by the provided criteria.
-    """
-    # Determine which field to search based on reference type
+    """Search for caselaw that references a specific case or legislation."""
     reference_field = (
         "caselaw_references"
         if input.reference_type == ReferenceType.CASELAW
         else "legislation_references"
     )
 
-    # Get the standard filters
     filter_conditions = get_filters(
         court_filter=input.court,
         division_filter=input.division,
@@ -187,39 +168,26 @@ async def caselaw_reference_search(input: CaselawReferenceSearch) -> list[Casela
         year_to=input.year_to,
     )
 
-    # Add reference filter using MatchAny (checks if reference_id is in the array)
     filter_conditions.append(
         FieldCondition(key=reference_field, match=MatchAny(any=[input.reference_id]))
     )
 
     query_filter = Filter(must=filter_conditions)
 
-    # Use scroll to get all matching documents
-    results, _ = qdrant_client.scroll(
+    results, _ = await async_qdrant_client.scroll(
         collection_name=CASELAW_COLLECTION,
         scroll_filter=query_filter,
         limit=input.size,
-        with_payload=True,
+        with_payload=_CASELAW_METADATA_ONLY,
         with_vectors=False,
     )
 
-    # Convert to Caselaw objects
-    cases = [Caselaw(**point.payload) for point in results]
-
-    return cases
+    return [Caselaw(**point.payload) for point in results]
 
 
 @cached_search
 async def caselaw_summary_search(input: CaselawSummarySearch) -> dict:
-    """Search caselaw summaries for efficient discovery.
-
-    If a query is provided, performs hybrid (dense + sparse) search if is_semantic_search=True,
-    or sparse-only (BM25) search if is_semantic_search=False.
-    If no query, returns filtered results.
-
-    Returns:
-        dict with keys: results (list[CaselawSummary]), total (int), offset (int), size (int)
-    """
+    """Search caselaw summaries for efficient discovery."""
     filter_conditions = get_filters(
         court_filter=input.court,
         division_filter=input.division,
@@ -230,12 +198,10 @@ async def caselaw_summary_search(input: CaselawSummarySearch) -> dict:
     query_filter = Filter(must=filter_conditions) if filter_conditions else None
 
     if input.query and input.query.strip():
-        # Generate embeddings for query
-        dense, sparse = generate_hybrid_embeddings(input.query)
+        dense, sparse = await generate_hybrid_embeddings_async(input.query)
 
         if input.is_semantic_search:
-            # Hybrid search with RRF fusion
-            results = qdrant_client.query_points(
+            results = await async_qdrant_client.query_points(
                 collection_name=CASELAW_SUMMARY_COLLECTION,
                 query=FusionQuery(fusion=Fusion.RRF),
                 prefetch=[
@@ -248,8 +214,7 @@ async def caselaw_summary_search(input: CaselawSummarySearch) -> dict:
                 with_payload=True,
             )
         else:
-            # Sparse-only (BM25) search
-            results = qdrant_client.query_points(
+            results = await async_qdrant_client.query_points(
                 collection_name=CASELAW_SUMMARY_COLLECTION,
                 query=sparse,
                 using="sparse",
@@ -259,8 +224,7 @@ async def caselaw_summary_search(input: CaselawSummarySearch) -> dict:
                 with_payload=True,
             )
     else:
-        # No query - just filter
-        results = qdrant_client.query_points(
+        results = await async_qdrant_client.query_points(
             collection_name=CASELAW_SUMMARY_COLLECTION,
             query_filter=query_filter,
             limit=input.size,
@@ -269,8 +233,6 @@ async def caselaw_summary_search(input: CaselawSummarySearch) -> dict:
         )
 
     summaries = [CaselawSummary(**point.payload) for point in results.points]
-
-    # Qdrant doesn't return total in query_points, approximate with results length
     total = len(results.points)
 
     return {"results": summaries, "total": total, "offset": input.offset, "size": input.size}
