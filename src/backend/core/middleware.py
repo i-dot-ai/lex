@@ -13,19 +13,20 @@ logger = logging.getLogger(__name__)
 
 
 def get_client_ip(request: Request) -> str:
-    """Extract client IP considering proxy headers."""
-    # Check X-Forwarded-For header first (Azure Container Apps)
+    """Extract client IP from proxy headers.
+
+    Azure Container Apps appends the real client IP as the rightmost
+    entry in X-Forwarded-For. The leftmost value is client-controlled
+    and cannot be trusted for rate limiting.
+    """
     forwarded_for = request.headers.get("X-Forwarded-For", "").strip()
     if forwarded_for:
-        # Take the first IP in the chain (original client)
-        return forwarded_for.split(",")[0].strip()
+        return forwarded_for.split(",")[-1].strip()
 
-    # Fallback to X-Real-IP
     real_ip = request.headers.get("X-Real-IP", "").strip()
     if real_ip:
         return real_ip
 
-    # Last resort: direct connection IP
     return getattr(request.client, "host", "unknown")
 
 

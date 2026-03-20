@@ -18,4 +18,7 @@ RUN uv sync
 RUN echo '#!/bin/sh\nwhile true; do sleep 3600; done' > /app/keep_alive.sh \
     && chmod +x /app/keep_alive.sh
 
+RUN useradd -m -u 1001 appuser
+USER appuser
+
 CMD ["/app/keep_alive.sh"]

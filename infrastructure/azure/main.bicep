@@ -127,7 +127,7 @@ resource redisCache 'Microsoft.Cache/redis@2023-08-01' = {
       'maxfragmentationmemory-reserved': '30'
       'maxmemory-delta': '30'
     }
-    publicNetworkAccess: 'Enabled'
+    publicNetworkAccess: 'Disabled'
   }
   tags: {
     Application: applicationName

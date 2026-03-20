@@ -568,11 +568,14 @@ class LexMonitoring:
         )
 
     def _get_client_ip(self, request: Request) -> str:
-        """Extract client IP address considering Azure proxies."""
-        # Check Azure Front Door headers first
-        forwarded_for = request.headers.get("X-Forwarded-For", "").split(",")[0].strip()
+        """Extract client IP address considering Azure proxies.
+
+        Uses the rightmost X-Forwarded-For entry (added by Azure Container
+        Apps) rather than the leftmost (client-controlled, spoofable).
+        """
+        forwarded_for = request.headers.get("X-Forwarded-For", "").strip()
         if forwarded_for:
-            return forwarded_for
+            return forwarded_for.split(",")[-1].strip()
 
         # Check other common proxy headers
         real_ip = request.headers.get("X-Real-IP", "")

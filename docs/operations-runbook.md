@@ -303,9 +303,11 @@ uv run python scripts/pdf/check_pdf_progress.py data/results.jsonl
 ### Rate limiting
 
 - Redis-backed: 60 requests/min, 1000 requests/hr per client IP
+- Client IP extracted from the **rightmost** `X-Forwarded-For` entry (appended by Azure Container Apps; leftmost is client-controlled)
 - Headers: `X-RateLimit-Remaining-Minute`, `X-RateLimit-Remaining-Hour`
 - Monitoring events fire at 80% threshold
 - Falls back to in-memory tracking if Redis is down
+- Redis has public network access disabled; connections are via the Azure backbone only
 - `/healthcheck` and `/health` endpoints are exempt
 - Configurable via `RATE_LIMIT_PER_MINUTE` and `RATE_LIMIT_PER_HOUR` env vars
 

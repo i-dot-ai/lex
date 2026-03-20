@@ -18,6 +18,9 @@ COPY scripts/bulk_export_parquet.py ./scripts/
 # Install dependencies
 RUN uv sync
 
+RUN useradd -m -u 1001 appuser
+USER appuser
+
 EXPOSE 8000
 
 # Use uv to run the application

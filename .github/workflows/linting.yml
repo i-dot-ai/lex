@@ -27,3 +27,18 @@ jobs:
           python-version: "3.12"
       - run: uv sync
       - run: uv run pytest tests/ -m "not integration" --tb=short -q
+
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: uv sync
+      - name: Audit dependencies
+        run: |
+          uv run pip-audit \
+            --ignore-vuln CVE-2025-69872 \
+            --ignore-vuln CVE-2026-25990
