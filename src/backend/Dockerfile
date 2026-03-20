@@ -15,11 +15,12 @@ COPY src/ ./src/
 # Copy bulk export script for scheduled job
 COPY scripts/bulk_export_parquet.py ./scripts/
 
-# Install dependencies
-RUN uv sync
-
+# Create non-root user and install dependencies as that user
 RUN useradd -m -u 1001 appuser
+RUN chown -R appuser:appuser /app
 USER appuser
+
+RUN uv sync
 
 EXPOSE 8000
 
