@@ -243,3 +243,6 @@ lex_exports_*/
 scripts/migrate_to_cloud_qdrant.py
 data/pdf_legislation*.jsonl
 infrastructure/azure/main.json
+
+# Frontend build artifacts
+app/tsconfig.tsbuildinfo
