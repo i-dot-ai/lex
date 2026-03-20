@@ -399,7 +399,7 @@ export async function POST(req: Request) {
     const result = streamText({
       model: azure.responses(process.env.AZURE_OPENAI_CHAT_DEPLOYMENT || 'gpt-5-mini'),
       system: SYSTEM_PROMPT,
-      messages: convertToModelMessages(messages),
+      messages: await convertToModelMessages(messages),
       tools,
       stopWhen: stepCountIs(maxSteps + 1), // +1 to allow final synthesis after research steps
       experimental_telemetry: {

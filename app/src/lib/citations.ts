@@ -3,7 +3,7 @@
  * Supports OSCOLA, Bluebook, Plain text, and Markdown formats
  */
 
-export type CitationFormat = 'oscola' | 'bluebook' | 'plain' | 'markdown'
+export type CitationFormat = 'oscola' | 'bluebook' | 'plain' | 'markdown' | 'fulltext'
 
 interface LegislationCitation {
   title: string
@@ -142,5 +142,7 @@ export function getCitationFormatLabel(format: CitationFormat): string {
       return 'Markdown'
     case 'plain':
       return 'Plain Text'
+    case 'fulltext':
+      return 'Full Text'
   }
 }

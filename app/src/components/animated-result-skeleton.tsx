@@ -1,9 +1,9 @@
 "use client"
 
-import { motion } from "framer-motion"
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
+import { motion, type Variants } from "framer-motion"
+import { Card, CardContent, CardHeader } from "@/components/ui/card"
 
-const shimmerVariants = {
+const shimmerVariants: Variants = {
   animate: {
     backgroundPosition: ["0%", "100%", "0%"],
     transition: {
@@ -14,7 +14,7 @@ const shimmerVariants = {
   },
 }
 
-const containerVariants = {
+const containerVariants: Variants = {
   initial: { opacity: 0 },
   animate: {
     opacity: 1,
@@ -25,7 +25,7 @@ const containerVariants = {
   },
 }
 
-const itemVariants = {
+const itemVariants: Variants = {
   initial: { 
     opacity: 0, 
     y: 20,
