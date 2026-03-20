@@ -307,8 +307,8 @@ class ExplanatoryNoteScraperAndParser:
 
         is_old_page = self._is_old_explanatory_note_page(explanatory_note_contents_soup)
         if is_old_page is None:
-            logger.info(
-                f"Could not determine the style of the explanatory note page for {legislation_id}.",
+            logger.warning(
+                f"Skipping explanatory notes — could not determine page style for {legislation_id}",
                 extra={
                     "doc_type": "explanatory_note",
                     "legislation_id": legislation_id,

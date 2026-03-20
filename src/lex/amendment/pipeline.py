@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 @PipelineMonitor(doc_type="amendment", track_progress=True)
-def pipe_amendments(years: list[int], limit: int, **kwargs) -> Iterator[Amendment]:
+def pipe_amendments(years: list[int], limit: int | None, **kwargs) -> Iterator[Amendment]:
     scraper = AmendmentScraper()
     parser = AmendmentParser()
     run_id = str(uuid.uuid4())

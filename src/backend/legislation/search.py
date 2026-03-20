@@ -105,11 +105,11 @@ async def legislation_act_search(input: LegislationActSearch) -> dict:
     start_time = time.time()
     logger.info(f"Searching for: {input.query}")
 
-    # Search sections with hybrid embeddings (200 sections to get diverse results)
-    # Reduced from 500 to 200 for 60% faster queries while maintaining quality
-    # Don't need text here - only metadata for grouping by legislation_id
+    # Run section search and title search concurrently
+    import asyncio
+
     section_search_start = time.time()
-    sections, scores = await qdrant_search(
+    section_task = qdrant_search(
         collection=LEGISLATION_SECTION_COLLECTION,
         search_query=input.query,
         is_semantic_search=True,
@@ -120,8 +120,19 @@ async def legislation_act_search(input: LegislationActSearch) -> dict:
         size=MAX_SECTIONS_LIMIT,
         include_text=False,
     )
+    title_task = qdrant_search_acts(
+        search_query=input.query,
+        type_selection=input.legislation_type,
+        year_from=input.year_from,
+        year_to=input.year_to,
+        size=20,
+    )
+    (sections, scores), title_scores = await asyncio.gather(section_task, title_task)
     section_search_time = time.time() - section_search_start
-    logger.info(f"Found {len(sections)} sections in {section_search_time:.3f}s")
+    logger.info(
+        f"Found {len(sections)} sections and {len(title_scores)} title matches "
+        f"in {section_search_time:.3f}s"
+    )
 
     # Group sections by legislation ID, keep top 10 per act
     legislation_sections = defaultdict(list)
@@ -129,6 +140,16 @@ async def legislation_act_search(input: LegislationActSearch) -> dict:
         leg_id = section.legislation_id
         score = scores.get(section.id, 0.0)
         legislation_sections[leg_id].append({"section": section, "score": score})
+
+    # Merge title-matched acts that weren't found via section search
+    for leg_id, title_score in title_scores.items():
+        if leg_id not in legislation_sections:
+            # Add placeholder entry so this act appears in results
+            legislation_sections[leg_id].append({"section": None, "score": title_score})
+        else:
+            # Boost existing section scores if title also matched
+            for entry in legislation_sections[leg_id]:
+                entry["score"] = max(entry["score"], title_score)
 
     for leg_id in legislation_sections:
         legislation_sections[leg_id].sort(key=lambda x: x["score"], reverse=True)
@@ -171,7 +192,8 @@ async def legislation_act_search(input: LegislationActSearch) -> dict:
     missing_docs = set(unique_leg_ids) - set(leg_by_id.keys())
     if missing_docs:
         logger.warning(
-            f"Parent legislation not found: {len(missing_docs)} documents missing from main collection"
+            f"Parent legislation not found: {len(missing_docs)} "
+            "documents missing from main collection"
         )
         logger.debug(f"Missing IDs sample: {list(missing_docs)[:3]}")
 
@@ -189,25 +211,49 @@ async def legislation_act_search(input: LegislationActSearch) -> dict:
     lookup_time = time.time() - lookup_start
     logger.info(f"Looked up {len(leg_by_id)} acts in {lookup_time:.3f}s")
 
-    # Build results with top sections
+    # Build results with top sections (include stubs for missing parent documents)
     results = []
     for leg_id in unique_leg_ids:
         if leg_id in leg_by_id:
             leg_dict = leg_by_id[leg_id].model_dump()
-            sections_list = [
-                {
-                    "number": str(s["section"].number) if s["section"].number else "",
-                    "provision_type": s["section"].provision_type.value,
-                    "score": s["score"],
-                }
-                for s in legislation_sections[leg_id]
-            ]
-            leg_dict["sections"] = sections_list
-            results.append(leg_dict)
+        else:
+            # Construct stub from section metadata when parent document is missing
+            best_section = next(
+                (s["section"] for s in legislation_sections[leg_id] if s["section"] is not None),
+                None,
+            )
+            leg_dict = {
+                "id": leg_id,
+                "uri": leg_id,
+                "title": best_section.title if best_section and best_section.title else "",
+                "type": (
+                    best_section.legislation_type.value
+                    if best_section and best_section.legislation_type
+                    else ""
+                ),
+                "year": best_section.legislation_year if best_section else None,
+                "number": best_section.legislation_number if best_section else None,
+                "status": "stub",
+                "category": "",
+                "extent": [],
+            }
+
+        sections_list = [
+            {
+                "number": str(s["section"].number) if s["section"] and s["section"].number else "",
+                "provision_type": s["section"].provision_type.value if s["section"] else "",
+                "score": s["score"],
+            }
+            for s in legislation_sections[leg_id]
+            if s["section"] is not None  # Skip title-only placeholder entries
+        ]
+        leg_dict["sections"] = sections_list
+        results.append(leg_dict)
 
     total_time = time.time() - start_time
     logger.info(
-        f"Search completed in {total_time:.3f}s (sections:{section_search_time:.3f}s, lookup:{lookup_time:.3f}s)"
+        f"Search completed in {total_time:.3f}s "
+        f"(sections:{section_search_time:.3f}s, lookup:{lookup_time:.3f}s)"
     )
 
     return {
@@ -277,6 +323,73 @@ def get_filters(
 
     logger.debug(f"Created {len(conditions)} filter conditions")
     return conditions
+
+
+def get_act_filters(
+    type_selection: list[LegislationType] | None,
+    year_from: int | None,
+    year_to: int | None,
+) -> list:
+    """Returns Qdrant filter conditions for the legislation (acts) collection.
+
+    Uses parent collection field names: 'type' and 'year'
+    (not 'legislation_type'/'legislation_year').
+    """
+    legislation_types = get_legislation_types(None, type_selection) if type_selection else None
+
+    conditions = []
+    if legislation_types:
+        conditions.append(FieldCondition(key="type", match=MatchAny(any=legislation_types)))
+
+    conditions.extend(build_year_range_conditions(year_from, year_to, year_field="year"))
+
+    return conditions
+
+
+async def qdrant_search_acts(
+    search_query: str,
+    type_selection: list[LegislationType] | None = None,
+    year_from: int | None = None,
+    year_to: int | None = None,
+    size: int = 20,
+) -> dict[str, float]:
+    """Search the legislation (acts) collection by title/description.
+
+    Returns:
+        dict mapping legislation ID to normalised score
+    """
+    filter_conditions = get_act_filters(type_selection, year_from, year_to)
+    query_filter = Filter(must=filter_conditions) if filter_conditions else None
+
+    dense, sparse = await generate_hybrid_embeddings_async(search_query)
+
+    dense_limit = max(30, 3 * size)
+    sparse_limit = max(8, int(0.8 * size))
+
+    results = await async_qdrant_client.query_points(
+        collection_name=LEGISLATION_COLLECTION,
+        query=FusionQuery(fusion=Fusion.DBSF),
+        prefetch=[
+            Prefetch(query=dense, using="dense", limit=dense_limit),
+            Prefetch(query=sparse, using="sparse", limit=sparse_limit),
+        ],
+        query_filter=query_filter,
+        limit=size,
+        with_payload=["id"],
+    )
+
+    if not results.points:
+        return {}
+
+    max_score = max(p.score for p in results.points)
+    if max_score <= 0:
+        max_score = 1.0
+
+    return {
+        point.payload["id"]: point.score / max_score
+        for point in results.points
+        if point.payload.get("id")
+    }
 
 
 async def qdrant_search(

@@ -330,7 +330,7 @@ def ingest_amendments(years: list[int], limit: int | None = None) -> dict:
     }
 
     amendment_docs: list = []
-    pipeline = pipe_amendments(years=years, limit=limit or 0)
+    pipeline = pipe_amendments(years=years, limit=limit)
 
     for amendment in pipeline:
         try:
