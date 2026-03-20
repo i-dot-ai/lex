@@ -42,10 +42,10 @@ param customDomain string = ''
 param slackWebhookUrl string = ''
 
 @description('Rate limit per minute')
-param rateLimitPerMinute int = 60
+param rateLimitPerMinute int = 600
 
 @description('Rate limit per hour')
-param rateLimitPerHour int = 1000
+param rateLimitPerHour int = 10000
 
 // Variables
 var resourcePrefix = applicationName

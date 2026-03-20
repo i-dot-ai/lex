@@ -302,11 +302,11 @@ uv run python scripts/pdf/check_pdf_progress.py data/results.jsonl
 
 ### Rate limiting
 
-- Redis-backed: 60 requests/min, 1000 requests/hr per client IP
+- Redis-backed: 600 requests/min, 10,000 requests/hr per client IP
 - Client IP extracted from the **rightmost** `X-Forwarded-For` entry (appended by Azure Container Apps; leftmost is client-controlled)
 - Headers: `X-RateLimit-Remaining-Minute`, `X-RateLimit-Remaining-Hour`
 - Monitoring events fire at 80% threshold
-- Falls back to in-memory tracking if Redis is down
+- Falls back to per-replica in-memory tracking if Redis is down (limits apply per replica, not globally; reconnection attempted every 30s)
 - Redis has public network access enabled (Container Apps connects over public internet; disabling requires VNet/Private Endpoint)
 - `/healthcheck` and `/health` endpoints are exempt
 - Configurable via `RATE_LIMIT_PER_MINUTE` and `RATE_LIMIT_PER_HOUR` env vars
@@ -327,7 +327,7 @@ uv run python scripts/pdf/check_pdf_progress.py data/results.jsonl
 | Container App | 1-10 replicas, scales at 50 concurrent requests | Increase `maxReplicas` in `infrastructure/azure/main.bicep` |
 | Qdrant Cloud | Managed (UK South) | Contact Qdrant support |
 | Redis Cache | Azure Cache for Redis | Scale via Azure portal |
-| Rate limits | 60/min, 1000/hr | Change via env vars or Bicep parameters |
+| Rate limits | 600/min, 10,000/hr | Change via env vars or Bicep parameters |
 
 ---
 

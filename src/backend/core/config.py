@@ -3,8 +3,9 @@
 import os
 
 # Rate limiting configuration
-RATE_LIMIT_PER_MINUTE = int(os.getenv("RATE_LIMIT_PER_MINUTE", "60"))
-RATE_LIMIT_PER_HOUR = int(os.getenv("RATE_LIMIT_PER_HOUR", "1000"))
+RATE_LIMIT_PER_MINUTE = int(os.getenv("RATE_LIMIT_PER_MINUTE", "600"))
+RATE_LIMIT_PER_HOUR = int(os.getenv("RATE_LIMIT_PER_HOUR", "10000"))
+RATE_LIMIT_MEMORY_MAX_ENTRIES = 10000
 
 # Cache TTL configuration
 DEFAULT_CACHE_TTL = int(os.getenv("DEFAULT_CACHE_TTL", "28800"))  # 8 hours
