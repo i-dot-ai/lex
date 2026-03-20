@@ -212,15 +212,15 @@ export default function ResearchPage() {
           {messages.length === 0 ? (
             <div className="flex flex-1 flex-col items-center justify-center">
               <div className="w-full max-w-3xl space-y-8 -mt-20">
-                <h2 className="text-3xl font-medium text-center">What are you researching?</h2>
+                <h2 className="text-3xl font-medium text-center animate-in fade-in slide-in-from-bottom-2 duration-500">What are you researching?</h2>
 
                 <div className="relative w-full">
                   <div className="relative">
                     <form onSubmit={handleSubmit}>
-                      <div className="rounded-[2rem] border border-input/50 bg-background/50 backdrop-blur-sm shadow-sm overflow-hidden">
+                      <div className="rounded-[2rem] border border-input/50 bg-background/50 backdrop-blur-sm shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-3 duration-500 delay-150">
                         <textarea
                           id="research-query"
-                          placeholder="Ask me anything about UK legislation or caselaw..."
+                          placeholder="e.g. How has data protection law changed since GDPR?"
                           className="w-full min-h-[100px] px-6 pt-5 pb-12 text-base bg-transparent resize-none focus-visible:outline-none"
                           value={input}
                           onChange={(e) => setInput(e.target.value)}
@@ -239,6 +239,7 @@ export default function ResearchPage() {
                             type="button"
                             size="icon"
                             variant="ghost"
+                            aria-label="Research settings"
                             className="rounded-full h-10 w-10"
                             onClick={() => setShowFilters(!showFilters)}
                           >
@@ -305,7 +306,7 @@ export default function ResearchPage() {
                           <div className="space-y-2.5">
                             <div className="flex items-center justify-between">
                               <p className="text-sm text-muted-foreground font-medium">Research depth</p>
-                              <span className="text-xs text-muted-foreground">Max {maxSteps} steps</span>
+                              <span className="text-xs text-muted-foreground">{maxSteps} steps max</span>
                             </div>
                             <input
                               type="range"
@@ -316,7 +317,7 @@ export default function ResearchPage() {
                               className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
                             />
                             <p className="text-xs text-muted-foreground">
-                              {maxSteps <= 10 ? 'Quick research' : maxSteps <= 25 ? 'Balanced' : maxSteps <= 35 ? 'Deep dive' : 'Comprehensive'}
+                              {maxSteps <= 10 ? 'Quick — fast answers' : maxSteps <= 25 ? 'Balanced — recommended' : maxSteps <= 35 ? 'Thorough — more sources' : 'Comprehensive — exhaustive'}
                             </p>
                           </div>
                         </div>
@@ -333,7 +334,7 @@ export default function ResearchPage() {
                 {messages.map((message) => {
                   if (message.role === 'user') {
                     return (
-                      <div key={message.id} className="flex justify-end">
+                      <div key={message.id} className="flex justify-end animate-in fade-in slide-in-from-bottom-2 duration-300">
                         <div className="max-w-[80%] rounded-2xl px-4 py-3 bg-primary text-primary-foreground">
                           <p className="text-sm whitespace-pre-wrap">
                             {message.parts.find((p) => p.type === 'text')?.text}
@@ -347,7 +348,7 @@ export default function ResearchPage() {
                   const cards = splitMessageForDisplay(message.parts as MessagePart[])
 
                   return (
-                    <div key={message.id} className="flex justify-start">
+                    <div key={message.id} className="flex justify-start animate-in fade-in slide-in-from-bottom-2 duration-300">
                       <div className={`max-w-[85%] ${SPACING.WITHIN_GROUP}`}>
                         {cards.map((card, cardIndex) => {
                           // Check if next card is different type for extra spacing
@@ -458,17 +459,32 @@ export default function ResearchPage() {
 
                                       return (
                                         <>
-                                          {resultsArray.slice(0, 3).map((result: Record<string, unknown>, i: number) => (
+                                          {resultsArray.slice(0, 3).map((result: Record<string, unknown>, i: number) => {
+                                            const title = String(result.title || '')
+                                            const name = String(result.name || '')
+                                            const legislationType = String(result.legislation_type || '').toUpperCase()
+                                            const legislationYear = String(result.legislation_year || '')
+                                            const legislationNumber = String(result.legislation_number || '')
+                                            const sectionNumber = result.number ? ` s.${result.number}` : ''
+                                            const citeAs = String(result.cite_as || '')
+                                            const court = String(result.court || '').toUpperCase()
+                                            const year = String(result.year || '')
+                                            const amendingTitle = String(result.amending_title || '')
+                                            const amendedTitle = String(result.amended_title || '')
+                                            const changeType = String(result.change_type || '')
+                                            const citation = String(result.citation || '')
+
+                                            return (
                                             <div key={i} className="border-l-2 border-muted-foreground/20 pl-2 py-0.5">
                                               {/* Legislation sections: show title and reference */}
                                               {isLegislationSection && (
                                                 <>
                                                   <div className="font-medium text-muted-foreground/90">
-                                                    {result.title as string || 'Untitled section'}
+                                                    {title || 'Untitled section'}
                                                   </div>
                                                   <div className="text-muted-foreground/70">
-                                                    {(result.legislation_type as string || '').toUpperCase()} {result.legislation_year}/{result.legislation_number}
-                                                    {result.number && ` s.${result.number}`}
+                                                    {legislationType} {legislationYear}/{legislationNumber}
+                                                    {sectionNumber}
                                                   </div>
                                                 </>
                                               )}
@@ -477,10 +493,10 @@ export default function ResearchPage() {
                                               {isCaselawSummary && (
                                                 <>
                                                   <div className="font-medium text-muted-foreground/90">
-                                                    {result.name as string || 'Unnamed case'}
+                                                    {name || 'Unnamed case'}
                                                   </div>
                                                   <div className="text-muted-foreground/70">
-                                                    {result.cite_as as string || `${(result.court as string || '').toUpperCase()} ${result.year}`}
+                                                    {citeAs || `${court} ${year}`}
                                                   </div>
                                                 </>
                                               )}
@@ -489,10 +505,10 @@ export default function ResearchPage() {
                                               {isAmendment && (
                                                 <>
                                                   <div className="font-medium text-muted-foreground/90">
-                                                    {result.amending_title as string || result.amended_title as string || 'Amendment'}
+                                                    {amendingTitle || amendedTitle || 'Amendment'}
                                                   </div>
                                                   <div className="text-muted-foreground/70">
-                                                    {result.change_type as string || 'Modified'}
+                                                    {changeType || 'Modified'}
                                                   </div>
                                                 </>
                                               )}
@@ -500,22 +516,23 @@ export default function ResearchPage() {
                                               {/* Default fallback for other tools */}
                                               {!isLegislationSection && !isCaselawSummary && !isAmendment && (
                                                 <>
-                                                  {result.title && (
-                                                    <div className="font-medium text-muted-foreground/90">{result.title as string}</div>
+                                                  {title && (
+                                                    <div className="font-medium text-muted-foreground/90">{title}</div>
                                                   )}
-                                                  {result.citation && (
-                                                    <div className="text-muted-foreground/70">{result.citation as string}</div>
+                                                  {citation && (
+                                                    <div className="text-muted-foreground/70">{citation}</div>
                                                   )}
-                                                  {result.cite_as && !result.citation && (
-                                                    <div className="text-muted-foreground/70">{result.cite_as as string}</div>
+                                                  {citeAs && !citation && (
+                                                    <div className="text-muted-foreground/70">{citeAs}</div>
                                                   )}
-                                                  {result.name && !result.title && (
-                                                    <div className="font-medium text-muted-foreground/90">{result.name as string}</div>
+                                                  {name && !title && (
+                                                    <div className="font-medium text-muted-foreground/90">{name}</div>
                                                   )}
                                                 </>
                                               )}
                                             </div>
-                                          ))}
+                                            )
+                                          })}
                                           {resultsArray.length > 3 && (
                                             <div className="pl-2 text-muted-foreground/60 italic">
                                               +{resultsArray.length - 3} more result{resultsArray.length - 3 !== 1 ? 's' : ''}
@@ -596,7 +613,7 @@ export default function ResearchPage() {
                 </form>
 
                 <p className="text-xs text-center text-muted-foreground mt-2">
-                  Lex can make mistakes. Check important info.
+                  AI-generated research — always verify against primary sources.
                 </p>
               </div>
             </div>

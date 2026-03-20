@@ -65,6 +65,7 @@ export function TextSearch({ containerRef, placeholder = "Search...", onClose }:
           <Button
             variant="ghost"
             size="sm"
+            aria-label="Clear search"
             onClick={handleClear}
             className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
           >
@@ -84,7 +85,7 @@ export function TextSearch({ containerRef, placeholder = "Search...", onClose }:
               size="sm"
               onClick={goToPrevious}
               className="h-9 w-9 p-0"
-              title="Previous match (Shift+Enter)"
+              aria-label="Previous match (Shift+Enter)"
             >
               <ChevronUp className="h-4 w-4" />
             </Button>
@@ -93,7 +94,7 @@ export function TextSearch({ containerRef, placeholder = "Search...", onClose }:
               size="sm"
               onClick={goToNext}
               className="h-9 w-9 p-0"
-              title="Next match (Enter)"
+              aria-label="Next match (Enter)"
             >
               <ChevronDown className="h-4 w-4" />
             </Button>

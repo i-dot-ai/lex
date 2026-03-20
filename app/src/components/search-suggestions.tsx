@@ -11,18 +11,17 @@ interface SuggestionItemProps {
 }
 
 function SuggestionItem({ query, onClick, type }: SuggestionItemProps) {
-  const colorClasses = type === 'recent' 
-    ? 'bg-sky-50 hover:bg-sky-100 border-sky-100 hover:border-sky-200'
-    : 'bg-fuchsia-50 hover:bg-fuchsia-100 border-fuchsia-100 hover:border-fuchsia-200'
-  
   return (
     <Button
       variant="outline"
       size="sm"
       onClick={() => onClick(query)}
-      className={`justify-start h-auto p-3 text-sm font-normal 
-                 shadow-sm hover:shadow-md transition-all duration-200 ${colorClasses}`}
+      className="justify-start h-auto p-3 text-sm font-normal transition-colors"
     >
+      {type === 'recent'
+        ? <Clock className="h-3 w-3 mr-2 shrink-0 text-muted-foreground" />
+        : <Sparkles className="h-3 w-3 mr-2 shrink-0 text-muted-foreground" />
+      }
       {query}
     </Button>
   )
@@ -48,7 +47,7 @@ export function SearchSuggestions({
   }
 
   return (
-    <div className={`bg-card border border-border/40 rounded-lg p-4 space-y-4 ${className}`}>
+    <div className={`bg-card border border-border/40 rounded-lg p-4 space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300 ${className}`}>
       {recentSearches.length > 0 && (
         <div className="space-y-3">
           <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">

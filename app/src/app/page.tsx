@@ -8,16 +8,14 @@ import {
   BreadcrumbPage,
 } from "@/components/ui/breadcrumb"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
-import { FileText, Search, ExternalLink } from "lucide-react"
+import { Search, Microscope, ArrowRight } from "lucide-react"
 import Link from "next/link"
-import { API_CONFIG } from "@/lib/config"
 
 export default function Home() {
   return (
@@ -41,84 +39,28 @@ export default function Home() {
           </div>
         </header>
 
-        <div className="flex flex-1 flex-col gap-8 p-4 pt-0">
-          {/* Hero Section */}
-          <div className="space-y-4 text-center max-w-2xl mx-auto mt-12">
-            <h1 className="text-4xl font-bold tracking-tight">Lex API Demo</h1>
-            <p className="text-muted-foreground text-lg">
-              See what you can build with the Lex UK Legal Research API.
-              Semantic search across UK legislation.
+        <div className="flex flex-1 flex-col items-center justify-center p-4 pt-0">
+          <div className="space-y-6 text-center max-w-md">
+            <h1 className="text-4xl font-bold tracking-tight animate-in fade-in slide-in-from-bottom-2 duration-500">Lex</h1>
+            <p className="text-muted-foreground text-lg animate-in fade-in slide-in-from-bottom-2 duration-500 delay-100">
+              Semantic search across 125,000+ UK laws.
             </p>
-            <div className="flex items-center justify-center gap-3 pt-2">
-              <a
-                href={`${API_CONFIG.backendUrl}/docs`}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Button variant="outline" size="sm">
-                  <ExternalLink className="mr-2 h-4 w-4" />
-                  API Reference
+
+            <div className="flex flex-col gap-3 pt-2 animate-in fade-in slide-in-from-bottom-3 duration-500 delay-200">
+              <Link href="/legislation">
+                <Button className="w-full transition-all hover:-translate-y-0.5 hover:shadow-md" size="lg">
+                  <Search className="mr-2 h-4 w-4" />
+                  Search Legislation
                 </Button>
-              </a>
-              <a
-                href={`${API_CONFIG.backendUrl}/`}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Button variant="ghost" size="sm">
-                  About Lex
+              </Link>
+              <Link href="/research">
+                <Button variant="outline" className="w-full transition-all hover:-translate-y-0.5 hover:shadow-md" size="lg">
+                  <Microscope className="mr-2 h-4 w-4" />
+                  Deep Research
+                  <ArrowRight className="ml-auto h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
                 </Button>
-              </a>
+              </Link>
             </div>
-          </div>
-
-          {/* Search Options */}
-          <div className="grid gap-6 max-w-xl mx-auto w-full">
-            <Link href="/legislation" className="group">
-              <Card className="h-full transition-all hover:shadow-lg hover:border-primary/50">
-                <CardHeader className="pb-4">
-                  <div className="flex items-center justify-center mb-4">
-                    <div className="p-3 rounded-full bg-primary/10">
-                      <FileText className="h-8 w-8 text-primary" />
-                    </div>
-                  </div>
-                  <CardTitle className="text-2xl text-center">Legislation</CardTitle>
-                  <CardDescription className="text-center">
-                    UK Acts, Statutory Instruments, and regulations
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button className="w-full" size="lg">
-                    <Search className="mr-2 h-4 w-4" />
-                    Search Legislation
-                  </Button>
-                </CardContent>
-              </Card>
-            </Link>
-
-            {/* Caselaw disabled
-            <Link href="/caselaw" className="group">
-              <Card className="h-full transition-all hover:shadow-lg hover:border-primary/50">
-                <CardHeader className="pb-4">
-                  <div className="flex items-center justify-center mb-4">
-                    <div className="p-3 rounded-full bg-primary/10">
-                      <Scale className="h-8 w-8 text-primary" />
-                    </div>
-                  </div>
-                  <CardTitle className="text-2xl text-center">Caselaw</CardTitle>
-                  <CardDescription className="text-center">
-                    UK court judgments and tribunal decisions
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button className="w-full" size="lg">
-                    <Search className="mr-2 h-4 w-4" />
-                    Search Caselaw
-                  </Button>
-                </CardContent>
-              </Card>
-            </Link>
-            */}
           </div>
         </div>
       </SidebarInset>

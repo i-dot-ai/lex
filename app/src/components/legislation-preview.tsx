@@ -25,7 +25,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
-  ExternalLink,
   AlertCircle,
   Copy,
   Check,
@@ -131,7 +130,7 @@ export function LegislationPreview({ open, onOpenChange, legislation, relevantSe
 
     const success = await copyToClipboard(plainText)
     if (success) {
-      setCopiedFormat('fulltext' as CitationFormat)
+      setCopiedFormat('fulltext')
       setTimeout(() => setCopiedFormat(null), 2000)
     }
   }
@@ -655,6 +654,7 @@ export function LegislationPreview({ open, onOpenChange, legislation, relevantSe
                   <Button
                     variant="ghost"
                     size="sm"
+                    aria-label="Previous relevant section"
                     onClick={goToPrevRelevant}
                     className="h-6 w-6 p-0 text-amber-700 dark:text-amber-300 hover:text-amber-900 dark:hover:text-amber-100"
                     disabled={relevantSections.length <= 1}
@@ -664,6 +664,7 @@ export function LegislationPreview({ open, onOpenChange, legislation, relevantSe
                   <Button
                     variant="ghost"
                     size="sm"
+                    aria-label="Next relevant section"
                     onClick={goToNextRelevant}
                     className="h-6 w-6 p-0 text-amber-700 dark:text-amber-300 hover:text-amber-900 dark:hover:text-amber-100"
                     disabled={relevantSections.length <= 1}
@@ -673,6 +674,7 @@ export function LegislationPreview({ open, onOpenChange, legislation, relevantSe
                   <Button
                     variant="ghost"
                     size="sm"
+                    aria-label="Close relevance navigator"
                     onClick={() => setShowRelevanceNav(false)}
                     className="h-6 w-6 p-0 text-amber-700 dark:text-amber-300 hover:text-amber-900 dark:hover:text-amber-100"
                   >
@@ -692,7 +694,7 @@ export function LegislationPreview({ open, onOpenChange, legislation, relevantSe
                 className={`absolute top-2 z-10 h-8 w-8 p-0 backdrop-blur-sm bg-background/80 hover:bg-background shadow-md transition-all duration-300 ${
                   showToc && sections && sections.length > 0 ? 'left-[242px]' : 'left-2'
                 }`}
-                title={showToc ? 'Hide Contents' : 'Show Contents'}
+                aria-label={showToc ? 'Hide contents' : 'Show contents'}
               >
                 <List className="h-4 w-4" />
               </Button>
@@ -705,6 +707,7 @@ export function LegislationPreview({ open, onOpenChange, legislation, relevantSe
                     <Button
                       variant="ghost"
                       size="sm"
+                      aria-label="Close search"
                       onClick={() => setSearchExpanded(false)}
                       className="h-8 w-8 p-0 shrink-0"
                     >
@@ -717,7 +720,7 @@ export function LegislationPreview({ open, onOpenChange, legislation, relevantSe
                     size="sm"
                     onClick={() => setSearchExpanded(true)}
                     className="h-8 w-8 p-0 backdrop-blur-sm bg-background/80 hover:bg-background shadow-md"
-                    title="Search within text"
+                    aria-label="Search within text"
                   >
                     <Search className="h-4 w-4" />
                   </Button>

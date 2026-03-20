@@ -13,14 +13,14 @@ export default function NotFound() {
             <CardTitle>Page Not Found</CardTitle>
           </div>
           <CardDescription>
-            The page you&rsquo;re looking for doesn&rsquo;t exist
+            This page doesn&rsquo;t exist or may have been moved.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Button asChild className="w-full">
             <Link href="/">
               <Home className="mr-2 h-4 w-4" />
-              Go Home
+              Back to Home
             </Link>
           </Button>
         </CardContent>

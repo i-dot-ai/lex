@@ -25,7 +25,7 @@ export default function Error({
             <CardTitle>Something went wrong</CardTitle>
           </div>
           <CardDescription>
-            An error occurred while loading this page
+            Something unexpected happened. Your data is safe.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

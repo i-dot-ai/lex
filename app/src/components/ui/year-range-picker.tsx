@@ -278,6 +278,7 @@ export function YearRangePicker({
               <Button
                 variant="outline"
                 size="sm"
+                aria-label="Previous decade"
                 onClick={handlePreviousDecade}
                 disabled={currentDecade <= Math.floor(minYear / 10) * 10}
                 className="h-8 w-8 p-0"
@@ -290,6 +291,7 @@ export function YearRangePicker({
               <Button
                 variant="outline"
                 size="sm"
+                aria-label="Next decade"
                 onClick={handleNextDecade}
                 disabled={currentDecade >= Math.floor(maxYear / 10) * 10}
                 className="h-8 w-8 p-0"

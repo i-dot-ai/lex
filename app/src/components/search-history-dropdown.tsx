@@ -90,11 +90,11 @@ export function SearchHistoryDropdown({ type, onSelectSearch, variant = 'default
       <DropdownMenu open={open} onOpenChange={setOpen}>
         <DropdownMenuTrigger asChild>
           {variant === 'compact' ? (
-            <Button variant="outline" size="sm" className="h-8 w-8 p-0 bg-sky-50 hover:bg-sky-100 border-sky-100 hover:border-sky-200">
+            <Button variant="outline" size="sm" aria-label="Search history" className="h-8 w-8 p-0 bg-muted/50 hover:bg-muted border-border/60 hover:border-border">
               <History className="h-4 w-4" />
             </Button>
           ) : (
-            <Button variant="outline" size="sm" className="gap-2 bg-sky-50 hover:bg-sky-100 border-sky-100 hover:border-sky-200">
+            <Button variant="outline" size="sm" className="gap-2 bg-muted/50 hover:bg-muted border-border/60 hover:border-border">
               <History className="h-4 w-4" />
               History
             </Button>
@@ -115,18 +115,18 @@ export function SearchHistoryDropdown({ type, onSelectSearch, variant = 'default
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         {variant === 'compact' ? (
-          <Button variant="outline" size="sm" className="h-8 px-2 gap-1 bg-sky-50 hover:bg-sky-100 border-sky-100 hover:border-sky-200">
+          <Button variant="outline" size="sm" aria-label={`Search history (${history.length})`} className="h-8 px-2 gap-1 bg-muted/50 hover:bg-muted border-border/60 hover:border-border">
             <History className="h-4 w-4" />
-            <span className="rounded-full bg-sky-100 px-1.5 py-0.5 text-xs font-medium">
+            <span className="rounded-full bg-muted px-1.5 py-0.5 text-xs font-medium">
               {history.length}
             </span>
           </Button>
         ) : (
-          <Button variant="outline" size="sm" className="gap-2 bg-sky-50 hover:bg-sky-100 border-sky-100 hover:border-sky-200">
+          <Button variant="outline" size="sm" className="gap-2 bg-muted/50 hover:bg-muted border-border/60 hover:border-border">
             <History className="h-4 w-4" />
             History
             {history.length > 0 && (
-              <span className="ml-1 rounded-full bg-sky-100 px-2 py-0.5 text-xs font-medium">
+              <span className="ml-1 rounded-full bg-muted px-2 py-0.5 text-xs font-medium">
                 {history.length}
               </span>
             )}
@@ -169,6 +169,7 @@ export function SearchHistoryDropdown({ type, onSelectSearch, variant = 'default
               <Button
                 variant="ghost"
                 size="sm"
+                aria-label="Remove from history"
                 onClick={(e) => handleRemoveItem(e, item.id)}
                 className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 hover:bg-destructive/10 hover:text-destructive"
               >

@@ -29,8 +29,8 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
-import { Search, Calendar, Building2, Gavel, Scale, ExternalLink, AlertCircle, ArrowUpDown, Filter, X } from "lucide-react"
-import { ResultSkeletonList, ResultsSectionSkeleton } from "@/components/result-skeleton"
+import { Search, Calendar, Building2, Gavel, Scale, AlertCircle, ArrowUpDown, Filter, X, Loader2, ChevronRight } from "lucide-react"
+import { ResultsSectionSkeleton } from "@/components/result-skeleton"
 import { EmptyState } from "@/components/empty-state"
 import { CourtBadge, CitationBadge } from "@/components/badges"
 import { CaselawPreview } from "@/components/caselaw-preview"
@@ -182,7 +182,7 @@ export default function CaselawPage() {
           <div className="space-y-4">
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="query">Search Query</Label>
+                  <Label htmlFor="query">Search case law</Label>
                   <span className="text-xs text-muted-foreground">
                     <kbd className="px-1.5 py-0.5 text-xs font-semibold bg-muted rounded">⌘K</kbd> to focus
                   </span>
@@ -191,7 +191,7 @@ export default function CaselawPage() {
                   <Input
                     ref={search.searchInputRef}
                     id="query"
-                    placeholder="e.g., breach of contract, negligence, judicial review"
+                    placeholder="e.g. duty of care, Donoghue v Stevenson"
                     value={search.query}
                     onChange={(e) => search.setQuery(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && search.handleSearch()}
@@ -240,7 +240,10 @@ export default function CaselawPage() {
                 disabled={search.isLoading || !search.query}
                 className="w-full"
               >
-                <Search className="mr-2 h-4 w-4" />
+                {search.isLoading
+                  ? <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  : <Search className="mr-2 h-4 w-4" />
+                }
                 {search.isLoading ? "Searching..." : "Search"}
               </Button>
 
@@ -303,7 +306,7 @@ export default function CaselawPage() {
                   <div className="relative">
                     <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                      placeholder="Filter results..."
+                      placeholder="Filter by name..."
                       value={search.filterText}
                       onChange={(e) => search.setFilterText(e.target.value)}
                       className="pl-9 pr-9 w-64"
@@ -311,6 +314,7 @@ export default function CaselawPage() {
                     {search.filterText && (
                       <button
                         onClick={() => search.setFilterText("")}
+                        aria-label="Clear filter"
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                       >
                         <X className="h-4 w-4" />
@@ -341,26 +345,33 @@ export default function CaselawPage() {
               </div>
 
               <div className="space-y-4">
-                {search.results.map((result: CaselawResult) => (
+                {search.results.map((result: CaselawResult, index: number) => (
                   <Card
                     key={result.id}
-                    className="hover:shadow-md transition-shadow cursor-pointer"
+                    role="button"
+                    tabIndex={0}
+                    className="hover:shadow-md hover:-translate-y-px transition-all duration-200 cursor-pointer group animate-in fade-in slide-in-from-bottom-2"
+                    style={{ animationDelay: `${Math.min(index * 50, 300)}ms`, animationFillMode: 'both' }}
                     onClick={() => search.openPreview(result)}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); search.openPreview(result) } }}
                   >
                     <CardHeader className="pb-3">
                       <div className="flex items-start justify-between gap-4 mb-2">
                         <CardTitle className="text-base leading-tight flex-1">
                           {result.name}
                         </CardTitle>
-                        <div className="flex items-center gap-1.5 text-sm text-muted-foreground shrink-0">
-                          <Calendar className="h-3.5 w-3.5" />
-                          <span className="font-medium">
-                            {new Date(result.date).toLocaleDateString('en-GB', {
-                              day: 'numeric',
-                              month: 'short',
-                              year: 'numeric'
-                            })}
-                          </span>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                            <Calendar className="h-3.5 w-3.5" />
+                            <span className="font-medium">
+                              {new Date(result.date).toLocaleDateString('en-GB', {
+                                day: 'numeric',
+                                month: 'short',
+                                year: 'numeric'
+                              })}
+                            </span>
+                          </div>
+                          <ChevronRight className="h-4 w-4 text-muted-foreground/50 group-hover:text-muted-foreground transition-colors" />
                         </div>
                       </div>
                       <div className="flex flex-wrap items-center gap-2">

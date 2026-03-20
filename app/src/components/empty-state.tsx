@@ -30,7 +30,7 @@ export function EmptyState({ query, onClear, onSuggestionClick, type = 'legislat
   const suggestions = SUGGESTIONS[type]
 
   return (
-    <Card className="border-dashed">
+    <Card className="border-dashed animate-in fade-in slide-in-from-bottom-2 duration-300">
       <CardContent className="flex flex-col items-center justify-center py-12">
         <SearchX className="h-16 w-16 text-muted-foreground mb-4" />
         <h3 className="text-lg font-semibold mb-2">No results found</h3>
@@ -46,9 +46,19 @@ export function EmptyState({ query, onClear, onSuggestionClick, type = 'legislat
         <div className="flex flex-col items-center gap-2 text-sm text-muted-foreground mb-4">
           <p>Try:</p>
           <ul className="list-disc list-inside space-y-1">
-            <li>Using different keywords</li>
-            <li>Checking your spelling</li>
-            <li>Removing some filters</li>
+            {type === 'legislation' ? (
+              <>
+                <li>Using the full title, e.g. &quot;Data Protection Act 2018&quot;</li>
+                <li>Searching by topic, e.g. &quot;employment rights&quot;</li>
+                <li>Widening the year range or removing type filters</li>
+              </>
+            ) : (
+              <>
+                <li>Searching by legal concept, e.g. &quot;duty of care&quot;</li>
+                <li>Using party names or case citations</li>
+                <li>Widening the year range or removing court filters</li>
+              </>
+            )}
           </ul>
         </div>
         {onClear && (

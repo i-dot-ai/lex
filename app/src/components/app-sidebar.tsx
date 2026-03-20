@@ -58,10 +58,6 @@ const data = {
           title: "Legislation",
           url: "/legislation",
         },
-        // {
-        //   title: "Caselaw",
-        //   url: "/caselaw",
-        // },
       ],
     },
     {
@@ -104,7 +100,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarContent>
         <SidebarGroup>
           <NavMain items={platformItems} />
+        </SidebarGroup>
+        <SidebarGroup>
           <NavMain items={documentationItems} />
+        </SidebarGroup>
+        <SidebarGroup>
           <NavMain items={settingsItems} />
         </SidebarGroup>
       </SidebarContent>

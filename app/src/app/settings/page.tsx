@@ -134,7 +134,7 @@ export default function SettingsPage() {
           <div className="space-y-2">
             <h1 className="text-2xl font-semibold">Settings</h1>
             <p className="text-sm text-muted-foreground">
-              Manage your Lex application settings and system status
+              Application preferences and system status
             </p>
           </div>
 
@@ -146,7 +146,7 @@ export default function SettingsPage() {
                 Backend Status
               </CardTitle>
               <CardDescription>
-                Connection status to the Lex backend API
+                Connection to the Lex search and research API
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -176,9 +176,9 @@ export default function SettingsPage() {
                 <div className="flex items-start gap-2 p-3 rounded-md bg-destructive/10 border border-destructive/20">
                   <AlertCircle className="h-4 w-4 text-destructive mt-0.5" />
                   <div className="text-sm text-destructive">
-                    <p className="font-medium">Backend is offline</p>
+                    <p className="font-medium">Cannot reach the Lex API</p>
                     <p className="text-xs mt-1">
-                      Make sure the backend server is running on port 8000
+                      Search and research features are unavailable. Check your network connection or try again later.
                     </p>
                   </div>
                 </div>
@@ -188,9 +188,9 @@ export default function SettingsPage() {
                 <div className="flex items-start gap-2 p-3 rounded-md bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800">
                   <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400 mt-0.5" />
                   <div className="text-sm text-amber-800 dark:text-amber-200">
-                    <p className="font-medium">Backend is degraded</p>
+                    <p className="font-medium">Lex API is partially available</p>
                     <p className="text-xs mt-1">
-                      The backend is responding but may have issues
+                      Some features may be slower than usual or temporarily unavailable.
                     </p>
                   </div>
                 </div>
@@ -206,7 +206,7 @@ export default function SettingsPage() {
                 Research Settings
               </CardTitle>
               <CardDescription>
-                Configure default settings for deep research queries
+                Control how thoroughly the AI researches your questions
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -229,7 +229,7 @@ export default function SettingsPage() {
                   className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
                 />
                 <p className="text-xs text-muted-foreground">
-                  {maxSteps <= 10 ? 'Quick research (fewer tool calls)' : maxSteps <= 25 ? 'Balanced (recommended)' : maxSteps <= 35 ? 'Deep dive (thorough analysis)' : 'Comprehensive (maximum depth)'}
+                  {maxSteps <= 10 ? 'Quick — fast answers, fewer sources checked' : maxSteps <= 25 ? 'Balanced — good coverage, recommended for most queries' : maxSteps <= 35 ? 'Thorough — checks more sources, takes longer' : 'Comprehensive — exhaustive search across all available sources'}
                 </p>
               </div>
             </CardContent>
@@ -243,14 +243,14 @@ export default function SettingsPage() {
                 Browser Storage
               </CardTitle>
               <CardDescription>
-                Clear local data stored by Lex (search history, preferences)
+                Remove search history and preferences stored in your browser
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
                   <p className="text-sm">
-                    Clear all cached data and search history
+                    This removes your search history and resets all preferences
                   </p>
                   {clearSuccess && (
                     <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
