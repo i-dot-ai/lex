@@ -25,7 +25,10 @@ Usage:
 
 import argparse
 import logging
+import os
+import random
 import sys
+import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
@@ -47,7 +50,8 @@ from lex.core.document import uri_to_uuid
 from lex.core.embeddings import generate_hybrid_embeddings_batch
 from lex.core.qdrant_client import get_qdrant_client
 from lex.processing.amendment_explanations.explanation_generator import (
-    generate_explanation,
+    fetch_provision_text,
+    get_openai_client,
 )
 from lex.settings import AMENDMENT_COLLECTION
 
@@ -164,6 +168,66 @@ def fetch_amendments_with_explanations(
     return with_explanations
 
 
+def _throttled_generate(
+    amendment: Amendment,
+    http_semaphore: threading.Semaphore,
+) -> tuple[str, str, datetime]:
+    """Generate explanation with throttled HTTP access.
+
+    The semaphore limits concurrent legislation.gov.uk requests to avoid
+    thundering herd when 200 threads all retry simultaneously.
+    GPT-5-nano calls happen outside the semaphore (effectively unlimited).
+    """
+    # Jitter to stagger threads that wake up at the same time
+    time.sleep(random.uniform(0, 0.5))
+
+    changed_text = None
+    if amendment.changed_provision_url:
+        with http_semaphore:
+            changed_text = fetch_provision_text(amendment.changed_provision_url)
+
+    affecting_text = None
+    if amendment.affecting_provision_url:
+        with http_semaphore:
+            affecting_text = fetch_provision_text(amendment.affecting_provision_url)
+
+    # Build prompt (same as generate_explanation)
+    prompt = f"""Analyze this UK legislative amendment concisely and clearly.
+
+Amendment Details:
+- Changed Legislation: {amendment.changed_legislation}
+- Changed Provision: {amendment.changed_provision or "N/A"}
+- Affecting Legislation: {amendment.affecting_legislation or "N/A"}
+- Affecting Provision: {amendment.affecting_provision or "N/A"}
+- Type of Effect: {amendment.type_of_effect or "N/A"}
+
+Changed Provision Text (current version):
+{changed_text if changed_text else "[Not available - provision may not exist or have been repealed]"}
+
+Affecting Provision Text (the instruction that makes the change):
+{affecting_text if affecting_text else "[Not available]"}
+
+Provide a 3-part explanation:
+(1) Legal change - what was added, removed, or modified (be specific and brief)
+(2) Practical impact - real-world consequences for courts, agencies, or individuals (focus on key effects)
+(3) Plain language - restate for non-lawyers (use clear language, expand acronyms on first use, avoid unnecessary jargon)
+
+Write densely and efficiently. Favor clarity over length. Keep each part to 1-2 concise sentences."""
+
+    # GPT-5-nano call outside semaphore (no HTTP throttling needed)
+    openai_client = get_openai_client()
+    deployment = os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT", "gpt-5-nano")
+
+    response = openai_client.responses.create(
+        model=deployment,
+        input=prompt,
+        reasoning={"effort": "low"},
+        text={"verbosity": "low"},
+    )
+
+    return response.output_text.strip(), deployment, datetime.now(timezone.utc)
+
+
 def run_phase_1(
     amendments: list[Amendment],
     workers: int = 200,
@@ -182,6 +246,10 @@ def run_phase_1(
     failed = 0
     start_time = time.time()
 
+    # Limit concurrent HTTP requests to legislation.gov.uk (1500 per 5 min = 5/sec)
+    # Semaphore of 5 means at most 5 threads fetching XML concurrently
+    http_semaphore = threading.Semaphore(5)
+
     # Process in batches for Qdrant payload updates
     for batch_start in range(0, len(amendments), batch_size):
         batch = amendments[batch_start : batch_start + batch_size]
@@ -190,7 +258,7 @@ def run_phase_1(
         # Generate explanations in parallel
         with ThreadPoolExecutor(max_workers=min(workers, len(batch))) as executor:
             future_to_amendment = {
-                executor.submit(generate_explanation, amendment): amendment
+                executor.submit(_throttled_generate, amendment, http_semaphore): amendment
                 for amendment in batch
             }
 
@@ -198,11 +266,6 @@ def run_phase_1(
                 amendment = future_to_amendment[future]
                 try:
                     explanation, model_used, timestamp = future.result()
-
-                    # Skip error explanations
-                    if explanation.startswith("Error generating explanation:"):
-                        failed += 1
-                        continue
 
                     # Build set_payload operation
                     point_id = str(uri_to_uuid(amendment.id))
