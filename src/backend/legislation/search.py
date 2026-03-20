@@ -151,11 +151,8 @@ async def legislation_act_search(input: LegislationActSearch) -> dict:
     lookup_start = time.time()
     leg_by_id = {}
 
-    # Apply same year filters to legislation lookup to ensure consistency
+    # Look up by ID only - year filtering already applied at section search stage
     lookup_conditions = [FieldCondition(key="id", match=MatchAny(any=unique_leg_ids))]
-    lookup_conditions.extend(
-        build_year_range_conditions(input.year_from, input.year_to, year_field="year")
-    )
 
     points, _ = await async_qdrant_client.scroll(
         collection_name=LEGISLATION_COLLECTION,
