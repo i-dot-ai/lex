@@ -4,6 +4,8 @@ import pytest
 from fastapi.testclient import TestClient
 from pydantic import ValidationError
 
+pytestmark = pytest.mark.integration
+
 from lex.amendment.models import Amendment
 from src.backend.main import app
 

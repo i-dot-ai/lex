@@ -3,6 +3,8 @@ import tempfile
 import time
 
 import pytest
+
+pytestmark = pytest.mark.integration
 import requests
 
 from lex.core.http import HttpClient

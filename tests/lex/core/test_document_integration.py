@@ -3,6 +3,8 @@ from datetime import datetime
 import pytest
 from pydantic import BaseModel
 
+pytestmark = pytest.mark.integration
+
 from lex.core.clients import get_elasticsearch_client
 from lex.core.document import (
     documents_to_batches,

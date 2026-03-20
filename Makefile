@@ -14,7 +14,7 @@ pre-commit-setup:
 
 
 test:
-	uv run pytest lex/tests --cov=lex --cov-report=term-missing
+	uv run pytest tests/ --cov=lex --cov-report=term-missing
 .PHONY: test
 
 run:

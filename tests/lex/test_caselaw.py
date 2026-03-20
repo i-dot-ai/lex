@@ -1,11 +1,14 @@
 """Integration tests for caselaw package."""
 
+import pytest
+
 from lex.caselaw.models import Caselaw, CaselawSection, Court, CourtDivision
 from lex.caselaw.parser import CaselawAndCaselawSectionsParser, CaselawParser, CaselawSectionParser
 from lex.caselaw.scraper import CaselawScraper
 from lex.core.utils import load_xml_file_to_soup
 
 
+@pytest.mark.integration
 def test_caselaw_integration():
     """Test the full caselaw scraping and parsing pipeline."""
     # Initialize components

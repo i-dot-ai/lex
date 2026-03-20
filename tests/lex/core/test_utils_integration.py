@@ -3,6 +3,8 @@ import os
 import tempfile
 
 import pytest
+
+pytestmark = pytest.mark.integration
 from bs4 import BeautifulSoup
 
 from lex.core.clients import get_elasticsearch_client

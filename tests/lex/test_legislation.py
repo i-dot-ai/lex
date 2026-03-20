@@ -16,6 +16,7 @@ from tests.test_data.legislation_text_target import target_texts
 parser = CLMLMarkdownParser()
 
 
+@pytest.mark.integration
 def test_legislation_integration():
     """Test the full legislation parsing pipeline."""
     # Skip if no data in data/raw/legislation/2024
@@ -103,6 +104,7 @@ urls = [
 client = HttpClient()
 
 
+@pytest.mark.integration
 @pytest.mark.parametrize("url,target_text", zip(urls, target_texts))
 def test_legislation_parsing_integration(url, target_text):
     """Test CLMLMarkdownParser against individual test XML files."""

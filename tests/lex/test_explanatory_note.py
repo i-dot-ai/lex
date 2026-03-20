@@ -1,7 +1,11 @@
 """Integration tests for explanatory note package."""
 
+import pytest
+
 from lex.explanatory_note.scraper import ExplanatoryNoteScraperAndParser
 from lex.legislation.models import LegislationType
+
+pytestmark = pytest.mark.integration
 
 
 def test_explanatory_note_integration():

@@ -60,6 +60,14 @@ dev = [
     "types-requests>=2.32.4.20250913",
 ]
 
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_functions = "test_*"
+markers = [
+    "integration: requires external services (Qdrant, Redis, legislation.gov.uk)",
+]
+
 [tool.ruff]
 line-length = 100
 target-version = "py312"

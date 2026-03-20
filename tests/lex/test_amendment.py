@@ -1,8 +1,12 @@
 """Integration tests for amendment package."""
 
+import pytest
+
 from lex.amendment.models import Amendment
 from lex.amendment.parser import AmendmentParser
 from lex.amendment.scraper import AmendmentScraper
+
+pytestmark = pytest.mark.integration
 
 
 def test_amendment_integration():

@@ -4,6 +4,8 @@ import logging
 
 import pytest
 
+pytestmark = pytest.mark.integration
+
 from lex.caselaw.models import Court
 from lex.core.clients import get_elasticsearch_client
 from lex.core.document import upload_documents

@@ -96,5 +96,22 @@ def get_qdrant_client() -> QdrantClient:
         raise
 
 
-# Global client instance
-qdrant_client = get_qdrant_client()
+# Lazy-initialised global client instance
+_qdrant_client: QdrantClient | None = None
+
+
+def _get_client() -> QdrantClient:
+    global _qdrant_client
+    if _qdrant_client is None:
+        _qdrant_client = get_qdrant_client()
+    return _qdrant_client
+
+
+class _LazyClient:
+    """Proxy that defers Qdrant connection until first attribute access."""
+
+    def __getattr__(self, name: str):
+        return getattr(_get_client(), name)
+
+
+qdrant_client: QdrantClient = _LazyClient()  # type: ignore[assignment]

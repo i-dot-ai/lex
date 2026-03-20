@@ -14,8 +14,8 @@ from lex.amendment.qdrant_schema import get_amendment_schema
 from lex.caselaw.models import Court
 from lex.caselaw.pipeline import pipe_caselaw, pipe_caselaw_sections, pipe_caselaw_unified
 from lex.caselaw.qdrant_schema import get_caselaw_schema, get_caselaw_section_schema
-from lex.core import create_collection_if_none, upload_documents
-from lex.core.utils import parse_years, set_logging_level
+from lex.core.document import upload_documents
+from lex.core.utils import create_collection_if_none, parse_years, set_logging_level
 from lex.explanatory_note.pipeline import pipe_explanatory_note
 from lex.explanatory_note.qdrant_schema import get_explanatory_note_schema
 from lex.legislation.models import LegislationType
@@ -108,7 +108,7 @@ def process_single_checkpoint(
     # Import here to avoid serialization issues with multiprocessing
     from lex.caselaw.models import Court
     from lex.caselaw.pipeline import pipe_caselaw_unified
-    from lex.core import upload_documents
+    from lex.core.document import upload_documents
 
     # Set up logging for this process
     process_logger = logging.getLogger(f"worker_{year}_{court_type}")

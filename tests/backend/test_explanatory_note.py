@@ -4,6 +4,8 @@ import pytest
 from fastapi.testclient import TestClient
 from pydantic import ValidationError
 
+pytestmark = pytest.mark.integration
+
 from lex.explanatory_note.models import (
     ExplanatoryNote,
     ExplanatoryNoteType,
