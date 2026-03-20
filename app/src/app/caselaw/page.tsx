@@ -33,7 +33,12 @@ import { Search, Calendar, Building2, Gavel, Scale, AlertCircle, ArrowUpDown, Fi
 import { ResultsSectionSkeleton } from "@/components/result-skeleton"
 import { EmptyState } from "@/components/empty-state"
 import { CourtBadge, CitationBadge } from "@/components/badges"
-import { CaselawPreview } from "@/components/caselaw-preview"
+import dynamic from "next/dynamic"
+
+const CaselawPreview = dynamic(
+  () => import("@/components/caselaw-preview").then(mod => mod.CaselawPreview),
+  { ssr: false }
+)
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { SearchHistoryDropdown } from "@/components/search-history-dropdown"
 import { SearchPagination } from "@/components/search-pagination"

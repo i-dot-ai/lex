@@ -33,7 +33,12 @@ import { Search, Calendar, AlertCircle, ArrowUpDown, Filter, X, BookOpen, Scroll
 import { ResultsSectionSkeleton } from "@/components/result-skeleton"
 import { EmptyState } from "@/components/empty-state"
 import { StatusBadge, ExtentBadges, LegislationTypeBadge } from "@/components/badges"
-import { LegislationPreview } from "@/components/legislation-preview"
+import dynamic from "next/dynamic"
+
+const LegislationPreview = dynamic(
+  () => import("@/components/legislation-preview").then(mod => mod.LegislationPreview),
+  { ssr: false }
+)
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { SearchHistoryDropdown } from "@/components/search-history-dropdown"
 import { SearchPagination } from "@/components/search-pagination"

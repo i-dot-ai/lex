@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { useChat } from "@ai-sdk/react"
 import { DefaultChatTransport } from "ai"
 import { Streamdown } from "streamdown"
@@ -153,8 +153,8 @@ export default function ResearchPage() {
   const [maxSteps, setMaxSteps] = useState<number>(RESEARCH_DEFAULTS.MAX_STEPS_DEFAULT)
   const [expandedTools, setExpandedTools] = useState<Record<string, boolean>>({})
 
-  const { messages, sendMessage, status } = useChat({
-    transport: new DefaultChatTransport({
+  const transport = useMemo(
+    () => new DefaultChatTransport({
       api: '/api/research/chat',
       body: {
         includeLegislation,
@@ -162,7 +162,10 @@ export default function ResearchPage() {
         maxSteps,
       },
     }),
-  })
+    [includeLegislation, includeCaselaw, maxSteps]
+  )
+
+  const { messages, sendMessage, status } = useChat({ transport })
 
   // Load maxSteps from localStorage on mount
   useEffect(() => {
