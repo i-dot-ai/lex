@@ -51,7 +51,7 @@ Lex is a semantic search API for UK legislation and case law. It ingests documen
 | **MCP server** | Exposes search tools to AI agents via Model Context Protocol | `src/backend/mcp_server/server.py` (mounted at `/mcp`) |
 | **Ingest pipeline** | Scrapes, parses, embeds, and uploads documents to Qdrant | `src/lex/ingest/orchestrator.py`, `src/lex/*/pipeline.py` |
 | **Ingest orchestrator** | Coordinates pipeline stages and amendments-led mode | `src/lex/ingest/orchestrator.py`, `src/lex/ingest/amendments_led.py` |
-| **Embeddings** | Dense (Azure OpenAI) + sparse (BM25) vector generation | `src/lex/core/embeddings.py`, `src/lex/core/embedding_cache.py` |
+| **Embeddings** | Dense (Azure OpenAI) + sparse (BM25) vector generation | `src/lex/core/embeddings.py` |
 | **Qdrant client** | Lazy-initialised client with retry logic for transient errors | `src/lex/core/qdrant_client.py` |
 | **Rate limiting** | Per-IP limits via Redis with in-memory fallback | `src/backend/core/middleware.py`, `src/backend/core/cache.py` |
 | **Monitoring** | OpenTelemetry traces + custom counters and histograms | `src/backend/core/telemetry.py`, `src/backend/monitoring.py` |

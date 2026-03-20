@@ -43,12 +43,11 @@ PDF URLs (10,267) → Azure Blob Storage → GPT-5-mini Vision → Structured JS
 | Component | Path | Purpose |
 |-----------|------|---------|
 | PDF Discovery | `data/pdf_only_legislation_complete.csv` | 10,267 PDF-only documents |
-| PDF Processor | `src/lex/pdf_digitisation/processor.py` | GPT-5-mini extraction (v1.1 prompt) |
+| PDF Processor | `src/lex/processing/historical_pdf/processor.py` | GPT-5-mini extraction (v1.1 prompt) |
 | Batch Processing | `scripts/pdf/process_pdfs.py` | Parallel processing with resume |
-| Qdrant Uploader | `src/lex/pdf_digitisation/qdrant_uploader.py` | XML + PDF merge, provenance tracking |
 | Progress Checker | `scripts/pdf/check_pdf_progress.py` | Statistics and cost estimates |
 | Blob Setup | `scripts/setup_azure_storage.py` | Azure Blob Storage upload |
-| Models | `src/lex/pdf_digitisation/models.py` | Pydantic extraction result models |
+| Models | `src/lex/processing/historical_pdf/models.py` | Pydantic extraction result models |
 
 ---
 
@@ -112,18 +111,6 @@ uv run python scripts/pdf/process_pdfs.py \
 uv run python scripts/pdf/check_pdf_progress.py data/historical_legislation_results.jsonl
 ```
 
-Upload to Qdrant:
-
-```python
-from pathlib import Path
-from lex.pdf_digitisation.qdrant_uploader import process_jsonl_file, upload_to_qdrant
-
-legislation_records, section_records = process_jsonl_file(
-    jsonl_path=Path("data/historical_legislation_results.jsonl"),
-    json_backup_dir=Path("data/historical_pdfs_json"),  # optional backups
-)
-leg_count, sec_count = upload_to_qdrant(legislation_records, section_records)
-```
 
 ---
 

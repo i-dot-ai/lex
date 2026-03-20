@@ -84,11 +84,9 @@ Config: `quantile=0.99, always_ram=True`
 ```
 
 ### 4. Embedding Cache
-- Qdrant collection with 333K+ cached embeddings
+- Qdrant collection with 239K+ cached embeddings
 - O(1) lookup via UUID5(SHA-256(query))
 - **35x speedup** for repeated queries
-
-**Code**: `src/lex/core/embedding_cache.py`
 
 ## Performance Characteristics
 
@@ -157,7 +155,6 @@ Research confirms hybrid search outperforms single methods:
 
 **Core Implementation**:
 - `src/lex/core/embeddings.py` - Dense + sparse generation
-- `src/lex/core/embedding_cache.py` - Qdrant caching
 - `src/backend/legislation/search.py` - DBSF fusion (`qdrant_search`)
 - `src/backend/caselaw/search.py` - RRF fusion (`caselaw_search`)
 

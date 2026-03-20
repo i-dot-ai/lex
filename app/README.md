@@ -42,7 +42,7 @@ The frontend connects to the Lex backend API. You can use either:
 Set the public API endpoint in `.env.local`:
 
 ```bash
-NEXT_PUBLIC_API_URL=https://lex-api.victoriousdesert-f8e685e0.uksouth.azurecontainerapps.io
+NEXT_PUBLIC_API_URL=https://lex.lab.i.ai.gov.uk
 ```
 
 **⚠️ Experimental**: Public API is for development/testing only. Not guaranteed to be available.

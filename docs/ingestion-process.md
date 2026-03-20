@@ -43,8 +43,6 @@ Each document gets two vectors:
 - **Dense** (1024D): Azure OpenAI `text-embedding-3-large` — captures semantic meaning
 - **Sparse** (BM25): FastEmbed — captures exact term frequencies for citation matching
 
-An embedding cache (`src/lex/core/embedding_cache.py`) stores results in a dedicated Qdrant collection. Lookups use UUID5(SHA-256(text)) for O(1) retrieval, giving a 35x speedup on repeated text.
-
 For why hybrid vectors and how fusion works, see [search-architecture.md](search-architecture.md).
 
 ## Upload (`src/lex/{type}/pipeline.py`)
@@ -94,7 +92,6 @@ Network requests use connection pooling via requests sessions. Processing is sin
 | Orchestrator | `src/lex/ingest/orchestrator.py` |
 | Amendments-led mode | `src/lex/ingest/amendments_led.py` |
 | Embeddings | `src/lex/core/embeddings.py` |
-| Embedding cache | `src/lex/core/embedding_cache.py` |
 | Legislation pipeline | `src/lex/legislation/pipeline.py` |
 | Case law pipeline | `src/lex/caselaw/pipeline.py` |
 | Models | `src/lex/{type}/models.py` — see [data-models.md](data-models.md) |

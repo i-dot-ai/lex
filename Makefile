@@ -96,16 +96,6 @@ ingest-legislation-section-complete:
 docker-up:
 	@echo "Starting Docker environment..."
 	docker compose up -d
-	@echo "Docker environment started. Waiting for Elasticsearch to be ready..."
-	@echo "This may take up to 30 seconds on first startup..."
-	@for i in $$(seq 1 6); do \
-		if docker exec elasticsearch curl -s http://localhost:9200 > /dev/null; then \
-			echo "Elasticsearch is ready!"; \
-			break; \
-		fi; \
-		echo "Waiting for Elasticsearch to start... ($$i/6)"; \
-		sleep 5; \
-	done
 	@echo "Ready to ingest data. Run 'make ingest-all-sample' for sample data or 'make ingest-all-full' for full data."
 .PHONY: docker-up
 
