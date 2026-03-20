@@ -127,7 +127,7 @@ resource redisCache 'Microsoft.Cache/redis@2023-08-01' = {
       'maxfragmentationmemory-reserved': '30'
       'maxmemory-delta': '30'
     }
-    publicNetworkAccess: 'Disabled'
+    publicNetworkAccess: 'Enabled'  // Required: Container Apps connects over public internet (no VNet/Private Endpoint)
   }
   tags: {
     Application: applicationName

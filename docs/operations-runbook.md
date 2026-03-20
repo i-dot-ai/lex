@@ -307,7 +307,7 @@ uv run python scripts/pdf/check_pdf_progress.py data/results.jsonl
 - Headers: `X-RateLimit-Remaining-Minute`, `X-RateLimit-Remaining-Hour`
 - Monitoring events fire at 80% threshold
 - Falls back to in-memory tracking if Redis is down
-- Redis has public network access disabled; connections are via the Azure backbone only
+- Redis has public network access enabled (Container Apps connects over public internet; disabling requires VNet/Private Endpoint)
 - `/healthcheck` and `/health` endpoints are exempt
 - Configurable via `RATE_LIMIT_PER_MINUTE` and `RATE_LIMIT_PER_HOUR` env vars
 
