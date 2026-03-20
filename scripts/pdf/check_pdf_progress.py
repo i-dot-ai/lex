@@ -143,9 +143,13 @@ def check_progress(jsonl_path: Path):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        console.print("Usage: uv run python scripts/check_pdf_progress.py <jsonl_file>")
-        sys.exit(1)
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description="Analyse PDF batch processing results and costs from JSONL output",
+    )
+    parser.add_argument("jsonl_file", type=Path, help="Path to JSONL results file from process_pdfs.py")
+    args = parser.parse_args()
 
     setup_logging()
-    check_progress(Path(sys.argv[1]))
+    check_progress(args.jsonl_file)

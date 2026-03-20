@@ -78,6 +78,14 @@ def check_collection_status(client: QdrantClient, collection_name: str) -> tuple
 
 def main():
     """Enable quantisation on all configured collections."""
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description="Enable INT8 scalar quantisation on Qdrant collections (75% memory saving, 20-30% faster search)",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.parse_args()
+
     setup_logging()
 
     print_header(

@@ -9,6 +9,7 @@ import asyncio
 import logging
 import os
 import time
+from collections.abc import Callable
 from datetime import datetime, timezone
 from langfuse import Langfuse, observe
 from openai import AsyncAzureOpenAI, RateLimitError
@@ -398,7 +399,7 @@ Handle document quality issues:
         legislation_types: list[str] | None = None,
         identifiers: list[str] | None = None,
         max_concurrent: int = 10,
-        progress_callback: callable | None = None,
+        progress_callback: Callable | None = None,
     ) -> list[ExtractionResult]:
         """
         Process multiple PDFs concurrently.

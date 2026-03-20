@@ -82,6 +82,13 @@ async def profile_endpoint(endpoint: str, endpoint_name: str, payload_builder) -
 
 async def main():
     """Run profiling on all endpoints."""
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description="Benchmark search endpoint response times (requires local API on port 8000)",
+    )
+    parser.parse_args()
+
     print_header(
         "Search Endpoint Profiler",
         details={

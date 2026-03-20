@@ -113,6 +113,13 @@ def apply_payload_indexes():
 
 def main():
     """Main execution."""
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description="Create payload indexes for all Qdrant collections to improve filter query performance",
+    )
+    parser.parse_args()
+
     setup_logging()
     print_header("Create Payload Indexes")
 
