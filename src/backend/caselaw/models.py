@@ -88,9 +88,7 @@ class CaselawReferenceSearch(BaseModel):
     year_from: int | None = Field(
         default=None, description="Filter by citing cases from this year onwards."
     )
-    year_to: int | None = Field(
-        default=None, description="Filter by citing cases up to this year."
-    )
+    year_to: int | None = Field(default=None, description="Filter by citing cases up to this year.")
     size: int = Field(default=20, description="Maximum number of results to return.")
 
 

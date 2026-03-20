@@ -32,9 +32,7 @@ class ExtractionResult(BaseModel):
     success: bool = Field(default=True, description="Whether extraction succeeded")
     error: str | None = Field(default=None, description="Error message if failed")
     pdf_source: str = Field(default="", description="Source PDF URL or path")
-    legislation_type: str | None = Field(
-        default=None, description="Legislation type (e.g., ukpga)"
-    )
+    legislation_type: str | None = Field(default=None, description="Legislation type (e.g., ukpga)")
     identifier: str | None = Field(
         default=None, description="Legislation identifier (e.g., Edw7/6/19)"
     )

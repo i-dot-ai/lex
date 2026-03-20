@@ -125,7 +125,9 @@ def create_app():
     # StaticFiles mounted at "/" acts as a catch-all and returns 405 Method
     # Not Allowed for any non-GET request, which breaks POST /mcp.
     try:
-        app.mount("/static", StaticFiles(directory="./src/backend/static", html=True), name="static")
+        app.mount(
+            "/static", StaticFiles(directory="./src/backend/static", html=True), name="static"
+        )
         logging.info("Serving static files from src/backend/static at /static")
     except Exception as e:
         logging.warning(f"Could not mount static files: {e}")

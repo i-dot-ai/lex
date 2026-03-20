@@ -281,7 +281,10 @@ def test_normalize_legislation_id():
     # Test cases: (input, expected_output)
     test_cases = [
         ("ukpga/1994/13", "http://www.legislation.gov.uk/id/ukpga/1994/13"),
-        ("http://www.legislation.gov.uk/id/ukpga/1994/13", "http://www.legislation.gov.uk/id/ukpga/1994/13"),
+        (
+            "http://www.legislation.gov.uk/id/ukpga/1994/13",
+            "http://www.legislation.gov.uk/id/ukpga/1994/13",
+        ),
         ("uksi/2020/123", "http://www.legislation.gov.uk/id/uksi/2020/123"),
         ("asp/1999/1", "http://www.legislation.gov.uk/id/asp/1999/1"),
         ("", ""),

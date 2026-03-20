@@ -583,9 +583,7 @@ async def run_amendments_led_ingest(
     """
     current_year = date.today().year
     years = list(range(current_year - years_back + 1, current_year + 1))
-    logger.info(
-        f"Starting amendments-led ingest for years {years}, limit={limit}, force={force}"
-    )
+    logger.info(f"Starting amendments-led ingest for years {years}, limit={limit}, force={force}")
 
     stats = {}
 

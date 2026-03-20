@@ -7,6 +7,7 @@ import uuid
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
+
 logger = logging.getLogger(__name__)
 
 # Configurable via environment variable, defaults to data/tracking in project root
