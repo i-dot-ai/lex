@@ -251,6 +251,17 @@ def generate_hybrid_embeddings(text: str) -> tuple[list[float], SparseVector]:
     return dense, sparse
 
 
+async def generate_hybrid_embeddings_async(text: str) -> tuple[list[float], SparseVector]:
+    """Async version: runs dense (network) and sparse (CPU) concurrently off the event loop."""
+    import asyncio
+
+    dense, sparse = await asyncio.gather(
+        asyncio.to_thread(generate_dense_embedding, text),
+        asyncio.to_thread(generate_sparse_embedding, text),
+    )
+    return dense, sparse
+
+
 def generate_hybrid_embeddings_batch(
     texts: list[str], max_workers: int | None = None, progress_callback=None
 ) -> list[tuple[list[float], SparseVector]]:
