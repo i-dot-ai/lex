@@ -1,6 +1,6 @@
 import logging
 import uuid
-from typing import Iterator
+from typing import Iterator, Literal
 
 from lex.core.pipeline_utils import PipelineMonitor, process_documents
 from lex.legislation.loader import LegislationLoader
@@ -82,6 +82,7 @@ def pipe_legislation_sections(
 def _provision_to_legislation_section(
     provision: Section | Schedule,
     legislation_id: str,
+    provenance_source: Literal["xml", "llm_ocr"] | None = None,
 ) -> LegislationSection:
     """Convert a Section or Schedule to a LegislationSection for Qdrant storage."""
     return LegislationSection(
@@ -92,6 +93,7 @@ def _provision_to_legislation_section(
         text=provision.text,
         extent=provision.extent,
         provision_type=provision.provision_type,
+        provenance_source=provenance_source,
     )
 
 
@@ -202,14 +204,18 @@ def pipe_legislation_unified(
                         # Yield each section as a LegislationSection
                         for section in legislation_full.sections:
                             leg_section = _provision_to_legislation_section(
-                                section, legislation_full.id
+                                section,
+                                legislation_full.id,
+                                provenance_source=legislation_full.provenance_source,
                             )
                             yield ("legislation-section", leg_section)
 
                         # Yield each schedule as a LegislationSection
                         for schedule in legislation_full.schedules:
                             leg_section = _provision_to_legislation_section(
-                                schedule, legislation_full.id
+                                schedule,
+                                legislation_full.id,
+                                provenance_source=legislation_full.provenance_source,
                             )
                             yield ("legislation-section", leg_section)
 

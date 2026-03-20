@@ -1,6 +1,7 @@
 import logging
 from abc import ABC, abstractmethod
 from datetime import date, datetime
+
 from bs4 import BeautifulSoup, Tag
 from pydantic import ValidationError
 
@@ -219,6 +220,7 @@ class XMLParser(ABC):
             sections=list(sections.values()),
             schedules=list(schedules.values()),
             commentaries=commentaries,
+            provenance_source="xml",
         )
 
 

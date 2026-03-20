@@ -9,6 +9,7 @@ import json
 import logging
 import re
 from datetime import date, datetime, timezone
+
 import httpx
 from bs4 import BeautifulSoup
 
@@ -46,19 +47,38 @@ def _extract_type_year_number(legislation_id: str) -> tuple[str, int, int]:
     """
     Extract type, year, and number from a legislation ID.
 
+    Handles both modern IDs ('uksi/2025/123') and regnal year IDs
+    ('ukla/Vict/44-45/12').
+
     Args:
-        legislation_id: ID like 'uksi/2025/123'
+        legislation_id: ID like 'uksi/2025/123' or 'ukla/Vict/44-45/12'
 
     Returns:
         Tuple of (type, year, number)
     """
     parts = legislation_id.split("/")
-    if len(parts) >= 3:
-        leg_type = parts[0]
+    if len(parts) < 3:
+        raise ValueError(f"Invalid legislation ID format: {legislation_id}")
+
+    leg_type = parts[0]
+    try:
         year = int(parts[1])
         number = int(parts[2])
-        return leg_type, year, number
-    raise ValueError(f"Invalid legislation ID format: {legislation_id}")
+    except ValueError:
+        # Regnal year URI: e.g. "ukla/Vict/44-45/12"
+        from lex.legislation.models import _parse_year_from_legislation_id
+
+        canonical_id = f"http://www.legislation.gov.uk/id/{legislation_id}"
+        year = _parse_year_from_legislation_id(canonical_id) or 0
+        # Number is the last numeric component
+        number = 0
+        for part in reversed(parts[1:]):
+            try:
+                number = int(part)
+                break
+            except ValueError:
+                continue
+    return leg_type, year, number
 
 
 async def get_pdf_url_from_resources(
@@ -198,7 +218,7 @@ def _parse_extraction_result_to_legislation(
         extent="",
         number_of_provisions=len(sections) + len(schedules),
         text=all_text.strip(),
-        provenance_source=pdf_url,
+        provenance_source="llm_ocr",
         provenance_model="gpt-5-mini",
         provenance_prompt_version="pdf-extraction-1.0",
         provenance_timestamp=datetime.now(timezone.utc),
