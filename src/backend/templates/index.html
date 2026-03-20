@@ -80,6 +80,9 @@
             --govuk-text-colour: #ffffff;
             --govuk-secondary-background: #1a1a1a;
             --govuk-border-colour: #505a5f;
+            --dark-surface: #161616;
+            --dark-surface-raised: #1a1a1a;
+            --dark-border: #2a2a2a;
         }
 
         .dark-mode .govuk-template__body {
@@ -92,36 +95,37 @@
         }
 
         .dark-mode .code-block {
-            background-color: #2a2a2a;
-            border-color: #505a5f;
+            background-color: var(--dark-surface);
+            border-color: var(--dark-border);
         }
 
         .dark-mode .govuk-notification-banner {
-            background-color: #2a2a2a;
+            background-color: var(--dark-surface);
+            border-color: var(--dark-border);
         }
 
         .dark-mode .mcp-tabs__list {
-            background-color: #2a2a2a;
+            background-color: var(--dark-surface);
         }
 
         .dark-mode .mcp-tabs__tab {
-            background-color: #2a2a2a;
+            background-color: var(--dark-surface);
             color: #ffffff;
-            border-color: #505a5f;
+            border-color: var(--dark-border);
         }
 
         .dark-mode .mcp-tabs__tab--active {
-            background-color: #1a1a1a;
+            background-color: var(--dark-surface-raised);
             color: var(--iai-pink);
         }
 
         .dark-mode .mcp-tabs__panel {
-            background-color: #1a1a1a;
-            border-color: #505a5f;
+            background-color: var(--dark-surface-raised);
+            border-color: var(--dark-border);
         }
 
         .dark-mode .mcp-tabs__content {
-            background-color: #1a1a1a;
+            background-color: var(--dark-surface-raised);
             color: #ffffff;
         }
 
@@ -136,8 +140,8 @@
         .dark-mode .json-punctuation { color: #ffffff; }
 
         .dark-mode .github-card {
-            background-color: #2a2a2a;
-            border-color: #505a5f;
+            background-color: var(--dark-surface);
+            border-color: var(--dark-border);
         }
 
         .dark-mode .github-card__title {
@@ -153,7 +157,7 @@
         }
 
         .dark-mode .govuk-button--secondary {
-            background-color: #505a5f;
+            background-color: var(--govuk-border-colour);
             color: #ffffff;
             box-shadow: 0 2px 0 #383838;
         }
@@ -194,13 +198,13 @@
         .govuk-body,
         .govuk-body-m {
             font-size: 16px;
-            line-height: 1.25;
+            line-height: 1.5;
             margin: 0 0 15px 0;
         }
-        
+
         .govuk-body-s {
             font-size: 14px;
-            line-height: 1.14286;
+            line-height: 1.42857;
             margin: 0 0 15px 0;
         }
         
@@ -239,13 +243,13 @@
             .govuk-body,
             .govuk-body-m {
                 font-size: 19px;
-                line-height: 1.31579;
+                line-height: 1.5;
                 margin-bottom: 20px;
             }
-            
+
             .govuk-body-s {
                 font-size: 16px;
-                line-height: 1.25;
+                line-height: 1.375;
                 margin-bottom: 20px;
             }
             
@@ -755,7 +759,7 @@
         }
 
         .dark-mode .copy-button {
-            background: #1a1a1a;
+            background: var(--dark-surface-raised);
             border-color: var(--iai-pink);
             color: var(--iai-pink);
         }
@@ -765,7 +769,7 @@
         .json-number { color: #0550ae; }
         .json-boolean { color: #8250df; }
         .json-null { color: #656d76; }
-        .json-key { color: #0969da; font-weight: 600; }
+        .json-key { color: #6639ba; font-weight: 600; }
         .json-punctuation { color: #24292f; }
         
         /* Lists */
@@ -800,41 +804,6 @@
         /* Stats animation */
         .stat-number {
             display: inline-block;
-        }
-
-        /* Use case cards */
-        .use-cases-section {
-            margin: 40px 0;
-        }
-
-        .use-case-card {
-            background: var(--govuk-secondary-background);
-            padding: 25px;
-            height: 100%;
-            text-align: center;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .use-case-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .dark-mode .use-case-card {
-            background: #2a2a2a;
-        }
-
-        .dark-mode .use-case-card:hover {
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        }
-
-        .use-case-card h3 {
-            margin-bottom: 10px;
-        }
-
-        .use-case-icon {
-            font-size: 36px;
-            margin-bottom: 15px;
         }
 
         /* Warning text - GOV.UK official styling */
@@ -912,7 +881,7 @@
         }
 
         .dark-mode .pdf-warning-connector {
-            background: #2a2a2a;
+            background: var(--dark-surface);
         }
 
         .pdf-warning-connector .govuk-warning-text {
@@ -995,7 +964,7 @@
         }
 
         .dark-mode .govuk-details__text {
-            border-left-color: #505a5f;
+            border-left-color: var(--govuk-border-colour);
         }
 
         /* Phase banner */
@@ -1364,55 +1333,63 @@
             
             <!-- Hero section -->
             <div class="govuk-grid-row">
-                <div class="govuk-grid-column-two-thirds">
+                <div class="govuk-grid-column-full">
                     <h1 class="govuk-heading-xl">Lex API</h1>
-                    <p class="govuk-body">UK legal API for AI agents and researchers. Access comprehensive UK legislation data with semantic search and Model Context Protocol integration.</p>
-                    <p class="govuk-body">Our API provides programmatic access to millions of UK legal documents and statutory instruments with advanced semantic search capabilities, making it easier than ever to build AI-powered legal applications and conduct comprehensive legal analysis. Data is sourced from <a href="https://www.legislation.gov.uk/" class="govuk-link">legislation.gov.uk</a> under the <a href="https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/" class="govuk-link">Open Government Licence v3.0</a>.</p>
-                    <p class="govuk-body">This API is hosted as an experimental service and should not be used as a production dependency.</p>
-                </div>
-                <div class="govuk-grid-column-one-third">
-                    <!-- Notification banner -->
-                    <div class="govuk-notification-banner govuk-notification-banner--success" role="region" aria-labelledby="govuk-notification-banner-title">
-                        <div class="govuk-notification-banner__header">
-                            <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
-                                Important
-                            </h2>
-                        </div>
-                        <div class="govuk-notification-banner__content">
-                            <p class="govuk-notification-banner__heading">
-                                This API is for research and non-production use. Rate limited to 60 requests per minute, 1000 per hour per IP address.
-                            </p>
-                        </div>
-                    </div>
+                    <p class="govuk-body">UK legal API for AI agents and researchers. Access comprehensive UK legislation data with semantic search and Model Context Protocol integration. Data is sourced from <a href="https://www.legislation.gov.uk/" class="govuk-link">legislation.gov.uk</a> under the <a href="https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/" class="govuk-link">Open Government Licence v3.0</a>.</p>
                 </div>
             </div>
 
-            <!-- Use Case Cards section -->
-            <section class="use-cases-section govuk-!-margin-bottom-8">
-                <h2 class="govuk-heading-l">What Can You Build?</h2>
-                <div class="govuk-grid-row">
-                    <div class="govuk-grid-column-one-third">
-                        <div class="use-case-card">
-                            <div class="use-case-icon">&#9878;&#65039;</div>
-                            <h3 class="govuk-heading-s">Legal Research</h3>
-                            <p class="govuk-body-s">Find precedents and relevant legislation in seconds. Ask natural language questions about UK law.</p>
-                        </div>
-                    </div>
-                    <div class="govuk-grid-column-one-third">
-                        <div class="use-case-card">
-                            <div class="use-case-icon">&#128202;</div>
-                            <h3 class="govuk-heading-s">Policy Analysis</h3>
-                            <p class="govuk-body-s">Track legislative changes over time. Compare provisions across different Acts and amendments.</p>
-                        </div>
-                    </div>
-                    <div class="govuk-grid-column-one-third">
-                        <div class="use-case-card">
-                            <div class="use-case-icon">&#129302;</div>
-                            <h3 class="govuk-heading-s">AI Grounding</h3>
-                            <p class="govuk-body-s">Ground AI assistants in authoritative UK legal sources. Reduce hallucinations with verified data.</p>
-                        </div>
-                    </div>
+            <!-- Notice banner -->
+            <div class="govuk-notification-banner" role="region" aria-labelledby="govuk-notification-banner-title">
+                <div class="govuk-notification-banner__header">
+                    <h2 class="govuk-notification-banner__title" id="govuk-notification-banner-title">
+                        Important
+                    </h2>
                 </div>
+                <div class="govuk-notification-banner__content">
+                    <p class="govuk-notification-banner__heading">
+                        This is an experimental service for research and non-production use. Rate limited to 60 requests per minute, 1000 per hour per IP address.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Quick Start section -->
+            <section class="govuk-!-margin-bottom-8">
+                <h2 class="govuk-heading-l">Quick Start</h2>
+                <p class="govuk-body">Search UK legislation with a single API call:</p>
+
+                <div class="code-block">
+                    <pre id="quick-start-curl">curl -X POST {{ base_url }}/legislation/search \
+  -H "Content-Type: application/json" \
+  -d '{"query": "data protection compliance"}'</pre>
+                    <button class="copy-button" onclick="copyToClipboard('quick-start-curl')" aria-label="Copy curl command to clipboard">Copy</button>
+                </div>
+
+                <p class="govuk-body-s">Returns matching Acts and Statutory Instruments ranked by relevance:</p>
+
+                <div class="code-block">
+                    <pre><span class="json-punctuation">{</span>
+  <span class="json-key">"results"</span><span class="json-punctuation">:</span> <span class="json-punctuation">[</span>
+    <span class="json-punctuation">{</span>
+      <span class="json-key">"title"</span><span class="json-punctuation">:</span> <span class="json-string">"Data Protection Act 2018"</span><span class="json-punctuation">,</span>
+      <span class="json-key">"type"</span><span class="json-punctuation">:</span> <span class="json-string">"ukpga"</span><span class="json-punctuation">,</span>
+      <span class="json-key">"year"</span><span class="json-punctuation">:</span> <span class="json-number">2018</span><span class="json-punctuation">,</span>
+      <span class="json-key">"number"</span><span class="json-punctuation">:</span> <span class="json-number">12</span><span class="json-punctuation">,</span>
+      <span class="json-key">"score"</span><span class="json-punctuation">:</span> <span class="json-number">0.92</span>
+    <span class="json-punctuation">}</span><span class="json-punctuation">,</span>
+    <span class="json-punctuation">{</span>
+      <span class="json-key">"title"</span><span class="json-punctuation">:</span> <span class="json-string">"The Data Protection, Privacy and Electronic Communications (Amendments etc) (EU Exit) Regulations 2019"</span><span class="json-punctuation">,</span>
+      <span class="json-key">"type"</span><span class="json-punctuation">:</span> <span class="json-string">"uksi"</span><span class="json-punctuation">,</span>
+      <span class="json-key">"year"</span><span class="json-punctuation">:</span> <span class="json-number">2019</span><span class="json-punctuation">,</span>
+      <span class="json-key">"number"</span><span class="json-punctuation">:</span> <span class="json-number">419</span><span class="json-punctuation">,</span>
+      <span class="json-key">"score"</span><span class="json-punctuation">:</span> <span class="json-number">0.87</span>
+    <span class="json-punctuation">}</span>
+  <span class="json-punctuation">]</span><span class="json-punctuation">,</span>
+  <span class="json-key">"total"</span><span class="json-punctuation">:</span> <span class="json-number">43</span>
+<span class="json-punctuation">}</span></pre>
+                </div>
+
+                <p class="govuk-body-s">See the <a href="/api/docs" class="govuk-link" target="_blank" rel="noopener noreferrer">full API documentation</a> for all endpoints, filters, and response schemas.</p>
             </section>
 
             <!-- MCP Setup section -->
