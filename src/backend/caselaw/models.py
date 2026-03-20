@@ -72,9 +72,11 @@ class CaselawReferenceSearch(BaseModel):
 
     reference_id: str = Field(
         description=(
-            "The full id of the document you want to find cases that cite. "
-            "e.g. https://caselaw.nationalarchives.gov.uk/ukhl/2008/43"
+            "The ID of the document you want to find cases that cite. "
+            "Accepts short form (e.g., 'ukhl/2008/43') or full URL "
+            "(e.g., 'https://caselaw.nationalarchives.gov.uk/ukhl/2008/43')."
         ),
+        examples=["ukhl/2008/43", "uksc/2024/15"],
     )
     reference_type: ReferenceType = Field(
         description="The type of reference to search for (caselaw or legislation)."

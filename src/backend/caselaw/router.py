@@ -1,3 +1,7 @@
+import logging
+from collections import OrderedDict
+from datetime import datetime, timedelta
+
 import httpx
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import Response
@@ -18,6 +22,45 @@ from backend.caselaw.search import (
 )
 from backend.core.error_handling import handle_errors
 from lex.caselaw.models import Caselaw, CaselawSection
+
+logger = logging.getLogger(__name__)
+
+# Shared httpx client — reuses TCP connections across requests
+_http_client: httpx.AsyncClient | None = None
+
+# Simple in-memory cache for caselaw HTML
+# Format: {case_id: (content_bytes, content_type, cached_at)}
+_html_cache: OrderedDict[str, tuple[bytes, str, datetime]] = OrderedDict()
+_CACHE_TTL = timedelta(hours=24)
+_MAX_CACHE_SIZE = 200
+
+
+def _get_http_client() -> httpx.AsyncClient:
+    """Get or create the shared httpx client."""
+    global _http_client
+    if _http_client is None or _http_client.is_closed:
+        _http_client = httpx.AsyncClient(timeout=30.0)
+    return _http_client
+
+
+def _get_cached_html(case_id: str) -> tuple[bytes, str] | None:
+    """Get cached HTML if available and not expired."""
+    if case_id in _html_cache:
+        content, content_type, cached_at = _html_cache[case_id]
+        if datetime.now() - cached_at < _CACHE_TTL:
+            _html_cache.move_to_end(case_id)
+            return (content, content_type)
+        del _html_cache[case_id]
+    return None
+
+
+def _cache_html(case_id: str, content: bytes, content_type: str) -> None:
+    """Cache HTML content with O(1) LRU eviction."""
+    _html_cache[case_id] = (content, content_type, datetime.now())
+    _html_cache.move_to_end(case_id)
+    while len(_html_cache) > _MAX_CACHE_SIZE:
+        _html_cache.popitem(last=False)
+
 
 router = APIRouter(
     prefix="/caselaw",
@@ -105,26 +148,42 @@ async def proxy_caselaw_data(case_id: str):
         HTML content from caselaw.nationalarchives.gov.uk with CORS headers
     """
     try:
-        # Build URL to caselaw.nationalarchives.gov.uk
-        url = f"https://caselaw.nationalarchives.gov.uk/{case_id}"
-
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            response = await client.get(url, follow_redirects=True)
-
-            if response.status_code == 404:
-                raise HTTPException(status_code=404, detail=f"Case not found: {case_id}")
-
-            response.raise_for_status()
-
-            # Return the HTML content with appropriate headers
+        # Check cache first
+        cached = _get_cached_html(case_id)
+        if cached:
+            content, content_type = cached
             return Response(
-                content=response.content,
-                media_type=response.headers.get("content-type", "text/html"),
+                content=content,
+                media_type=content_type,
                 headers={
                     "Access-Control-Allow-Origin": "*",
-                    "Cache-Control": "public, max-age=3600",  # Cache for 1 hour
+                    "Cache-Control": "public, max-age=3600",
+                    "X-Cache": "HIT",
                 },
             )
+
+        # Cache miss — fetch from caselaw.nationalarchives.gov.uk
+        url = f"https://caselaw.nationalarchives.gov.uk/{case_id}"
+        client = _get_http_client()
+        response = await client.get(url, follow_redirects=True)
+
+        if response.status_code == 404:
+            raise HTTPException(status_code=404, detail=f"Case not found: {case_id}")
+
+        response.raise_for_status()
+
+        content_type = response.headers.get("content-type", "text/html")
+        _cache_html(case_id, response.content, content_type)
+
+        return Response(
+            content=response.content,
+            media_type=content_type,
+            headers={
+                "Access-Control-Allow-Origin": "*",
+                "Cache-Control": "public, max-age=3600",
+                "X-Cache": "MISS",
+            },
+        )
 
     except httpx.HTTPStatusError as e:
         raise HTTPException(status_code=502, detail=f"External API error: {str(e)}")

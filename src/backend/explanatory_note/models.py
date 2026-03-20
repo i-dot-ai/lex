@@ -12,7 +12,12 @@ class ExplanatoryNoteSearch(BaseModel):
     )
     legislation_id: str | None = Field(
         default=None,
-        description="Filter by legislation ID to search within a specific piece of legislation. If not provided, all legislation will be included.",
+        description=(
+            "Filter by legislation ID to search within a specific piece of legislation. "
+            "Accepts short form (e.g., 'ukpga/1998/42') or full URL. "
+            "If not provided, all legislation will be included."
+        ),
+        examples=["ukpga/1998/42", "uksi/2018/12"],
     )
     note_type: list[ExplanatoryNoteType] | None = Field(
         default=None,
@@ -29,7 +34,11 @@ class ExplanatoryNoteLookup(BaseModel):
     """Lookup explanatory notes for a specific legislation by ID."""
 
     legislation_id: str = Field(
-        description="The ID of the legislation to look up explanatory notes for."
+        description=(
+            "The ID of the legislation to look up explanatory notes for. "
+            "Accepts short form (e.g., 'ukpga/1998/42') or full URL."
+        ),
+        examples=["ukpga/1998/42", "uksi/2018/12"],
     )
     limit: int = Field(default=1000, description="Maximum number of results to return.")
 
@@ -38,7 +47,11 @@ class ExplanatoryNoteSectionLookup(BaseModel):
     """Lookup a specific explanatory note section by legislation ID and section number."""
 
     legislation_id: str = Field(
-        description="The ID of the legislation to look up an explanatory note for."
+        description=(
+            "The ID of the legislation to look up an explanatory note for. "
+            "Accepts short form (e.g., 'ukpga/1998/42') or full URL."
+        ),
+        examples=["ukpga/1998/42", "uksi/2018/12"],
     )
     section_number: int = Field(
         description="The section number to look up an explanatory note for."

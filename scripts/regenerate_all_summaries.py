@@ -38,7 +38,7 @@ from _console import console, print_header, print_summary, setup_logging
 from lex.caselaw.models import Caselaw
 from lex.caselaw.qdrant_schema import get_caselaw_summary_schema
 from lex.core.document import uri_to_uuid
-from lex.core.embeddings import generate_hybrid_embeddings
+from lex.core.embeddings import generate_hybrid_embeddings_batch
 from lex.core.qdrant_client import get_qdrant_client
 from lex.processing.caselaw_summaries.summary_generator import add_summaries_to_caselaw
 from lex.settings import CASELAW_COLLECTION, CASELAW_SUMMARY_COLLECTION
@@ -121,32 +121,35 @@ def upload_summaries_batch(summaries: list, batch_size: int = 100, dry_run: bool
         return len(summaries)
 
     uploaded = 0
-    points = []
 
-    for i, summary in enumerate(summaries):
+    # Process in batches: generate embeddings in parallel, then upload
+    for batch_start in range(0, len(summaries), batch_size):
+        batch = summaries[batch_start : batch_start + batch_size]
+        texts = [s.get_embedding_text() for s in batch]
+
         try:
-            embedding_text = summary.get_embedding_text()
-            dense, sparse = generate_hybrid_embeddings(embedding_text)
-
-            # Use deterministic UUID for idempotent upserts
-            point_id = str(uri_to_uuid(summary.id))
-
-            point = PointStruct(
-                id=point_id,
-                vector={"dense": dense, "sparse": sparse},
-                payload=summary.model_dump(mode="json"),
+            embeddings = generate_hybrid_embeddings_batch(
+                texts,
+                progress_callback=lambda n: logger.info(f"Embeddings: {n}/{len(texts)}"),
             )
-            points.append(point)
 
-            # Upload in batches
-            if len(points) >= batch_size:
-                qdrant_client.upsert(collection_name=CASELAW_SUMMARY_COLLECTION, points=points)
-                uploaded += len(points)
-                logger.info(f"Uploaded batch: {uploaded}/{len(summaries)}")
-                points = []
+            points = []
+            for summary, (dense, sparse) in zip(batch, embeddings):
+                point_id = str(uri_to_uuid(summary.id))
+                points.append(
+                    PointStruct(
+                        id=point_id,
+                        vector={"dense": dense, "sparse": sparse},
+                        payload=summary.model_dump(mode="json"),
+                    )
+                )
+
+            qdrant_client.upsert(collection_name=CASELAW_SUMMARY_COLLECTION, points=points)
+            uploaded += len(points)
+            logger.info(f"Uploaded batch: {uploaded}/{len(summaries)}")
 
         except Exception as e:
-            logger.error(f"Failed to process summary {summary.id}: {e}")
+            logger.error(f"Failed to process batch starting at {batch_start}: {e}")
             continue
 
     # Upload remaining

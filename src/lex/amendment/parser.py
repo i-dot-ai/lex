@@ -2,6 +2,8 @@ import logging
 
 from bs4 import BeautifulSoup
 
+from lex.core.uri import normalise_legislation_uri
+
 from .models import Amendment
 
 logger = logging.getLogger(__name__)
@@ -86,19 +88,28 @@ class AmendmentParser:
         ]
         unique_id = "-".join(id_parts)
 
+        changed_provision_url = self._get_href_if_exists(cols[2])
+        affecting_provision_url = self._get_href_if_exists(cols[6])
+
         return Amendment(
             changed_legislation=changed_leg_id,
             changed_year=changed_year,
             changed_number=changed_number,
-            changed_url=changed_url,
+            changed_url=normalise_legislation_uri(changed_url) if changed_url else None,
             changed_provision=changed_provision,
-            changed_provision_url=self._get_href_if_exists(cols[2]),
+            changed_provision_url=(
+                normalise_legislation_uri(changed_provision_url) if changed_provision_url else None
+            ),
             affecting_legislation=affecting_leg_id,
             affecting_year=affecting_year,
             affecting_number=affecting_number,
-            affecting_url=affecting_url,
+            affecting_url=normalise_legislation_uri(affecting_url) if affecting_url else None,
             affecting_provision=affecting_provision,
-            affecting_provision_url=self._get_href_if_exists(cols[6]),
+            affecting_provision_url=(
+                normalise_legislation_uri(affecting_provision_url)
+                if affecting_provision_url
+                else None
+            ),
             type_of_effect=type_of_effect,
             id=unique_id,
         )

@@ -92,9 +92,6 @@ class LegislationLookup(BaseModel):
     """Lookup legislation by exact type, year, and number.
 
     This model allows precise retrieval of legislation based on its unique identifiers.
-
-    The legislation_id is composed like this:
-    http://www.legislation.gov.uk/id/{legislation_type}/{year}/{number}
     """
 
     legislation_type: LegislationType = Field(
@@ -108,8 +105,11 @@ class LegislationSectionLookup(BaseModel):
     """Lookup all the sections of a piece of legislation by legislation title."""
 
     legislation_id: str = Field(
-        description="The ID of the legislation to search for.",
-        examples=["ukpga/1998/42", "ukpga/2018/12"],
+        description=(
+            "The ID of the legislation to retrieve sections for. "
+            "Accepts short form (e.g., 'ukpga/1998/42') or full URL."
+        ),
+        examples=["ukpga/1998/42", "uksi/2018/12"],
     )
     limit: int = Field(
         default=10,
@@ -124,8 +124,11 @@ class LegislationFullTextLookup(BaseModel):
     """
 
     legislation_id: str = Field(
-        description="The full ID of the legislation document.",
-        examples=["ukpga/1998/42", "ukpga/2018/12"],
+        description=(
+            "The ID of the legislation document. "
+            "Accepts short form (e.g., 'ukpga/1998/42') or full URL."
+        ),
+        examples=["ukpga/1998/42", "uksi/2018/12"],
     )
     include_schedules: bool = Field(
         default=False,

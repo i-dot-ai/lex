@@ -1,6 +1,8 @@
 import asyncio
 import logging
+from collections import OrderedDict
 from datetime import datetime, timedelta
+
 import httpx
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import Response
@@ -28,9 +30,20 @@ logger = logging.getLogger(__name__)
 
 # Simple in-memory cache for legislation HTML
 # Format: {legislation_id: (content_bytes, content_type, cached_at)}
-_html_cache: dict[str, tuple[bytes, str, datetime]] = {}
+_html_cache: OrderedDict[str, tuple[bytes, str, datetime]] = OrderedDict()
 _CACHE_TTL = timedelta(hours=24)
-_MAX_CACHE_SIZE = 1500  # ~750MB-1.5GB depending on doc sizes
+_MAX_CACHE_SIZE = 200  # ~100MB at ~500KB per page
+
+# Shared httpx client — reuses TCP connections across requests
+_http_client: httpx.AsyncClient | None = None
+
+
+def _get_http_client() -> httpx.AsyncClient:
+    """Get or create the shared httpx client."""
+    global _http_client
+    if _http_client is None or _http_client.is_closed:
+        _http_client = httpx.AsyncClient(timeout=30.0)
+    return _http_client
 
 
 def _get_cached_html(legislation_id: str) -> tuple[bytes, str] | None:
@@ -38,20 +51,18 @@ def _get_cached_html(legislation_id: str) -> tuple[bytes, str] | None:
     if legislation_id in _html_cache:
         content, content_type, cached_at = _html_cache[legislation_id]
         if datetime.now() - cached_at < _CACHE_TTL:
+            _html_cache.move_to_end(legislation_id)
             return (content, content_type)
-        # Expired - remove it
         del _html_cache[legislation_id]
     return None
 
 
 def _cache_html(legislation_id: str, content: bytes, content_type: str) -> None:
-    """Cache HTML content with simple LRU eviction."""
+    """Cache HTML content with O(1) LRU eviction."""
     _html_cache[legislation_id] = (content, content_type, datetime.now())
-
-    # Simple eviction: remove oldest if over limit
-    if len(_html_cache) > _MAX_CACHE_SIZE:
-        oldest_id = min(_html_cache.items(), key=lambda x: x[1][2])[0]
-        del _html_cache[oldest_id]
+    _html_cache.move_to_end(legislation_id)
+    while len(_html_cache) > _MAX_CACHE_SIZE:
+        _html_cache.popitem(last=False)
 
 
 router = APIRouter(
@@ -181,64 +192,58 @@ async def proxy_legislation_data(legislation_id: str):
         max_retries = 5
         base_delay = 1.0
 
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            for attempt in range(max_retries):
-                try:
-                    response = await client.get(url, follow_redirects=True)
+        client = _get_http_client()
+        for attempt in range(max_retries):
+            try:
+                response = await client.get(url, follow_redirects=True)
 
-                    # Handle rate limiting - retry with exponential backoff
-                    if response.status_code in [429, 436]:
-                        if attempt < max_retries - 1:
-                            # Calculate backoff delay
-                            delay = base_delay * (2**attempt)
-                            retry_after = response.headers.get("Retry-After")
-                            if retry_after:
-                                try:
-                                    delay = int(retry_after)
-                                except ValueError:
-                                    pass
+                # Handle rate limiting - retry with exponential backoff
+                if response.status_code in [429, 436]:
+                    if attempt < max_retries - 1:
+                        delay = base_delay * (2**attempt)
+                        retry_after = response.headers.get("Retry-After")
+                        if retry_after:
+                            try:
+                                delay = int(retry_after)
+                            except ValueError:
+                                pass
 
-                            logger.warning(
-                                f"Rate limited (HTTP {response.status_code}) fetching {url}, "
-                                f"retrying in {delay}s (attempt {attempt + 1}/{max_retries})"
-                            )
-                            await asyncio.sleep(delay)
-                            continue
-                        else:
-                            # Final attempt failed
-                            raise HTTPException(
-                                status_code=429,
-                                detail="Rate limited by external API. Please try again later.",
-                            )
-
-                    if response.status_code == 404:
+                        logger.warning(
+                            f"Rate limited (HTTP {response.status_code}) fetching {url}, "
+                            f"retrying in {delay}s (attempt {attempt + 1}/{max_retries})"
+                        )
+                        await asyncio.sleep(delay)
+                        continue
+                    else:
                         raise HTTPException(
-                            status_code=404, detail=f"Legislation not found: {legislation_id}"
+                            status_code=429,
+                            detail="Rate limited by external API. Please try again later.",
                         )
 
-                    response.raise_for_status()
-
-                    # Cache the response
-                    content_type = response.headers.get("content-type", "text/html")
-                    _cache_html(legislation_id, response.content, content_type)
-
-                    # Return the HTML content with appropriate headers
-                    return Response(
-                        content=response.content,
-                        media_type=content_type,
-                        headers={
-                            "Access-Control-Allow-Origin": "*",
-                            "Cache-Control": "public, max-age=86400",  # 24 hours
-                            "X-Cache": "MISS",
-                        },
+                if response.status_code == 404:
+                    raise HTTPException(
+                        status_code=404, detail=f"Legislation not found: {legislation_id}"
                     )
 
-                except httpx.HTTPStatusError as e:
-                    # Let other HTTP errors (non-429/436) fall through
-                    if e.response.status_code not in [429, 436]:
-                        raise HTTPException(status_code=502, detail=f"External API error: {str(e)}")
-                    # For 429/436, continue to next retry iteration
-                    continue
+                response.raise_for_status()
+
+                content_type = response.headers.get("content-type", "text/html")
+                _cache_html(legislation_id, response.content, content_type)
+
+                return Response(
+                    content=response.content,
+                    media_type=content_type,
+                    headers={
+                        "Access-Control-Allow-Origin": "*",
+                        "Cache-Control": "public, max-age=86400",
+                        "X-Cache": "MISS",
+                    },
+                )
+
+            except httpx.HTTPStatusError as e:
+                if e.response.status_code not in [429, 436]:
+                    raise HTTPException(status_code=502, detail=f"External API error: {str(e)}")
+                continue
 
     except httpx.HTTPStatusError as e:
         raise HTTPException(status_code=502, detail=f"External API error: {str(e)}")

@@ -57,18 +57,21 @@ class ApplicationInsightsBackend:
         self.enabled = False
 
     def configure(self) -> bool:
-        """Configure Application Insights with OpenTelemetry."""
+        """Configure Application Insights with OpenTelemetry (skips if already configured)."""
         connection_string = os.getenv("APPLICATIONINSIGHTS_CONNECTION_STRING")
         if not connection_string or connection_string == "":
             return False
 
         try:
-            from azure.monitor.opentelemetry import configure_azure_monitor
+            from backend.core.telemetry import is_azure_monitor_configured
 
-            configure_azure_monitor(
-                connection_string=connection_string,
-                enable_live_metrics=True,
-            )
+            if not is_azure_monitor_configured():
+                from azure.monitor.opentelemetry import configure_azure_monitor
+
+                configure_azure_monitor(
+                    connection_string=connection_string,
+                    enable_live_metrics=True,
+                )
             self.enabled = True
             return True
         except Exception as e:

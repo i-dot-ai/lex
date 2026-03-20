@@ -49,20 +49,27 @@ def create_base_app():
     async def health_check():
         """Health check with Qdrant connection verification."""
         try:
-            from lex.core.qdrant_client import qdrant_client
+            import asyncio
+
+            from lex.core.qdrant_client import async_qdrant_client
 
             # Test Qdrant connection
-            collections = qdrant_client.get_collections()
-            collection_info = {}
+            collections = await async_qdrant_client.get_collections()
 
-            for coll in collections.collections:
-                info = qdrant_client.get_collection(coll.name)
-                collection_info[coll.name] = {
+            # Fetch all collection details concurrently
+            async def _get_info(name: str):
+                info = await async_qdrant_client.get_collection(name)
+                return name, {
                     "points": info.points_count,
                     "status": info.status.value
                     if hasattr(info.status, "value")
                     else str(info.status),
                 }
+
+            results = await asyncio.gather(
+                *[_get_info(coll.name) for coll in collections.collections]
+            )
+            collection_info = dict(results)
 
             return JSONResponse(
                 status_code=200,
