@@ -132,7 +132,7 @@
         }
 
         .dark-mode .json-string { color: #79c0ff; }
-        .dark-mode .json-key { color: #79c0ff; }
+        .dark-mode .json-key { color: #d2a8ff; }
         .dark-mode .json-punctuation { color: #ffffff; }
 
         .dark-mode .github-card {
@@ -1049,6 +1049,15 @@
             text-align: center;
         }
         
+        .govuk-footer__heading {
+            color: #ffffff;
+            margin-bottom: 15px;
+        }
+
+        .govuk-footer__heading + .govuk-footer__heading {
+            margin-top: 20px;
+        }
+
         .govuk-footer__link {
             color: #ffffff;
             text-decoration: underline;
@@ -1317,7 +1326,7 @@
 <body class="govuk-template__body">
     <a href="#main-content" class="govuk-skip-link">Skip to main content</a>
 
-    <header class="govuk-header" role="banner">
+    <header class="govuk-header">
         <div class="govuk-header__container govuk-width-container">
             <div class="govuk-header__content">
                 <div class="govuk-header__service-name-container">
@@ -1351,11 +1360,12 @@
                 </span>
             </p>
         </div>
-        <main class="govuk-main-wrapper" id="main-content" role="main">
+        <main class="govuk-main-wrapper" id="main-content" tabindex="-1">
             
             <!-- Hero section -->
             <div class="govuk-grid-row">
                 <div class="govuk-grid-column-two-thirds">
+                    <h1 class="govuk-heading-xl">Lex API</h1>
                     <p class="govuk-body">UK legal API for AI agents and researchers. Access comprehensive UK legislation data with semantic search and Model Context Protocol integration.</p>
                     <p class="govuk-body">Our API provides programmatic access to millions of UK legal documents and statutory instruments with advanced semantic search capabilities, making it easier than ever to build AI-powered legal applications and conduct comprehensive legal analysis. Data is sourced from <a href="https://www.legislation.gov.uk/" class="govuk-link">legislation.gov.uk</a> under the <a href="https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/" class="govuk-link">Open Government Licence v3.0</a>.</p>
                     <p class="govuk-body">This API is hosted as an experimental service and should not be used as a production dependency.</p>
@@ -1644,7 +1654,7 @@ claude mcp remove lex</pre>
                                 <li><strong>Access Copilot Studio:</strong> Go to your Microsoft Copilot Studio environment</li>
                                 <li><strong>Create MCP Connection:</strong> Navigate to Tools → Add a tool → New tool → Model Context Protocol</li>
                                 <li><strong>Configure Server URL:</strong> Enter the Lex API MCP endpoint URL</li>
-                                <li><strong>Set Authentication:</strong> Configure API key authentication if required</li>
+                                <li><strong>Authentication:</strong> No API key required — the Lex API is open access</li>
                             </ol>
                             
                             <p class="govuk-body-s"><strong>Server URL:</strong></p>
@@ -1730,10 +1740,10 @@ claude mcp remove lex</pre>
                         <div class="govuk-grid-column-one-half">
                             <h3 class="govuk-heading-m">Available Documents</h3>
                             <ul class="govuk-list govuk-list--bullet">
-                                <li><strong id="acts-count" class="stat-number">X</strong> Acts and Statutory Instruments</li>
-                                <li><strong id="provisions-count" class="stat-number">X</strong> individual legal sections</li>
-                                <li><strong id="explanatory-count" class="stat-number">X</strong> explanatory note sections</li>
-                                <li><strong id="amendments-count" class="stat-number">X</strong> legislative amendments</li>
+                                <li><strong id="acts-count" class="stat-number">—</strong> Acts and Statutory Instruments</li>
+                                <li><strong id="provisions-count" class="stat-number">—</strong> individual legal sections</li>
+                                <li><strong id="explanatory-count" class="stat-number">—</strong> explanatory note sections</li>
+                                <li><strong id="amendments-count" class="stat-number">—</strong> legislative amendments</li>
                             </ul>
 
                         </div>
@@ -1753,8 +1763,8 @@ claude mcp remove lex</pre>
                             <h3 class="govuk-heading-m">PDF Digitisation</h3>
                             <p class="govuk-body-s">Historical legislation digitised using AI for improved accessibility:</p>
                             <ul class="govuk-list govuk-list--bullet govuk-body-s">
-                                <li><strong id="pdf-legislation-count" class="stat-number">X</strong> PDF-sourced Acts (LLM extracted)</li>
-                                <li><strong id="pdf-provisions-count" class="stat-number">X</strong> PDF-sourced sections (LLM extracted)</li>
+                                <li><strong id="pdf-legislation-count" class="stat-number">—</strong> PDF-sourced Acts (LLM extracted)</li>
+                                <li><strong id="pdf-provisions-count" class="stat-number">—</strong> PDF-sourced sections (LLM extracted)</li>
                             </ul>
                         </div>
                         <div class="pdf-warning-connector">
@@ -1854,20 +1864,20 @@ claude mcp remove lex</pre>
         </main>
     </div>
 
-    <footer class="govuk-footer" role="contentinfo">
+    <footer class="govuk-footer">
         <div class="govuk-width-container">
             <div class="govuk-footer__content-container">
                 <div class="govuk-grid-row">
                     <div class="govuk-grid-column-one-half">
                         <div class="govuk-footer__content">
-                            <h3 class="govuk-heading-s" style="color: #ffffff; margin-bottom: 15px;">Acknowledgements</h3>
-                            <p class="govuk-body-xs" style="color: #ffffff; margin-bottom: 10px;">
+                            <h3 class="govuk-heading-s govuk-footer__heading">Acknowledgements</h3>
+                            <p class="govuk-body-xs">
                                 Thanks to our collaborators at <strong>The National Archives</strong> and <strong>Government Legal Department</strong>.
                             </p>
                             <p class="govuk-body-xs">
                                 <a href="https://www.legislation.gov.uk/" class="govuk-footer__link" target="_blank" rel="noopener noreferrer">UK Legislation</a>
                             </p>
-                            <h3 class="govuk-heading-s" style="color: #ffffff; margin-bottom: 10px; margin-top: 20px;">Data Licensing</h3>
+                            <h3 class="govuk-heading-s govuk-footer__heading">Data Licensing</h3>
                             <p class="govuk-body-xs">
                                 Legislation data: <a href="https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/" class="govuk-footer__link" target="_blank" rel="noopener noreferrer">Open Government Licence v3.0</a>
                             </p>
@@ -1919,7 +1929,43 @@ claude mcp remove lex</pre>
                 selectedTab.setAttribute('aria-selected', 'true');
             }
         }
-        
+
+        // Tab keyboard navigation (WAI-ARIA tabs pattern)
+        const tabNames = ['claude', 'claude-code', 'skill', 'cursor', 'copilot', 'vscode'];
+        const tabList = document.querySelector('.mcp-tabs__list');
+        if (tabList) {
+            tabList.addEventListener('keydown', function(e) {
+                const currentTab = document.activeElement;
+                if (!currentTab || !currentTab.classList.contains('mcp-tabs__tab')) return;
+
+                const currentId = currentTab.id.replace('-tab', '');
+                const currentIndex = tabNames.indexOf(currentId);
+                if (currentIndex === -1) return;
+
+                let nextIndex;
+                switch (e.key) {
+                    case 'ArrowRight':
+                        nextIndex = (currentIndex + 1) % tabNames.length;
+                        break;
+                    case 'ArrowLeft':
+                        nextIndex = (currentIndex - 1 + tabNames.length) % tabNames.length;
+                        break;
+                    case 'Home':
+                        nextIndex = 0;
+                        break;
+                    case 'End':
+                        nextIndex = tabNames.length - 1;
+                        break;
+                    default:
+                        return;
+                }
+
+                e.preventDefault();
+                switchTab(tabNames[nextIndex]);
+                document.getElementById(tabNames[nextIndex] + '-tab').focus();
+            });
+        }
+
         // Copy to clipboard functionality with proper error handling
         function copyToClipboard(elementId) {
             const element = document.getElementById(elementId);
@@ -2002,7 +2048,7 @@ claude mcp remove lex</pre>
             skipLink.addEventListener('click', function(e) {
                 e.preventDefault();
                 mainContent.focus();
-                mainContent.scrollIntoView({ behavior: 'smooth' });
+                mainContent.scrollIntoView();
             });
         }
         
@@ -2099,22 +2145,6 @@ claude mcp remove lex</pre>
             }, duration / steps);
         }
 
-        // Update stats on page load and refresh every 30 seconds for live updates
-        document.addEventListener('DOMContentLoaded', function() {
-            updateLiveStats();
-
-            // Refresh every 30 seconds (30,000 milliseconds) for live updates
-            setInterval(updateLiveStats, 30000);
-        });
-
-        // Analytics placeholder - track download events
-        document.querySelectorAll('a[download]').forEach(function(link) {
-            link.addEventListener('click', function() {
-                // Analytics tracking would go here
-                console.log('Download started:', this.getAttribute('href'));
-            });
-        });
-
         // Dark mode toggle functionality
         function toggleDarkMode() {
             const html = document.documentElement;
@@ -2163,15 +2193,15 @@ claude mcp remove lex</pre>
             }
         }
 
-        // Initialise dark mode and API status on page load
+        // Initialise on page load
         document.addEventListener('DOMContentLoaded', function() {
             initDarkMode();
             checkApiStatus();
-            // Refresh status every 60 seconds
-            setInterval(checkApiStatus, 60000);
-
-            // Generate Cursor install deeplink
+            updateLiveStats();
             generateCursorInstallLink();
+
+            setInterval(checkApiStatus, 60000);
+            setInterval(updateLiveStats, 300000);
         });
 
         // Generate Cursor MCP install deeplink
