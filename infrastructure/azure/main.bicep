@@ -743,7 +743,7 @@ resource exportStalenessAlert 'Microsoft.Insights/scheduledQueryRules@2023-03-15
     description: 'No successful export job completion in the past 10 days'
     severity: 1
     enabled: true
-    autoMitigate: true
+    autoMitigate: false
     scopes: [logAnalytics.id]
     evaluationFrequency: 'P1D'
     windowSize: 'P1D'
