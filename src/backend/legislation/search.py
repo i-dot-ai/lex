@@ -149,7 +149,7 @@ async def legislation_act_search(input: LegislationActSearch) -> dict:
         else:
             # Boost existing section scores if title also matched
             for entry in legislation_sections[leg_id]:
-                entry["score"] = max(entry["score"], title_score)
+                entry["score"] = min(1.0, entry["score"] + (0.3 * title_score))
 
     for leg_id in legislation_sections:
         legislation_sections[leg_id].sort(key=lambda x: x["score"], reverse=True)
@@ -247,6 +247,15 @@ async def legislation_act_search(input: LegislationActSearch) -> dict:
             for s in legislation_sections[leg_id]
             if s["section"] is not None  # Skip title-only placeholder entries
         ]
+
+        # Surface title-only matches that would otherwise be invisible
+        if not sections_list and leg_id in title_scores:
+            sections_list = [{
+                "number": "",
+                "provision_type": "title_match",
+                "score": title_scores[leg_id],
+            }]
+
         leg_dict["sections"] = sections_list
         results.append(leg_dict)
 
