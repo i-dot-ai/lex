@@ -493,6 +493,7 @@ _REGNAL_YEAR_RANGES = {
     "Hen5": (1413, 1422),
     "Hen6": (1422, 1461),
     "Edw4": (1461, 1483),
+    "Edw5": (1483, 1483),  # Edward V — reigned April-June 1483
     "Ric3": (1483, 1485),
     "Hen7": (1485, 1509),
     "Hen8": (1509, 1547),
@@ -512,6 +513,7 @@ _REGNAL_YEAR_RANGES = {
     "Will4": (1830, 1837),
     "Vict": (1837, 1901),
     "Edw7": (1901, 1910),
+    "Edw8": (1936, 1936),  # Edward VIII — abdicated Dec 1936, only 1 session year
     "Geo5": (1910, 1936),
     "Geo6": (1936, 1952),
     "Eliz2": (1952, 2022),
