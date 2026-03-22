@@ -1,0 +1,82 @@
+{
+  "skill_name": "lex-uk-law",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "What legislation governs employment tribunal unfair dismissal claims? I need the key Acts and relevant sections.",
+      "expected_output": "Comprehensive analysis identifying ERA 1996, TULRCA 1992, ETA 1996, Equality Act 2010, with specific section references",
+      "assertions": [
+        {"name": "found_employment_rights_act", "description": "Identifies the Employment Rights Act 1996"},
+        {"name": "used_section_search", "description": "Called search_for_legislation_sections"},
+        {"name": "cited_specific_sections", "description": "References specific section numbers"},
+        {"name": "structured_output", "description": "Organised with headings, not a wall of text"}
+      ]
+    },
+    {
+      "id": 1,
+      "prompt": "Can you check what amendments have been made to section 3 of the Human Rights Act 1998?",
+      "expected_output": "Reports no textual amendments but identifies VPA 2024 disapplications (ss.69-71)",
+      "assertions": [
+        {"name": "used_amendment_sections_tool", "description": "Called search_amendment_sections with section-level provision ID"},
+        {"name": "correct_provision_id", "description": "Used provision_id containing 'ukpga/1998/42/section/3'"},
+        {"name": "reported_amendment_data", "description": "Actual amendment details from API, not hallucinated"},
+        {"name": "found_disapplications", "description": "Identifies VPA 2024 disapplications of section 3"}
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "I'm looking at data protection requirements for AI systems in the UK. Find the relevant legislation and pull the explanatory notes so I can understand Parliament's intent.",
+      "expected_output": "Identifies DPA 2018, DUA 2025, UK GDPR; includes explanatory notes on automated decision-making",
+      "assertions": [
+        {"name": "found_data_protection_act", "description": "Identifies the Data Protection Act 2018"},
+        {"name": "used_explanatory_notes", "description": "Called at least one explanatory note tool"},
+        {"name": "multi_step_research", "description": "Used 2+ different tool types"},
+        {"name": "parliament_intent", "description": "Discusses Parliament's intent, not just raw text"}
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "What does section 6 of the Human Rights Act 1998 say? Get me the full text and the explanatory note.",
+      "expected_output": "Full text of s.6 with note that HRA 1998 predates explanatory notes; proactive amendment check",
+      "assertions": [
+        {"name": "found_section_text", "description": "Contains text of section 6 mentioning 'public authority' and 'Convention right'"},
+        {"name": "attempted_explanatory_note", "description": "Called an explanatory note tool"},
+        {"name": "checked_amendments", "description": "Proactively checked for amendments"},
+        {"name": "noted_no_explanatory_notes", "description": "Explained HRA 1998 predates explanatory notes"}
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Is the Safety of Rwanda Act still in force? What happened to it?",
+      "expected_output": "Confirms repealed, identifies repealing Act, gives context",
+      "assertions": [
+        {"name": "identified_act", "description": "Found ukpga/2024/8"},
+        {"name": "confirmed_repealed", "description": "States Act has been repealed"},
+        {"name": "identified_repealing_act", "description": "Names the repealing legislation"},
+        {"name": "checked_amendments_or_status", "description": "Used tools to verify repeal status"}
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Has section 3 of the Human Rights Act been disapplied by any later legislation? I heard something about the Victims and Prisoners Act.",
+      "expected_output": "Identifies VPA 2024 ss.69-71 disapplications in prisoner release contexts, distinguishes from textual amendment",
+      "assertions": [
+        {"name": "found_disapplications", "description": "Identifies VPA 2024 disapplications (ss.69-71)"},
+        {"name": "used_act_level_amendments", "description": "Used search_amendments at Act level"},
+        {"name": "explained_disapplication_effect", "description": "Explains disapplications limit s.3 in prisoner release contexts"},
+        {"name": "distinguished_from_textual_amendment", "description": "Clarifies section 3 text is unchanged"}
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "What's the main legislation on modern slavery in the UK? Give me the key provisions and any recent amendments.",
+      "expected_output": "Identifies Modern Slavery Act 2015 with key sections and amendment check",
+      "assertions": [
+        {"name": "found_modern_slavery_act", "description": "Identifies Modern Slavery Act 2015"},
+        {"name": "cited_key_sections", "description": "References key sections like s.1, s.2, s.45"},
+        {"name": "checked_amendments", "description": "Used amendment tools"},
+        {"name": "multi_tool_workflow", "description": "Used 3+ different tool types"}
+      ]
+    }
+  ]
+}
