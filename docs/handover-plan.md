@@ -41,6 +41,9 @@ Covered in the operations runbook (`docs/operations-runbook.md`, Scripts Referen
 ### ~~6. System architecture doc~~ — DONE
 See [`docs/system-architecture.md`](system-architecture.md). High-level system map with ASCII diagram, components table, collections reference, data lifecycle, API surface, infrastructure, and links to all deep dives. Documentation suite also received a consistency pass: cross-linking, British spelling, tone alignment, and content deduplication across all docs.
 
+### ~~10. Null-year metadata recovery~~ — DONE
+`scripts/maintenance/fix_null_years.py` recovered ~209K of 213K `legislation_section` records missing `legislation_year`. Six-tier approach: regex (172K), LLM via gpt-5-nano (5K), enhanced regex (23K), alias expansion + embedded years (1.7K), monarch table fix + slug parsing (430), short title text extraction (7.1K). Coverage: 89.8% → 99.81%. Remaining ~4K are genuinely unrecoverable (bare local act numbers, `[UNCLEAR: reference not provided]`, no text signal). See [year-recovery.md](year-recovery.md).
+
 ### ~~7. Azure cost budget alerts~~ — DONE
 Monthly budget `lex-monthly-budget` created on `rg-lex` via Azure Cost Management. £600/month with alerts at 80% (£480) and 100% (£600) to `lex@cabinetoffice.gov.uk`. Runs April 2026 – April 2027. Current spend ~£430/month, dominated by Qdrant Cloud SaaS (~£300/month, 73-79%).
 

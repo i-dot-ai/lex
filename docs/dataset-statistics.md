@@ -58,12 +58,12 @@ Empirical statistics from the production Qdrant Cloud instance. For the system o
 ## Data Quality
 
 ### Legislation Year Metadata
-- **Year coverage**: 99.47% of 2,098,225 sections have `legislation_year` populated
-- **Remaining nulls**: ~11,100 sections — genuinely unrecoverable OCR artefacts (bare local act numbers, missing references)
-- **Recovery work**: `scripts/maintenance/fix_null_years.py` recovered ~202K of 213K null-year sections across five tiers — see [year-recovery.md](year-recovery.md)
+- **Year coverage**: 99.81% of 2,098,225 sections have `legislation_year` populated
+- **Remaining nulls**: ~4,000 sections — genuinely unrecoverable OCR artefacts (bare local act numbers, missing references, no text signal)
+- **Recovery work**: `scripts/maintenance/fix_null_years.py` recovered ~209K of 213K null-year sections across six tiers — see [year-recovery.md](year-recovery.md)
 
 ### Legislation Coverage Gaps
-- **Pre-1963**: ~85K Acts from 1267-1962, year metadata 99.47% complete
+- **Pre-1963**: ~85K Acts from 1267-1962, year metadata 99.81% complete
 - **PDF-only documents**: 93,883 PDFs identified (1837-2025) — see [pdf-dataset.md](pdf-dataset.md)
 
 ### Case Law Constraints
