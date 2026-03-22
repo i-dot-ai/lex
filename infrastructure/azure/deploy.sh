@@ -73,12 +73,13 @@ set_subscription() {
 
 # Build and push container image
 build_and_push_image() {
+    local version_tag="${1:-}"
     {
         log_info "Building and pushing container image..."
-        
+
         # Get container registry name (assumes it exists in the resource group)
         ACR_NAME=$(az acr list --resource-group "$RESOURCE_GROUP" --query "[0].name" -o tsv 2>/dev/null || echo "")
-        
+
         if [ -z "$ACR_NAME" ]; then
             log_warning "No Azure Container Registry found. Creating one..."
             ACR_NAME="${APPLICATION_NAME}acr"
@@ -88,25 +89,35 @@ build_and_push_image() {
                 --sku Basic \
                 --location "$LOCATION" >/dev/null
         fi
-        
+
         log_info "Using Azure Container Registry: $ACR_NAME"
-        
+
         # Login to ACR
         az acr login --name "$ACR_NAME" >/dev/null
-        
+
         # Build and push image with unique tag
         BUILD_ID=$(date +%Y%m%d-%H%M%S)
         IMAGE_TAG="${ACR_NAME}.azurecr.io/lex-backend:${BUILD_ID}"
-        
+
         log_info "Building image: $IMAGE_TAG"
-        docker build --platform linux/amd64 -f src/backend/Dockerfile -t "$IMAGE_TAG" . >/dev/null
-        
+        docker build --platform linux/amd64 \
+            --build-arg VERSION="${version_tag:-0.0.0}" \
+            -f src/backend/Dockerfile -t "$IMAGE_TAG" . >/dev/null
+
         log_info "Pushing image to registry..."
         docker push "$IMAGE_TAG" >/dev/null
-        
+
+        # Also tag and push with semver if a version was provided
+        if [ -n "$version_tag" ]; then
+            SEMVER_TAG="${ACR_NAME}.azurecr.io/lex-backend:${version_tag}"
+            log_info "Tagging image as $SEMVER_TAG"
+            docker tag "$IMAGE_TAG" "$SEMVER_TAG"
+            docker push "$SEMVER_TAG" >/dev/null
+        fi
+
         log_success "Container image built and pushed successfully"
     } >&2
-    
+
     # Return the image tag with build ID
     echo "$IMAGE_TAG"
 }
@@ -248,17 +259,27 @@ verify_container_app() {
 
 # Main execution
 main() {
+    local version_tag="${1:-}"
+
+    if [ -n "$version_tag" ] && ! [[ "$version_tag" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        log_error "Version must be in X.Y.Z format (e.g. 1.2.3), got: $version_tag"
+        exit 1
+    fi
+
     log_info "Starting Lex API deployment..."
     log_info "Resource Group: $RESOURCE_GROUP"
     log_info "Location: $LOCATION"
     log_info "Application: $APPLICATION_NAME"
+    if [ -n "$version_tag" ]; then
+        log_info "Version: $version_tag"
+    fi
     echo ""
-    
+
     check_prerequisites
     set_subscription
-    
+
     # Build and push container image
-    container_image=$(build_and_push_image)
+    container_image=$(build_and_push_image "$version_tag")
     
     # Deploy infrastructure
     deploy_infrastructure "$container_image"

@@ -47,6 +47,7 @@ param rateLimitPerMinute int = 600
 @description('Rate limit per hour')
 param rateLimitPerHour int = 10000
 
+
 // Variables
 var resourcePrefix = applicationName
 var containerAppName = '${resourcePrefix}-api'
