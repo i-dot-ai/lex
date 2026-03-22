@@ -66,10 +66,10 @@ def _extract_type_year_number(legislation_id: str) -> tuple[str, int, int]:
         number = int(parts[2])
     except ValueError:
         # Regnal year URI: e.g. "ukla/Vict/44-45/12"
-        from lex.legislation.models import _parse_year_from_legislation_id
+        from lex.legislation.regnal import parse_legislation_year
 
         canonical_id = f"http://www.legislation.gov.uk/id/{legislation_id}"
-        year = _parse_year_from_legislation_id(canonical_id) or 0
+        year = parse_legislation_year(canonical_id) or 0
         # Number is the last numeric component
         number = 0
         for part in reversed(parts[1:]):

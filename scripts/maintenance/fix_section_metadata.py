@@ -19,7 +19,7 @@ SCALE:
 
 FIX:
 Recompute all three fields from the stored legislation_id (which is correct)
-using _parse_year_from_legislation_id() and update payloads via set_payload().
+using parse_legislation_year() and update payloads via set_payload().
 No re-embedding needed — vectors are untouched.
 
 Usage:
@@ -48,10 +48,8 @@ from qdrant_client import models  # noqa: E402
 from rich.progress import Progress  # noqa: E402
 
 from lex.core.qdrant_client import get_qdrant_client  # noqa: E402
-from lex.legislation.models import (  # noqa: E402
-    LegislationType,
-    _parse_year_from_legislation_id,
-)
+from lex.legislation.models import LegislationType  # noqa: E402
+from lex.legislation.regnal import parse_legislation_year  # noqa: E402
 from lex.settings import LEGISLATION_SECTION_COLLECTION  # noqa: E402
 
 logger = logging.getLogger(__name__)
@@ -150,7 +148,7 @@ def _compute_corrections(payload: dict) -> dict | None:
     if not legislation_id:
         return None
 
-    new_year = _parse_year_from_legislation_id(legislation_id)
+    new_year = parse_legislation_year(legislation_id)
     new_type = _validate_type(_extract_type_from_uri(legislation_id))
     new_number = _extract_number_from_uri(legislation_id)
 

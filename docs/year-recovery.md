@@ -126,81 +126,75 @@ Local.-207.
 [Local.-42]
 ```
 
-## The Recovery
+## Architecture
 
-Recovery proceeded in four tiers over a single session, progressively loosening the parsing rules:
+Year recovery uses a two-layer approach: a deterministic parser for all cases with a clear signal, and an AI-assisted batch fallback for genuinely ambiguous records.
 
-### Tier 1: Deterministic Regex (172,251 recovered)
+### Layer 1: Deterministic Parser (`regnal.py`)
 
-Six strategies applied in order of specificity:
+The single entry point is `parse_legislation_year(legislation_id, text=None)` in `src/lex/legislation/regnal.py`. It applies 10 strategies in order of specificity:
 
-1. **Explicit year** — extract `(1889)` or `S.I. 1948` or `/1845/` from URI
-2. **Regnal with separators** — handle slashes, underscores, concatenation, freetext citations
-3. **Combined reign** — parse `Edw8and1Geo6` transition patterns
-4. **Freetext monarch** — scan for any monarch name followed by session numbers
-5. **Broad year** — find any 4-digit year `\b\d{4}\b` anywhere in the URI
-6. **Number-before-monarch** — handle `33 Vict.` where session precedes monarch (reverse of canonical order)
+| # | Strategy | Example | What it handles |
+|---|----------|---------|-----------------|
+| 1-2 | Standard/canonical URI | `/ukpga/2018/12`, `/ukla/Vict/44-45/12` | Well-formed URIs (~90% of records) |
+| 3 | Explicit year | `(1889)`, `S.I. 1948` | Parenthesised years and S.I. notation |
+| 4 | Nonstandard separators | `52-53Vict/cxcvii`, `Vict_44_45` | OCR-damaged formatting |
+| 5 | Combined reign | `Edw8and1Geo6` | Transition periods between monarchs |
+| 6 | Freetext monarch | `52 & 53 Vict. c. clviii` | Broad monarch name + number scanning |
+| 7 | Number before monarch | `33 Vict.`, `5-edw-7-c-138` | Reversed citation order |
+| 8 | Embedded year | `Liverpool_Sanitary_Amendment_Act_1854_Cap.xv` | Years inside Act names |
+| 9 | Broad year | `1949 No. 2170` | Any 4-digit year in the URI |
+| 10 | Short title text | `"may be cited as the X Act 1891"` | Year from section text content |
 
-Each strategy builds a monarch alias map (`MONARCH_ALIASES`) that maps 50+ variants to the 31 canonical keys. Every computed year is validated against the monarch's actual reign dates — if the calculation puts a year outside the reign, it's rejected.
+The module also contains:
+- `REGNAL_YEAR_RANGES` — the complete monarch table (33 sovereigns, 1216–2022)
+- `MONARCH_ALIASES` — 50+ variant mappings for OCR damage, Latinised forms, and abbreviations
+- `resolve_monarch()` and `compute_regnal_year()` — reusable helpers
 
-### Tier 2: LLM Fallback (~4,900 recovered)
+All strategies are pure functions with no external dependencies.
 
-Records that defeated all regex strategies were sent to Azure OpenAI's `gpt-5-nano` in batches of 25 URIs. The system prompt included the full monarch table and calculation formula. The model handled:
+### Layer 2: AI-Assisted Batch Recovery (`fix_null_years.py`)
 
-- `[UNCLEAR:]` references with enough context to infer the legislation
-- Roman numeral chapter numbers that obscured the citation structure
-- Ambiguous or damaged citations where context was needed
+Records that defeat all deterministic strategies are sent to Azure OpenAI's `gpt-5-nano` in batches of 25 URIs. The system prompt includes the monarch table and calculation formula. Only high and medium confidence results are applied; low confidence results are discarded.
 
-Only high and medium confidence results were applied. Low confidence results (~11,400) were discarded.
+This is a batch maintenance operation — it makes API calls, needs credentials, and writes directly to Qdrant. It lives in `scripts/maintenance/fix_null_years.py`.
 
-### Tier 3: Enhanced Regex (22,924 recovered)
+## Recovery Results
 
-Analysis of Tier 2's failures revealed two patterns the regex had missed:
+Recovery was developed iteratively across six passes, each discovering new patterns in the OCR output:
 
-- **Freetext years without word boundaries** — `1949 No. 2170` where the year isn't a clean URI segment
-- **Session-before-monarch** — `33 Vict.` where traditional citation order puts the number first
-
-Two new strategies caught these without any LLM calls.
-
-### Tier 4: Alias Expansion and Embedded Years (~2,000 projected)
-
-The final pass targets:
-
-- **Latinised monarch names** — adding `Victoriae` → `Vict` to the alias map
-- **Act names with embedded years** — `Liverpool_Sanitary_Amendment_Act_1854_Cap.xv` where the year is part of an underscored name
-- **Acts of English Parliament abbreviations** — `Ja2` → `Jas1` (James I)
-
-## Results
-
-| Tier | Method | Recovered | Cumulative |
+| Pass | Method | Recovered | Cumulative |
 |------|--------|-----------|------------|
-| 1 | Regex (6 strategies) | 172,251 | 172,251 |
+| 1 | Initial regex (6 strategies) | 172,251 | 172,251 |
 | 2 | LLM (gpt-5-nano) | ~4,900 | ~177,100 |
-| 3 | Enhanced regex | 22,924 | ~200,000 |
+| 3 | Enhanced regex (freetext years, reversed order) | 22,924 | ~200,000 |
 | 4 | Alias expansion + embedded years | 1,723 | ~201,800 |
-| 5 | Monarch table fix + slug parsing | 430 | ~202,200 |
+| 5 | Monarch table fixes + slug parsing | 430 | ~202,200 |
+| 6 | Short title text extraction | 7,119 | ~209,300 |
+
+All deterministic strategies from passes 1, 3, 4, 5, and 6 are now consolidated into `regnal.py` as strategies 1–10.
 
 **Starting null-year sections**: 213,356
-**Final null-year sections**: 11,139
-**Recovery rate**: 94.8%
-**Coverage**: 99.47% of 2,098,225 sections have year metadata
+**Final null-year sections**: ~3,996
+**Recovery rate**: 98.1%
+**Coverage**: 99.81% of 2,098,225 sections have year metadata
 
 ## What Remains
 
-The ~11,100 unrecoverable records fall into clear categories:
+The ~4,000 unrecoverable records fall into clear categories:
 
-- **No reference at all** (35%) — `[UNCLEAR: reference not provided on scanned pages]`. The original document genuinely didn't contain a citation that the OCR could read.
-- **Generic UNCLEAR** (25%) — `[UNCLEAR: legislation reference]`. The OCR flagged something but couldn't extract anything useful.
-- **Local act numbers only** (20%) — `Local.-207.` or `[UNCLEAR: Local.-42]`. These are sequential numbers assigned to local Acts with no date or monarch information. Recovery would require cross-referencing against a complete local Acts register.
-- **Damaged beyond parsing** (20%) — Various edge cases where the citation is too fragmented to extract any temporal signal.
+- **No reference at all** (~35%) — `[UNCLEAR: reference not provided on scanned pages]`. The original document genuinely didn't contain a citation that the OCR could read.
+- **Generic UNCLEAR** (~25%) — `[UNCLEAR: legislation reference]`. The OCR flagged something but couldn't extract anything useful.
+- **Local act numbers only** (~25%) — `Local.-207.` or `[UNCLEAR: Local.-42]`. These are sequential numbers assigned to local Acts with no date or monarch information. Recovery would require cross-referencing against a complete local Acts register.
+- **No text signal** (~15%) — Sections with no short title, cross-reference, or other year signal in the body text.
 
 These records remain searchable by text content — only year-filtered queries miss them.
 
 ## Implementation
 
-- **Script**: `scripts/maintenance/fix_null_years.py`
-- **Monarch table**: `src/lex/legislation/models.py` (`_REGNAL_YEAR_RANGES`, line 486)
-- **Baseline parser**: `src/lex/legislation/models.py` (`_parse_year_from_legislation_id()`, line 521)
+- **Deterministic parser**: `src/lex/legislation/regnal.py` — `parse_legislation_year()`
+- **Batch recovery script**: `scripts/maintenance/fix_null_years.py`
+- **Backwards-compatible wrappers**: `src/lex/legislation/models.py` (`_REGNAL_YEAR_RANGES`, `_parse_year_from_legislation_id()`)
 - **Coverage stats**: `docs/dataset-statistics.md`
 
 ## Further Reading

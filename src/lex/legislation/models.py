@@ -480,81 +480,19 @@ class LegislationWithContent(Legislation):
         )
 
 
-# Regnal year monarch prefixes mapped to reign start/end years.
-# Used to resolve pre-1963 legislation URIs that use regnal year numbering
-# (e.g. http://www.legislation.gov.uk/id/ukla/Vict/44-45/12).
-_REGNAL_YEAR_RANGES = {
-    "Hen3": (1216, 1272),
-    "Edw1": (1272, 1307),
-    "Edw2": (1307, 1327),
-    "Edw3": (1327, 1377),
-    "Ric2": (1377, 1399),
-    "Hen4": (1399, 1413),
-    "Hen5": (1413, 1422),
-    "Hen6": (1422, 1461),
-    "Edw4": (1461, 1483),
-    "Edw5": (1483, 1483),  # Edward V — reigned April-June 1483
-    "Ric3": (1483, 1485),
-    "Hen7": (1485, 1509),
-    "Hen8": (1509, 1547),
-    "Edw6": (1547, 1553),
-    "Mar1": (1553, 1558),  # Mary I / Philip & Mary
-    "Eliz1": (1558, 1603),
-    "Jas1": (1603, 1625),  # James I
-    "Cha1": (1625, 1649),  # Charles I
-    "Cha2": (1660, 1685),  # Charles II
-    "Will3": (1689, 1702),  # William III / William & Mary
-    "WillandMar": (1689, 1694),
-    "Ann": (1702, 1714),
-    "Geo1": (1714, 1727),
-    "Geo2": (1727, 1760),
-    "Geo3": (1760, 1820),
-    "Geo4": (1820, 1830),
-    "Will4": (1830, 1837),
-    "Vict": (1837, 1901),
-    "Edw7": (1901, 1910),
-    "Edw8": (1936, 1936),  # Edward VIII — abdicated Dec 1936, only 1 session year
-    "Geo5": (1910, 1936),
-    "Geo6": (1936, 1952),
-    "Eliz2": (1952, 2022),
-}
+from lex.legislation.regnal import REGNAL_YEAR_RANGES, parse_legislation_year  # noqa: E402
+
+# Backwards-compatible re-export for scripts that import _REGNAL_YEAR_RANGES
+_REGNAL_YEAR_RANGES = REGNAL_YEAR_RANGES
 
 
 def _parse_year_from_legislation_id(legislation_id: str) -> int | None:
     """Parse calendar year from a legislation_id, handling regnal year URIs.
 
-    Standard URI: http://www.legislation.gov.uk/id/ukpga/2018/12 → 2018
-    Regnal URI:   http://www.legislation.gov.uk/id/ukla/Vict/44-45/12 → 1881 (1837 + 44)
+    Delegates to the comprehensive parser in regnal.py.
+    Kept as a thin wrapper for backwards compatibility.
     """
-    if not legislation_id:
-        return None
-    parts = legislation_id.split("/")
-    if len(parts) < 6:
-        return None
-
-    year_part = parts[5]
-
-    # Standard numeric year
-    try:
-        return int(year_part)
-    except ValueError:
-        pass
-
-    # Regnal year — match monarch prefix
-    for prefix, (reign_start, _reign_end) in _REGNAL_YEAR_RANGES.items():
-        if year_part == prefix or year_part.startswith(prefix):
-            # Session number follows (e.g. "Geo5" at [5], "14-15" at [6])
-            if len(parts) > 6:
-                session_part = parts[6]
-                try:
-                    # Take the first session year (e.g. "14" from "14-15")
-                    session = int(session_part.split("-")[0])
-                    return reign_start + session
-                except (ValueError, IndexError):
-                    pass
-            return reign_start
-
-    return None
+    return parse_legislation_year(legislation_id)
 
 
 class LegislationSection(EmbeddableModel):
