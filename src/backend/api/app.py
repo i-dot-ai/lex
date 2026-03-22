@@ -1,6 +1,7 @@
 """FastAPI application creation and configuration."""
 
 import logging
+from importlib.metadata import PackageNotFoundError, version as pkg_version
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -17,13 +18,18 @@ from backend.monitoring import monitoring
 from backend.stats.router import router as stats_router
 from backend.templates.router import router as template_router
 
+try:
+    _VERSION = pkg_version("uk-lex")
+except PackageNotFoundError:
+    _VERSION = "0.0.0-dev"
+
 
 def create_base_app():
     """Create the base FastAPI app with routes and middleware."""
     base_app = FastAPI(
         title="Lex API",
         description="API for accessing Lex's legislation search capabilities",
-        version="0.1.0",
+        version=_VERSION,
         redirect_slashes=False,
     )
 
@@ -97,7 +103,7 @@ def create_app():
     app = FastAPI(
         title="Lex API",
         description="UK Legal API for AI agents with MCP support",
-        version="2.0.0",
+        version=_VERSION,
         docs_url="/api/docs",
         redoc_url="/api/redoc",
         openapi_url="/api/openapi.json",
@@ -146,7 +152,7 @@ def create_app():
             return {
                 "message": "Lex API",
                 "description": "UK Legal API for AI agents",
-                "version": "2.0.0",
+                "version": _VERSION,
                 "endpoints": {
                     "api_docs": "/api/docs",
                     "mcp_server": "/mcp",

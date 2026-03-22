@@ -1,6 +1,6 @@
 [project]
-name = "lex"
-version = "0.1.0"
+name = "uk-lex"
+dynamic = ["version"]
 description = "OpenAPI and MCP Server for UK Legislation"
 readme = "README.md"
 authors = [
@@ -21,6 +21,7 @@ dependencies = [
     "lxml>=5.4.0",
     "mcp-proxy>=0.10.0",
     "openai>=1.63.2",
+    "posthog>=7.9.0",
     "pandas>=2.3.2",
     "pyarrow>=21.0.0",
     "pydantic>=2.11.3",
@@ -45,8 +46,18 @@ dependencies = [
 ]
 
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+# Distribution is "uk-lex" on PyPI; importable packages are "backend" and "lex"
+packages = ["src/backend", "src/lex"]
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "src/backend/_version.py"
 
 [dependency-groups]
 dev = [

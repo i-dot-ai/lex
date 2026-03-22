@@ -244,5 +244,8 @@ scripts/migrate_to_cloud_qdrant.py
 data/pdf_legislation*.jsonl
 infrastructure/azure/main.json
 
+# Auto-generated version file (hatch-vcs)
+src/backend/_version.py
+
 # Frontend build artifacts
 app/tsconfig.tsbuildinfo

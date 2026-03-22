@@ -20,6 +20,10 @@ RUN useradd -m -u 1001 appuser
 RUN chown -R appuser:appuser /app
 USER appuser
 
+# Allow hatch-vcs to resolve version without git history
+ARG VERSION=0.0.0
+ENV SETUPTOOLS_SCM_PRETEND_VERSION=${VERSION}
+
 RUN uv sync
 
 EXPOSE 8000
