@@ -7,6 +7,7 @@ from fastapi import Request, Response
 
 from backend.core.cache import cache
 from backend.core.config import RATE_LIMIT_PER_HOUR, RATE_LIMIT_PER_MINUTE
+from backend.core.posthog_client import capture_api_event
 from backend.monitoring import monitoring
 
 logger = logging.getLogger(__name__)
@@ -126,6 +127,9 @@ async def monitoring_and_rate_limit_middleware(request: Request, call_next):
         # Add monitoring and headers safely
         track_request_safely(request, response, duration, minute_count, hour_count)
         add_rate_limit_headers(response, minute_count, hour_count)
+        capture_api_event(
+            client_ip, request.url.path, request.method, response.status_code, duration * 1000
+        )
 
         return response
 

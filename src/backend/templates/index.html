@@ -24,7 +24,7 @@
             disable_cookie: true,
             disable_session_recording: true,
             disable_surveys: true,
-            autocapture: false,
+            autocapture: true,
             capture_pageview: false,
             opt_out_capturing_by_default: false,
         });
@@ -34,6 +34,37 @@
             $current_url: window.location.href,
             page_title: document.title,
             anonymous: true
+        });
+
+        // Custom event tracking for key interactions
+        document.addEventListener('DOMContentLoaded', function() {
+            // Track copy-to-clipboard clicks
+            document.querySelectorAll('.copy-button').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    var panel = btn.closest('[id]');
+                    var client = panel ? panel.id.replace('-panel', '') : 'unknown';
+                    posthog.capture('copy_mcp_config', { client: client });
+                });
+            });
+
+            // Track MCP client tab switches
+            document.querySelectorAll('[role="tab"]').forEach(function(tab) {
+                tab.addEventListener('click', function() {
+                    posthog.capture('mcp_tab_switch', { tab: tab.id.replace('-tab', '') });
+                });
+            });
+
+            // Track outbound link clicks
+            document.querySelectorAll('a[href^="http"]').forEach(function(link) {
+                if (!link.href.includes(window.location.host)) {
+                    link.addEventListener('click', function() {
+                        posthog.capture('outbound_click', {
+                            url: link.href,
+                            label: link.textContent.trim().substring(0, 100)
+                        });
+                    });
+                }
+            });
         });
     </script>
     {% endif %}

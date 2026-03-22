@@ -18,3 +18,7 @@ REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
 
 # Azure Monitor configuration
 APPLICATIONINSIGHTS_CONNECTION_STRING = os.getenv("APPLICATIONINSIGHTS_CONNECTION_STRING")
+
+# PostHog analytics configuration
+POSTHOG_KEY = os.getenv("POSTHOG_KEY")
+POSTHOG_HOST = os.getenv("POSTHOG_HOST")
