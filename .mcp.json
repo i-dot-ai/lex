@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "lex": {
+      "type": "http",
+      "url": "https://lex.lab.i.ai.gov.uk/mcp"
+    }
+  }
+}
