@@ -147,7 +147,6 @@ function splitMessageForDisplay(parts: MessagePart[]): DisplayCard[] {
 
 export default function ResearchPage() {
   const [includeLegislation, setIncludeLegislation] = useState(true)
-  const [includeCaselaw, setIncludeCaselaw] = useState(true)
   const [showFilters, setShowFilters] = useState(false)
   const [input, setInput] = useState('')
   const [maxSteps, setMaxSteps] = useState<number>(RESEARCH_DEFAULTS.MAX_STEPS_DEFAULT)
@@ -158,11 +157,10 @@ export default function ResearchPage() {
       api: '/api/research/chat',
       body: {
         includeLegislation,
-        includeCaselaw,
         maxSteps,
       },
     }),
-    [includeLegislation, includeCaselaw, maxSteps]
+    [includeLegislation, maxSteps]
   )
 
   const { messages, sendMessage, status } = useChat({ transport })
@@ -292,16 +290,14 @@ export default function ResearchPage() {
                               </Button>
                               <Button
                                 type="button"
-                                variant={includeCaselaw ? "default" : "outline"}
+                                variant="outline"
                                 size="sm"
-                                onClick={() => setIncludeCaselaw(!includeCaselaw)}
-                                className="flex items-center gap-2 transition-all"
+                                disabled
+                                title="Coming soon — pending licence"
+                                className="flex items-center gap-2 transition-all opacity-50 cursor-not-allowed"
                               >
                                 <Scale className="h-3.5 w-3.5" />
                                 Caselaw
-                                {includeCaselaw && (
-                                  <Check className="h-3.5 w-3.5 animate-in fade-in zoom-in duration-200" />
-                                )}
                               </Button>
                             </div>
                           </div>
