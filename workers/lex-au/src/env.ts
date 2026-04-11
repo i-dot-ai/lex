@@ -12,4 +12,16 @@ export interface Env {
 
   /** Rate limiter binding. */
   RATE_LIMITER: RateLimit;
+
+  /**
+   * KV namespace backing the /coverage endpoint. Stores the most recent
+   * coverage manifest, dated snapshots, and the `first_seen` map.
+   */
+  KV_BINDING: KVNamespace;
+
+  /**
+   * Shared secret required on `X-Refresh-Token` for POST /coverage/refresh.
+   * Set via `wrangler secret put COVERAGE_REFRESH_TOKEN`.
+   */
+  COVERAGE_REFRESH_TOKEN: string;
 }

@@ -15,3 +15,18 @@ index_name = "au-legislation-section"
 # and must not also be declared as an inline table at the top of the file.
 [ai]
 binding = "AI"
+
+# KV namespace for the /coverage endpoint (manifest + first_seen map).
+# Namespace `lex_au_acts` — stores:
+#   coverage:manifest:latest         — most recent coverage manifest JSON
+#   coverage:manifest:{YYYY-MM-DD}   — dated snapshot (90d TTL)
+#   coverage:first_seen              — { title_id: iso_date } first-observed map
+[[kv_namespaces]]
+binding = "KV_BINDING"
+id = "0ae3b3b1068d452ba7714efd95a301fe"
+
+# Raise CPU budget so a manual /coverage/refresh can chew through ~80
+# paginated source fetches + batched Vectorize getByIds lookups. Most runs
+# are wall-time bound (1 req/s source rate limit), not CPU bound.
+[limits]
+cpu_ms = 300000

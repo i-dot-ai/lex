@@ -11,6 +11,9 @@
  *   POST /legislation/section/lookup — sections by legislation_id
  *   POST /legislation/text           — full text
  *   GET  /proxy/:id                  — legislation.gov.au proxy
+ *   GET  /coverage                   — JSON coverage report (acts in DB vs source)
+ *   GET  /coverage/view              — HTML coverage report with click-through links
+ *   POST /coverage/refresh           — rebuild coverage manifest (shared secret)
  *   GET  /health                     — health check
  *
  * Source & attribution:
@@ -24,6 +27,7 @@ import { cors } from "hono/cors";
 import type { Env } from "./env";
 import { legislation } from "./routes/legislation";
 import { proxy } from "./routes/proxy";
+import { coverage } from "./routes/coverage";
 import {
   landing,
   LEGISLATION_SOURCE_URL,
@@ -47,6 +51,8 @@ app.use("*", async (c, next) => {
 // Rate limiting on API routes (not health check or landing page)
 app.use("/legislation/*", rateLimit);
 app.use("/proxy/*", rateLimit);
+app.use("/coverage", rateLimit);
+app.use("/coverage/*", rateLimit);
 app.use("/mcp", rateLimit);
 app.use("/mcp/*", rateLimit);
 
@@ -54,6 +60,7 @@ app.use("/mcp/*", rateLimit);
 app.route("/", landing);
 app.route("/legislation", legislation);
 app.route("/proxy", proxy);
+app.route("/coverage", coverage);
 app.route("/mcp", mcp);
 
 // Health check — also advertises source + terms so MCP clients and monitors
