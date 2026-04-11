@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation"
 import { AppSidebar } from "@/components/app-sidebar"
-import { SourceGovUkLink } from "@/components/source-gov-uk-link"
+import { SourceGovAuLink } from "@/components/source-gov-au-link"
 import { MultiSelect } from "@/components/ui/multi-select"
 import { getApiErrorMessage } from "@/lib/errors"
 import {
@@ -393,7 +393,7 @@ export default function LegislationPage() {
                       <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
                         {result.description || "No description available"}
                       </p>
-                      <SourceGovUkLink href={result.uri} source="legislation" variant="button" />
+                      <SourceGovAuLink href={result.uri} source="legislation" variant="button" />
                     </CardContent>
                   </Card>
                 ))}

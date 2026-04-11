@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { API_CONFIG } from "@/lib/config"
 import DOMPurify from 'isomorphic-dompurify'
-import { SourceGovUkLink } from "@/components/source-gov-uk-link"
+import { SourceGovAuLink } from "@/components/source-gov-au-link"
 import {
   Sheet,
   SheetContent,
@@ -243,10 +243,10 @@ export function LegislationPreview({ open, onOpenChange, legislation, relevantSe
     }
   }
 
-  // Extract legislation path from URI (e.g., "ukpga/2024/9" from "http://www.legislation.gov.uk/ukpga/2024/9")
+  // Extract legislation path from URI (e.g., "C2004A00001" from "https://www.legislation.gov.au/C2004A00001")
   const legislationPath = legislation.uri
-    .replace('https://www.legislation.gov.uk/', '')
-    .replace('http://www.legislation.gov.uk/', '')
+    .replace('https://www.legislation.gov.au/', '')
+    .replace('http://www.legislation.gov.au/', '')
 
   // Fetch sections when Sections or Full Text tab is active (needed for TOC)
   const { data: sections } = useQuery<LegislationSection[]>({
@@ -304,7 +304,7 @@ export function LegislationPreview({ open, onOpenChange, legislation, relevantSe
 
     // Fix relative image URLs and sanitize in one operation
     return DOMPurify.sanitize(
-      htmlContent.replace(/src="\/images\//g, 'src="https://www.legislation.gov.uk/images/'),
+      htmlContent.replace(/src="\/images\//g, 'src="https://www.legislation.gov.au/images/'),
       {
         ADD_TAGS: ['img'],
         ADD_ATTR: ['src', 'alt', 'width', 'height', 'class']
@@ -494,7 +494,7 @@ export function LegislationPreview({ open, onOpenChange, legislation, relevantSe
               <ExtentBadges extent={legislation.extent} />
             </SheetDescription>
             <div className="flex gap-1.5 flex-wrap">
-              <SourceGovUkLink
+              <SourceGovAuLink
                 href={legislation.uri}
                 source="legislation"
                 variant="button"
@@ -632,7 +632,7 @@ export function LegislationPreview({ open, onOpenChange, legislation, relevantSe
                 </Card>
 
                 {/* External Link */}
-                <SourceGovUkLink
+                <SourceGovAuLink
                   href={legislation.uri}
                   source="legislation"
                   variant="primary"
@@ -813,13 +813,13 @@ export function LegislationPreview({ open, onOpenChange, legislation, relevantSe
                     <AlertCircle className="h-4 w-4" />
                     <AlertDescription>
                       Failed to load legislation content. Please try again or{" "}
-                      <SourceGovUkLink
+                      <SourceGovAuLink
                         href={legislation.uri}
                         source="legislation"
                         variant="inline"
                       >
-                        view on <span className="font-semibold">legislation</span>.gov.uk
-                      </SourceGovUkLink>
+                        view on <span className="font-semibold">legislation</span>.gov.au
+                      </SourceGovAuLink>
                     </AlertDescription>
                   </Alert>
                 )}

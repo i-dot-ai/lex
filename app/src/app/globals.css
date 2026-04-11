@@ -159,7 +159,7 @@
     margin-left: 2rem;
   }
 
-  /* Raw HTML from legislation.gov.uk styling - based on actual legislation.gov.uk CSS */
+  /* Raw HTML from legislation.gov.au styling - based on actual legislation.gov.au CSS */
   .legislation-content {
     font-family: arial, helvetica, verdana, sans-serif;
     font-size: 0.875rem; /* 14px - matches app text size */
@@ -219,7 +219,7 @@
     line-height: 1.4;
   }
 
-  /* Dates section - Official legislation.gov.uk styling */
+  /* Dates section - Official legislation.gov.au styling */
 
   /* Legacy format (LegDate classes) */
   .legislation-content div.LegDate {
