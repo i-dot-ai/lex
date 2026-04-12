@@ -332,6 +332,24 @@ describe("GET /coverage (JSON)", () => {
 });
 
 describe("GET /coverage/view (HTML)", () => {
+  it("renders the empty-state page with the refresh button when no manifest exists", async () => {
+    const { env } = createCoverageMockEnv();
+    const { ctx } = createCtx();
+    const res = await app.request("/coverage/view", {}, env, ctx);
+    // Returns 200 (not 404) so the in-browser refresh form is usable.
+    expect(res.status).toBe(200);
+    expect(res.headers.get("Content-Type") ?? "").toContain("text/html");
+    const body = await res.text();
+    expect(body).toContain("No coverage manifest yet");
+    // The refresh panel + inline script are present so the user can trigger
+    // the first refresh from the browser without touching a terminal.
+    expect(body).toContain('id="refresh-btn"');
+    expect(body).toContain('id="refresh-form"');
+    expect(body).toContain('id="refresh-token"');
+    expect(body).toContain("'/coverage/refresh'");
+    expect(body).toContain("X-Refresh-Token");
+  });
+
   it("renders ticks, crosses, and click-through links", async () => {
     const { env, kv } = createCoverageMockEnv();
     const manifest: CoverageManifest = {
@@ -381,6 +399,9 @@ describe("GET /coverage/view (HTML)", () => {
     expect(body).toContain("<th>Title ID</th>");
     // First-seen disclosure is explicit.
     expect(body).toContain("does not retain historical");
+    // Refresh button is always available from the browser.
+    expect(body).toContain('id="refresh-btn"');
+    expect(body).toContain("'/coverage/refresh'");
   });
 });
 

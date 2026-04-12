@@ -83,7 +83,7 @@ coverage.get("/", async (c) => {
   return c.json(manifest);
 });
 
-/** GET /coverage/view — HTML table view. */
+/** GET /coverage/view — HTML table view with inline refresh button. */
 coverage.get("/view", async (c) => {
   const guard = validateCollectionParam(c);
   if (!guard.ok) return guard.response;
@@ -92,23 +92,15 @@ coverage.get("/view", async (c) => {
     KV_KEYS.manifestLatest,
     "json",
   );
-  if (!manifest) {
-    return c.html(
-      `<!doctype html><html><body style="font:15px system-ui;padding:2rem">
-<h1>No coverage manifest yet</h1>
-<p>Trigger <code>POST /coverage/refresh</code> with the
-<code>X-Refresh-Token</code> header to build the first manifest. Once the
-background refresh completes, reload this page.</p>
-</body></html>`,
-      404,
-    );
-  }
 
   const pageParam = Number(c.req.query("page") ?? "1");
   const page = Number.isFinite(pageParam) && pageParam >= 1 ? pageParam : 1;
   const url = new URL(c.req.url);
   const baseUrl = `${url.origin}${url.pathname}`;
 
+  // Always render via the same template so the in-browser Refresh button is
+  // available even before the first manifest has been built. A missing
+  // manifest renders the empty-state page with just the refresh panel.
   return c.html(renderCoverageHtml(manifest, { page, baseUrl }));
 });
 
