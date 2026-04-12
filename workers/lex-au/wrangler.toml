@@ -25,8 +25,11 @@ binding = "AI"
 binding = "KV_BINDING"
 id = "0ae3b3b1068d452ba7714efd95a301fe"
 
-# Raise CPU budget so a manual /coverage/refresh can chew through ~80
-# paginated source fetches + batched Vectorize getByIds lookups. Most runs
-# are wall-time bound (1 req/s source rate limit), not CPU bound.
-[limits]
-cpu_ms = 300000
+# NOTE: `[limits] cpu_ms = …` is a paid-plan feature and the deploy fails on
+# the Free plan if it's set, so we rely on the default per-invocation CPU
+# budget. The coverage refresh is almost entirely network-bound (1 req/s
+# pacing on the source API), so actual CPU usage stays low — JSON.parse of
+# each 100-row page and JSON.stringify of the final manifest are the only
+# meaningful CPU costs. If free-tier CPU turns out to be tight, the next
+# step would be to chunk the refresh into a small state machine driven by
+# KV (one page per invocation) rather than trying to raise the limit.
