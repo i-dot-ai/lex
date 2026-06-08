@@ -1,0 +1,10 @@
+# Python deps for the agno + Bindu glue. The Lex MCP server is hosted, so there is
+# nothing from the parent repo to install — see this example's README for setup.
+bindu>=2026.20
+agno>=2.6,<3
+openai>=1.40
+mcp>=1.0           # agno's MCP client (streamable HTTP transport to the hosted Lex server)
+sqlalchemy>=2
+aiosqlite>=0.20
+python-dotenv>=1.0
+rich>=13
