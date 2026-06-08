@@ -35,6 +35,10 @@ Connect AI assistants to Lex via Model Context Protocol. See the [live documenta
 - Microsoft Copilot Studio
 - VS Code + GitHub Copilot
 
+### Example: serve Lex as an A2A agent
+
+A community-contributed example wraps Lex's MCP tools in an [agno](https://github.com/agno-agi/agno) agent and exposes it over the [Bindu](https://github.com/GetBindu/Bindu) Agent-to-Agent protocol (DID identity + JSON-RPC endpoint). See [`examples/agno-bindu/`](examples/agno-bindu/).
+
 ## Local Development
 
 ### Prerequisites
