@@ -132,9 +132,10 @@ def upload_documents(
                                 text_parts.append(str(value))
                         text = " ".join(text_parts)
 
-                    if not text:
+                    if not text or not text.strip():
                         logger.warning(
-                            f"Document {doc_id} has no content in embedding fields {embedding_fields}, skipping",
+                            f"Document {doc_id} has no content in embedding fields "
+                            f"{embedding_fields}, skipping",
                             extra={
                                 "doc_id": doc_id,
                                 "collection": collection_name,
@@ -143,8 +144,21 @@ def upload_documents(
                         )
                         continue
 
+                    text = text.strip()
                     texts.append(text)
                     doc_metadata.append((doc_id, doc))
+
+                if not texts:
+                    logger.warning(
+                        f"No uploadable documents in batch {i}; all documents had empty content",
+                        extra={
+                            "batch_number": i,
+                            "batch_size": len(batch),
+                            "collection": collection_name,
+                            "embedding_fields": embedding_fields,
+                        },
+                    )
+                    break
 
                 # Generate dense embeddings in batch (sparse is computed server-side by Qdrant)
                 from lex.core.embeddings import bm25_document, generate_dense_embeddings_batch
