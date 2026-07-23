@@ -46,7 +46,7 @@ def test_upload_documents_skips_empty_batch_without_embedding(monkeypatch):
     assert qdrant_client.upsert_calls == []
 
 
-def test_upload_documents_skips_empty_documents_and_uploads_valid_ones(monkeypatch):
+def test_upload_documents_skips_empty_batch_and_uploads_later_valid_documents(monkeypatch, caplog):
     embedding_calls = []
     qdrant_client = FakeQdrantClient()
 
@@ -65,10 +65,13 @@ def test_upload_documents_skips_empty_documents_and_uploads_valid_ones(monkeypat
             UploadDocument(id="whitespace", text="   "),
             UploadDocument(id="valid", text=" useful content "),
         ],
-        batch_size=3,
+        batch_size=2,
     )
 
     assert embedding_calls == [["useful content"]]
     assert len(qdrant_client.upsert_calls) == 1
     assert len(qdrant_client.upsert_calls[0]["points"]) == 1
     assert qdrant_client.upsert_calls[0]["points"][0].payload["id"] == "valid"
+    assert (
+        sum("No uploadable documents in batch" in record.message for record in caplog.records) == 1
+    )
