@@ -39,6 +39,50 @@ If Claude Desktop or other MCP clients can't connect:
 2. Check the MCP endpoint: `curl http://localhost:8000/mcp`
 3. Ensure your configuration file has the correct URL
 
+## MCP client crashes with `ReferenceError: File is not defined`
+
+If your client launches `mcp-remote` via `npx` and exits immediately with:
+
+```
+ReferenceError: File is not defined
+    at .../node_modules/undici/lib/web/webidl/index.js
+```
+
+it is running under Node.js 18 or older. `mcp-remote` depends on `undici`, which
+needs the `File` global added in Node.js 20.
+
+This usually happens when nvm is installed. Clients such as Claude Desktop build
+their own `PATH` for the processes they spawn, and an nvm Node can take
+precedence over a newer system one. Giving the full path to `npx` does not help,
+because the spawned process still inherits that `PATH`.
+
+Lex serves MCP over Streamable HTTP, so the simplest fix is to skip `mcp-remote`
+and connect directly. In Claude Code:
+
+```bash
+claude mcp add --transport http lex https://lex.lab.i.ai.gov.uk/mcp
+```
+
+For a client that can only launch a command, point it at a wrapper script that
+puts a Node.js 20+ install first on `PATH`:
+
+```bash
+#!/bin/bash
+# ~/.local/bin/mcp-remote-wrapper
+export PATH="/opt/homebrew/bin:$PATH"
+exec /opt/homebrew/bin/npx -y mcp-remote@latest "$@"
+```
+
+```json
+{
+  "command": "/Users/<username>/.local/bin/mcp-remote-wrapper",
+  "args": ["https://lex.lab.i.ai.gov.uk/mcp"]
+}
+```
+
+To confirm which version a wrapper resolves to, add `node --version` to the
+script — the client's `PATH` is often not the one your shell uses.
+
 ## Embedding model issues
 
 If you see errors about embeddings or Azure OpenAI:
