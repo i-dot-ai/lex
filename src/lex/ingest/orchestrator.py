@@ -487,7 +487,23 @@ def _create_points_batch(docs: list) -> list[PointStruct]:
     if not docs:
         return []
 
-    texts = [doc.get_embedding_text() for doc in docs]
+    uploadable_docs = []
+    texts = []
+    for doc in docs:
+        text = doc.get_embedding_text()
+        if not text or not text.strip():
+            logger.warning(
+                "Skipping document %s because its embedding text is empty",
+                getattr(doc, "id", "unknown"),
+            )
+            continue
+
+        uploadable_docs.append(doc)
+        texts.append(text.strip())
+
+    if not texts:
+        return []
+
     dense_embeddings = generate_dense_embeddings_batch(texts)
 
     return [
@@ -496,7 +512,7 @@ def _create_points_batch(docs: list) -> list[PointStruct]:
             vector={"dense": dense, "sparse": bm25_document(text)},
             payload=doc.model_dump(mode="json"),
         )
-        for doc, text, dense in zip(docs, texts, dense_embeddings)
+        for doc, text, dense in zip(uploadable_docs, texts, dense_embeddings)
     ]
 
 
@@ -543,7 +559,8 @@ def _upload_batch(
                 if attempt < max_retries - 1:
                     delay = retry_delay * (2**attempt)
                     logger.warning(
-                        f"Upload to {collection} failed (attempt {attempt + 1}/{max_retries}): {e}, "
+                        f"Upload to {collection} failed "
+                        f"(attempt {attempt + 1}/{max_retries}): {e}, "
                         f"retrying in {delay}s"
                     )
                     time.sleep(delay)
